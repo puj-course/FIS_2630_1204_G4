@@ -164,7 +164,8 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 📧 est2@javeriana.edu.co
 
 **Estudiante 3**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana 
+
 📧 vallejo-david@javeriana.edu.co 
 --- 
 
