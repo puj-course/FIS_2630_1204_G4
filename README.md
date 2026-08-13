@@ -8,14 +8,14 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 ---
 
 ## Equipo del Proyecto
-| Nombre        | Rol                   | GitHub / Perfil |
-|--------------|-----------------------|-----------------|
-| Estudiante 1 | Scrum Master          | github.com/isabelsgp |
-| Estudiante 2 | Product Owner         | github.com/usuario2 |
-| Estudiante 3 | Sprint Planner        | github.com/usuario3 |
-| Estudiante 4 | Configuration Manager | github.com/usuario4 |
-| Estudiante 5 | QA Lead               | github.com/usuario5 |
-| Estudiante 6 | DevOps Engineer       | github.com/usuario6 |
+| Nombre                  | Rol                    | GitHub / Perfil |
+|-------------------------|------------------------|--------------------------------------------|
+| Isabel Gutiérrez        | Scrum Master           | github.com/isabelsgp |
+| Juan Diego Arevalo      | Product Owner          | github.com/usuario2 |
+| Juan Pablo Vanegas      | Sprint Planner         | github.com/ujuanpvanegasvelandia02-ship-it |
+| David Vallejo           | Configuration Manager  | github.com/David-wallpaper |
+| Juan Diego Arevalo      | QA Lead                | github.com/Juan123839 |
+| Oscar Martinez Mantilla | DevOps Engineer        | github.com/martinezm-oe |
 
 ---
 
