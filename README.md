@@ -20,10 +20,10 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 ---
 
 ## Tecnologías Utilizadas
-- **Frontend:** JavaFX
-- **Backend:** Java – Spring Boot
+- **Frontend:** React y JavaScript
+- **Backend:**  Python con FastAPI
 - **Base de Datos:** PostgreSQL
-- **IA / Data Science:** Python, Pandas, Scikit-learn
+- **IA / Data Science:** Python, Pandas, Scikit-learn,  OpenCV y MediaPipe.
 - **DevOps:** GitHub Actions, Docker, SonarQube
 - **Control de versiones:** Git
 
