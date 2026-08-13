@@ -27,7 +27,7 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 - **DevOps:** GitHub Actions, Docker, SonarQube
 - **Control de versiones:** Git
 
----
+----
 
 ## Estructura del Proyecto
 ```text
