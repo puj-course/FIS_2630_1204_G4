@@ -11,7 +11,7 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 | Nombre                  | Rol                    | GitHub / Perfil |
 |-------------------------|------------------------|--------------------------------------------|
 | Isabel Gutiérrez        | Scrum Master           | github.com/isabelsgp |
-| Juan Diego Arevalo      | Product Owner          | github.com/usuario2 |
+| Juan Diego Arevalo      | Product Owner          | github.com/Juan123839 |
 | Juan Pablo Vanegas      | Sprint Planner         | github.com/ujuanpvanegasvelandia02-ship-it |
 | David Vallejo           | Configuration Manager  | github.com/David-wallpaper |
 | Juan Diego Arevalo      | QA Lead                | github.com/Juan123839 |
