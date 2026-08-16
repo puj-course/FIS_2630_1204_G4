@@ -163,7 +163,7 @@ Estudiante de Ciencia de Datos, Pontificia Universidad Javeriana
 Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
 📧 est2@javeriana.edu.co  
 
---- 
+----
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
