@@ -1,9 +1,11 @@
-# Plantilla del README del proyecto 2610
 
-# Nombre de la Aplicación
+# SignIA 🤟💙
+**"Aprender para comunicar, comunicar para incluir."**
 
 ## Descripción
-Breve descripción del sistema de software, el problema que busca solucionar y el contexto general del proyecto.
+**SignIA** es una plataforma web multiusuario orientada al aprendizaje y reconocimiento del alfabeto de la **Lengua de Señas Colombiana (LSC)** mediante visión por computador, la plataforma facilita la práctica del alfabeto de la LSC utilizando la cámara del dispositivo, permitiendo identificar las señas realizadas por el usuario y mostrar la letra correspondiente en tiempo real.
+
+SignIA surge como respuesta a las barreras de comunicación existentes entre personas sordas y oyentes y a la necesidad de generar herramientas tecnológicas que permitan ampliar el conocimiento básico de la LSC, la plataforma busca promover el aprendizaje autónomo, la sensibilización frente a la comunidad sorda y el uso de la tecnología como herramienta para contribuir a una comunicación más inclusiva.
 
 ---
 
@@ -20,11 +22,12 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 ---
 
 ## Tecnologías Utilizadas
-- **Frontend:** React y JavaScript
-- **Backend:**  Python con FastAPI
+
+- **Frontend:** React + JavaScript
+- **Backend:** Python – FastAPI
 - **Base de Datos:** PostgreSQL
-- **IA / Data Science:** Python, Pandas, Scikit-learn,  OpenCV y MediaPipe.
-- **DevOps:** GitHub Actions, Docker, SonarQube
+- **Visión por Computador:** OpenCV + MediaPipe
+- **Procesamiento de datos:** Pandas
 - **Control de versiones:** Git
 
 ----
@@ -122,13 +125,15 @@ project-name/
 **Requisitos**
 - Docker y Docker Compose
 - Git
-- Java 17+
 - Python 3.10+
+- Node.js
+- npm
+- PostgreSQL
 
 ## Clonar el repositorio
 ```text
-git clone https://github.com/organizacion/proyecto.git
-cd proyecto
+git clone https://github.com/puj-course/FIS_2630_1204_G4.git
+cd SignIA
 ```
 
 ## Ejecución con Docker
@@ -155,13 +160,26 @@ docker-compose run ai-model pytest
 
 **Equipo de desarrollo:**
 
-**Estudiante 1**  
-Estudiante de Ciencia de Datos, Pontificia Universidad Javeriana  
-📧 est1.u@javeriana.edu.co  
+**Isabel Gutiérrez**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/isabelsgp
 
-**Estudiante 2**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 est2@javeriana.edu.co  
+**Juan Diego Arevalo**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/Juan123839
+
+**Juan Pablo Vanegas**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
+
+**David Vallejo**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/David-wallpaper
+
+**Oscar Martinez Mantilla**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/martinezm-oe
+ 
 
 ----
 
