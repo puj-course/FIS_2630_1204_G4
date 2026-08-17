@@ -7,7 +7,7 @@
 
 SignIA surge como respuesta a las barreras de comunicación existentes entre personas sordas y oyentes y a la necesidad de generar herramientas tecnológicas que permitan ampliar el conocimiento básico de la LSC, la plataforma busca promover el aprendizaje autónomo, la sensibilización frente a la comunidad sorda y el uso de la tecnología como herramienta para contribuir a una comunicación más inclusiva.
 
----
+----
 
 ## Equipo del Proyecto
 | Nombre                  | Rol                    | GitHub / Perfil |
@@ -160,6 +160,7 @@ docker-compose run ai-model pytest
 
 **Equipo de desarrollo:**
 
+<<<<<<< HEAD
 **Isabel Gutiérrez**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
 GitHub: https://github.com/isabelsgp
@@ -180,8 +181,33 @@ GitHub: https://github.com/David-wallpaper
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
 GitHub: https://github.com/martinezm-oe
  
+=======
+**Oscar Eduardo Martinez Mantilla**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 martinezm.oe@javeriana.edu.co  
+>>>>>>> 9a2ba09f66ecc49fed26242ff1154d829a0b6f40
 
-----
+**Isabel Gutiérrez**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 isabels-gutierrez@javeriana.edu.co  
+
+**Juan Diego Arevalo**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jd.arevalo@javeriana.edu.co  
+
+**Juan Pablo Vanegas**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jpablo_venegas@javeriana.edu.co  
+
+**David Vallejo**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 est2@javeriana.edu.co
+
+**Estudiante 3**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana 
+
+📧 vallejo-david@javeriana.edu.co 
+--- 
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
