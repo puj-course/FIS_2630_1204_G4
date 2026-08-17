@@ -5,7 +5,7 @@
 ## Descripción
 Breve descripción del sistema de software, el problema que busca solucionar y el contexto general del proyecto.
 
----
+----
 
 ## Equipo del Proyecto
 | Nombre                  | Rol                    | GitHub / Perfil |
@@ -173,9 +173,13 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 **David Vallejo**  
 Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 vallejo-david@javeriana.edu.co  
+📧 est2@javeriana.edu.co
 
-----
+**Estudiante 3**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana 
+
+📧 vallejo-david@javeriana.edu.co 
+--- 
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
