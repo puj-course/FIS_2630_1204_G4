@@ -20,14 +20,14 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 ---
 
 ## Tecnologías Utilizadas
-- **Frontend:** JavaFX
-- **Backend:** Java – Spring Boot
+- **Frontend:** React y JavaScript
+- **Backend:**  Python con FastAPI
 - **Base de Datos:** PostgreSQL
-- **IA / Data Science:** Python, Pandas, Scikit-learn
+- **IA / Data Science:** Python, Pandas, Scikit-learn,  OpenCV y MediaPipe.
 - **DevOps:** GitHub Actions, Docker, SonarQube
 - **Control de versiones:** Git
 
----
+----
 
 ## Estructura del Proyecto
 ```text
@@ -155,11 +155,23 @@ docker-compose run ai-model pytest
 
 **Equipo de desarrollo:**
 
-**Estudiante 1**  
-Estudiante de Ciencia de Datos, Pontificia Universidad Javeriana  
-📧 est1.u@javeriana.edu.co  
+**Oscar Eduardo Martinez Mantilla**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 martinezm.oe@javeriana.edu.co  
 
-**Estudiante 2**  
+**Isabel Gutiérrez**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 isabels-gutierrez@javeriana.edu.co  
+
+**Juan Diego Arevalo**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jd.arevalo@javeriana.edu.co  
+
+**Juan Pablo Vanegas**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jpablo_venegas@javeriana.edu.co  
+
+**David Vallejo**  
 Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
 📧 est2@javeriana.edu.co
 
@@ -171,3 +183,5 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
+
+---
