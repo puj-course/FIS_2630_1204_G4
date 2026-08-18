@@ -170,7 +170,7 @@ GitHub: https://github.com/Juan123839
 
 **Juan Pablo Vanegas**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
+Correo: Juanpvanegasvelandia02@gmail.com
 
 **David Vallejo**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
