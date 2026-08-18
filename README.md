@@ -6,7 +6,7 @@
 
 SignIA surge como respuesta a las barreras de comunicación existentes entre personas sordas y oyentes y a la necesidad de generar herramientas tecnológicas que permitan ampliar el conocimiento básico de la LSC, la plataforma busca promover el aprendizaje autónomo, la sensibilización frente a la comunidad sorda y el uso de la tecnología como herramienta para contribuir a una comunicación más inclusiva.
 
-----
+-----
 
 ## Equipo del Proyecto
 | Nombre                  | Rol                    | GitHub / Perfil |
