@@ -30,7 +30,7 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 - **Procesamiento de datos:** Pandas
 - **Control de versiones:** Git
 
-----
+------
 
 ## Estructura del Proyecto
 ```text
