@@ -1,11 +1,12 @@
-# Plantilla del README del proyecto 2610
-
-# Nombre de la Aplicación
+# SignIA 💙
+**"Aprender para comunicar, comunicar para incluir."**
 
 ## Descripción
-Breve descripción del sistema de software, el problema que busca solucionar y el contexto general del proyecto.
+**SignIA** es una plataforma web multiusuario orientada al aprendizaje y reconocimiento del alfabeto de la **Lengua de Señas Colombiana (LSC)** mediante visión por computador, la plataforma facilita la práctica del alfabeto de la LSC utilizando la cámara del dispositivo, permitiendo identificar las señas realizadas por el usuario y mostrar la letra correspondiente en tiempo real.
 
-----
+SignIA surge como respuesta a las barreras de comunicación existentes entre personas sordas y oyentes y a la necesidad de generar herramientas tecnológicas que permitan ampliar el conocimiento básico de la LSC, la plataforma busca promover el aprendizaje autónomo, la sensibilización frente a la comunidad sorda y el uso de la tecnología como herramienta para contribuir a una comunicación más inclusiva.
+
+-----
 
 ## Equipo del Proyecto
 | Nombre                  | Rol                    | GitHub / Perfil |
@@ -20,100 +21,133 @@ Breve descripción del sistema de software, el problema que busca solucionar y e
 ---
 
 ## Tecnologías Utilizadas
-- **Frontend:** React y JavaScript
-- **Backend:**  Python con FastAPI
+
+- **Frontend:** React + JavaScript
+- **Backend:** Python – FastAPI
 - **Base de Datos:** PostgreSQL
-- **IA / Data Science:** Python, Pandas, Scikit-learn,  OpenCV y MediaPipe.
-- **DevOps:** GitHub Actions, Docker, SonarQube
+- **Visión por Computador:** OpenCV + MediaPipe
+- **Procesamiento de datos:** Pandas
 - **Control de versiones:** Git
 
 ----
 
 ## Estructura del Proyecto
+
 ```text
-project-name/
+FIS_2630_1204_G4/
+│
 ├── app/
-│   ├── index.js
-│   │   └── Punto de entrada principal de la aplicación.
-│   ├── package.json
-│   │   └── Define las dependencias, scripts y configuración del proyecto.
+│   ├── main.py
+│   │   └── Punto de entrada principal del backend con FastAPI.
+│   │
 │   ├── routes/
-│   │   ├── index.js
-│   │   └── Define las rutas o endpoints principales de la aplicación.
+│   │   └── Define las rutas y endpoints principales de la API.
+│   │
 │   ├── controllers/
-│   │   ├── userController.js
-│   │   └── Contiene la lógica encargada de procesar las solicitudes.
-│   └── services/
-│       ├── userService.js
-│       └── Contiene la lógica de negocio y servicios reutilizables.
+│   │   └── Procesa las solicitudes recibidas desde las rutas.
+│   │
+│   ├── services/
+│   │   └── Contiene la lógica de negocio y servicios reutilizables.
+│   │
+│   └── vision/
+│       └── Contiene el procesamiento con OpenCV, MediaPipe y reconocimiento.
 │
 ├── conf/
-│   ├── config.json
+│   ├── config.py
 │   │   └── Contiene parámetros generales de configuración.
-│   ├── database.js
-│   │   └── Configura la conexión con la base de datos.
+│   │
+│   ├── database.py
+│   │   └── Configura la conexión con PostgreSQL.
+│   │
 │   └── environment.example
-│       └── Ejemplo de las variables de entorno necesarias para ejecutar el proyecto.
+│       └── Ejemplo de las variables de entorno necesarias.
 │
 ├── docs/
 │   ├── architecture.md
-│   │   └── Describe la arquitectura general del sistema.
+│   │   └── Describe la arquitectura general de SignIA.
+│   │
 │   ├── api.md
-│   │   └── Documenta los endpoints, parámetros y respuestas de la API.
+│   │   └── Documenta los endpoints de la API.
+│   │
 │   ├── installation.md
-│   │   └── Explica cómo instalar y configurar el proyecto.
+│   │   └── Explica la instalación y configuración del proyecto.
+│   │
 │   └── user_guide.md
-│       └── Guía básica para el uso de la aplicación.
+│       └── Guía básica para utilizar SignIA.
 │
 ├── scripts/
 │   ├── setup.sh
-│   │   └── Automatiza la instalación y configuración inicial del proyecto.
+│   │   └── Automatiza la configuración inicial.
+│   │
 │   ├── start.sh
 │   │   └── Permite iniciar la aplicación.
+│   │
 │   ├── test.sh
-│   │   └── Ejecuta las pruebas automatizadas.
+│   │   └── Ejecuta las pruebas.
+│   │
 │   └── deploy.sh
-│       └── Automatiza tareas relacionadas con el despliegue.
+│       └── Automatiza tareas relacionadas con despliegue.
 │
 ├── src/
 │   ├── models/
-│   │   ├── user.js
-│   │   └── Define las estructuras o modelos de datos del sistema.
+│   │   └── Define los modelos de datos del sistema.
+│   │
+│   ├── schemas/
+│   │   └── Define los esquemas utilizados para validación de datos.
+│   │
 │   ├── utils/
-│   │   ├── helpers.js
 │   │   └── Contiene funciones auxiliares reutilizables.
+│   │
 │   ├── middleware/
-│   │   ├── auth.js
-│   │   └── Contiene funciones que se ejecutan antes o después de una solicitud.
+│   │   └── Contiene funciones ejecutadas durante las solicitudes.
+│   │
 │   └── tests/
-│       ├── user.test.js
-│       └── Contiene pruebas unitarias o de integración del proyecto.
+│       └── Contiene las pruebas unitarias y de integración.
+│
+├── web/
+│   ├── package.json
+│   │   └── Define las dependencias y scripts del frontend.
+│   │
+│   ├── public/
+│   │   └── Contiene recursos públicos del frontend.
+│   │
+│   └── src/
+│       ├── assets/
+│       │   └── Imágenes e iconos utilizados por la aplicación.
+│       ├── components/
+│       │   └── Componentes reutilizables de React.
+│       ├── pages/
+│       │   └── Páginas principales de la plataforma.
+│       └── services/
+│           └── Comunicación del frontend con la API.
 │
 ├── temp/
 │   ├── .gitkeep
-│   │   └── Permite conservar la carpeta vacía dentro del repositorio.
-│   ├── example.tmp
-│   │   └── Ejemplo de archivo temporal generado durante la ejecución.
 │   └── uploads/
-│       └── Carpeta destinada a almacenar archivos temporales cargados por usuarios.
+│       └── Archivos temporales utilizados durante la ejecución.
+│
+├── requirements.txt
+│   └── Dependencias de Python utilizadas por el backend.
 │
 ├── BOILERPLATE_template.md
-│   └── Documento que explica la estructura base y cómo utilizar este boilerplate.
+│   └── Documento base proporcionado para organizar el proyecto.
 │
 ├── CONTRIBUTING.md
-│   └── Define las normas y recomendaciones para contribuir al proyecto.
+│   └── Normas para contribuir al repositorio.
 │
 ├── LICENSE
-│   └── Especifica la licencia bajo la cual se distribuye el proyecto.
+│   └── Licencia del proyecto.
 │
 ├── README.md
-│   └── Documento principal con la descripción, instalación, uso y características del proyecto.
+│   └── Documento principal de SignIA.
 │
 ├── .gitignore
-│   └── Define los archivos y carpetas que Git no debe versionar.
+│   └── Archivos y carpetas que Git no debe versionar.
 │
 └── .env.example
-    └── Plantilla de las variables de entorno necesarias para ejecutar la aplicación.
+    └── Plantilla de variables de entorno.
+
+
 ```
 
 ---
@@ -122,13 +156,15 @@ project-name/
 **Requisitos**
 - Docker y Docker Compose
 - Git
-- Java 17+
 - Python 3.10+
+- Node.js
+- npm
+- PostgreSQL
 
 ## Clonar el repositorio
 ```text
-git clone https://github.com/organizacion/proyecto.git
-cd proyecto
+git clone https://github.com/puj-course/FIS_2630_1204_G4.git
+cd SignIA
 ```
 
 ## Ejecución con Docker
@@ -155,30 +191,27 @@ docker-compose run ai-model pytest
 
 **Equipo de desarrollo:**
 
-**Oscar Eduardo Martinez Mantilla**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 martinezm.oe@javeriana.edu.co  
-
 **Isabel Gutiérrez**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 isabels-gutierrez@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/isabelsgp
 
 **Juan Diego Arevalo**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 jd.arevalo@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/Juan123839
 
 **Juan Pablo Vanegas**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 jpablo_venegas@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
 
 **David Vallejo**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 est2@javeriana.edu.co
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/David-wallpaper
 
-**Estudiante 3**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana 
+**Oscar Martinez Mantilla**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/martinezm-oe
 
-📧 vallejo-david@javeriana.edu.co 
+
 --- 
 
 ## Licencia
