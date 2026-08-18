@@ -1,4 +1,3 @@
-
 # SignIA 💙
 **"Aprender para comunicar, comunicar para incluir."**
 
