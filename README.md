@@ -205,7 +205,7 @@ GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
 
 **David Vallejo**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/David-wallpaper
+Correo: vallejo-david@javeriana.edu.co
 
 **Oscar Martinez Mantilla**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
