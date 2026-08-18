@@ -36,100 +36,126 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 ```text
 FIS_2630_1204_G4/
 │
-├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   │   └── Plantillas utilizadas para estandarizar la creación de Issues.
-│   └── workflows/
-│       └── Flujos de automatización e integración continua del proyecto.
+├── app/
+│   ├── main.py
+│   │   └── Punto de entrada principal del backend desarrollado con FastAPI.
+│   │
+│   ├── routes/
+│   │   └── Define las rutas y endpoints principales de la API.
+│   │
+│   ├── controllers/
+│   │   └── Procesa las solicitudes recibidas por la aplicación.
+│   │
+│   ├── services/
+│   │   └── Contiene la lógica de negocio y servicios reutilizables.
+│   │
+│   └── vision/
+│       └── Contiene el procesamiento con OpenCV, MediaPipe y clasificación.
 │
-├── assets/
-│   ├── diagrams/
-│   │   └── Diagramas generales utilizados en la documentación.
-│   ├── images/
-│   │   └── Imágenes y recursos gráficos del proyecto.
-│   └── logo/
-│       └── Logo e identidad visual de SignIA.
-│
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── Define las rutas y endpoints de la API.
-│   │   ├── core/
-│   │   │   └── Contiene la configuración general y aspectos de seguridad.
-│   │   ├── database/
-│   │   │   └── Gestiona la conexión entre FastAPI y PostgreSQL.
-│   │   ├── models/
-│   │   │   └── Define los modelos de datos del sistema.
-│   │   ├── schemas/
-│   │   │   └── Define los esquemas utilizados para validar datos.
-│   │   ├── services/
-│   │   │   └── Contiene la lógica de negocio de la aplicación.
-│   │   ├── utils/
-│   │   │   └── Funciones auxiliares reutilizables.
-│   │   └── vision/
-│   │       └── Contiene la lógica de visión por computador con OpenCV y MediaPipe.
-│   └── tests/
-│       └── Pruebas unitarias y de integración del backend.
-│
-├── database/
-│   ├── diagrams/
-│   │   └── Diagramas relacionados con el modelo de datos.
-│   └── migrations/
-│       └── Cambios y versiones de la estructura de la base de datos.
+├── conf/
+│   ├── config.py
+│   │   └── Contiene parámetros generales de configuración.
+│   │
+│   ├── database.py
+│   │   └── Configura la conexión con PostgreSQL.
+│   │
+│   └── environment.example
+│       └── Ejemplo de las variables de entorno necesarias.
 │
 ├── docs/
-│   ├── api/
-│   │   └── Documentación relacionada con los endpoints de la API.
-│   ├── architecture/
-│   │   └── Documentación de la arquitectura del sistema.
-│   ├── database/
-│   │   └── Diseño y documentación de la base de datos.
-│   ├── requirements/
-│   │   └── Requerimientos funcionales y no funcionales.
-│   ├── scrum/
-│   │   └── Documentación relacionada con Sprints y gestión Scrum.
-│   └── user-guide/
-│       └── Guías de uso de la plataforma.
-│
-├── frontend/
-│   ├── public/
-│   │   └── Archivos públicos utilizados por la aplicación web.
-│   └── src/
-│       ├── assets/
-│       │   └── Recursos gráficos utilizados directamente por React.
-│       ├── components/
-│       │   └── Componentes reutilizables de la interfaz.
-│       ├── pages/
-│       │   └── Vistas principales de la plataforma.
-│       ├── services/
-│       │   └── Comunicación entre el frontend y la API.
-│       └── utils/
-│           └── Funciones auxiliares utilizadas en el frontend.
+│   ├── architecture.md
+│   │   └── Describe la arquitectura general del sistema.
+│   │
+│   ├── api.md
+│   │   └── Documenta los endpoints, parámetros y respuestas de la API.
+│   │
+│   ├── installation.md
+│   │   └── Explica cómo instalar y configurar el proyecto.
+│   │
+│   └── user_guide.md
+│       └── Guía básica para el uso de SignIA.
 │
 ├── scripts/
-│   └── Scripts utilizados para automatizar tareas del proyecto.
+│   ├── setup.sh
+│   │   └── Automatiza la configuración inicial del proyecto.
+│   │
+│   ├── start.sh
+│   │   └── Permite iniciar la aplicación.
+│   │
+│   ├── test.sh
+│   │   └── Ejecuta las pruebas automatizadas.
+│   │
+│   └── deploy.sh
+│       └── Automatiza tareas relacionadas con el despliegue.
+│
+├── src/
+│   ├── models/
+│   │   └── Define los modelos de datos utilizados por el sistema.
+│   │
+│   ├── schemas/
+│   │   └── Define los esquemas utilizados para validar los datos.
+│   │
+│   ├── utils/
+│   │   └── Contiene funciones auxiliares reutilizables.
+│   │
+│   ├── middleware/
+│   │   └── Contiene funciones ejecutadas durante el procesamiento de solicitudes.
+│   │
+│   └── tests/
+│       └── Contiene pruebas unitarias y de integración.
+│
+├── web/
+│   ├── package.json
+│   │   └── Define las dependencias y scripts del frontend.
+│   │
+│   ├── public/
+│   │   └── Contiene los recursos públicos de la aplicación web.
+│   │
+│   └── src/
+│       ├── assets/
+│       │   └── Recursos gráficos utilizados por la aplicación.
+│       │
+│       ├── components/
+│       │   └── Componentes reutilizables de React.
+│       │
+│       ├── pages/
+│       │   └── Páginas principales de la plataforma.
+│       │
+│       └── services/
+│           └── Gestiona la comunicación del frontend con la API.
 │
 ├── temp/
+│   ├── .gitkeep
+│   │   └── Permite conservar la carpeta temporal dentro del repositorio.
+│   │
 │   └── uploads/
-│       └── Archivos temporales generados durante la ejecución.
+│       └── Archivos temporales utilizados durante la ejecución.
 │
-├── .env.example
-│   └── Plantilla de las variables de entorno necesarias.
-│
-├── .gitignore
-│   └── Define archivos y carpetas que Git no debe versionar.
+├── requirements.txt
+│   └── Define las dependencias utilizadas por el backend en Python.
 │
 ├── BOILERPLATE_template.md
 │   └── Plantilla base utilizada como referencia para organizar el repositorio.
 │
 ├── CONTRIBUTING.md
-│   └── Normas y recomendaciones para contribuir al proyecto.
+│   └── Define las normas y recomendaciones para contribuir al proyecto.
 │
 ├── LICENSE
-│   └── Licencia bajo la cual se encuentra el proyecto.
+│   └── Especifica la licencia del proyecto.
 │
+<<<<<<< HEAD
 └── README.md
     └── Documento principal con la descripción, tecnologías, instalación y estructura de SignIA.
+=======
+├── README.md
+│   └── Documento principal con la descripción, instalación y características de SignIA.
+│
+├── .gitignore
+│   └── Define los archivos y carpetas que Git no debe versionar.
+│
+└── .env.example
+    └── Plantilla de las variables de entorno necesarias para ejecutar la aplicación.
+>>>>>>> abd81c9 (actualización readme y estructura)
 ```
 
 ---
