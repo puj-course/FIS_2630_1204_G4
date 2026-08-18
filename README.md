@@ -192,24 +192,24 @@ docker-compose run ai-model pytest
 **Equipo de desarrollo:**
 
 **Isabel Gutiérrez**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/isabelsgp
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 isabels-gutierrez@javeriana.edu.co  
 
 **Juan Diego Arevalo**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-Correo: jd.arevalo@javeriana.edu.co
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jd.arevalo@javeriana.edu.co  
 
 **Juan Pablo Vanegas**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jpablo_venegas@javeriana.edu.co  
 
 **David Vallejo**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/David-wallpaper
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 vallejo-david@javeriana.edu.co 
 
-**Oscar Martinez Mantilla**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/martinezm-oe
+**Oscar Eduardo Martinez Mantilla**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 martinezm.oe@javeriana.edu.co  
 
 
 --- 
