@@ -197,7 +197,7 @@ GitHub: https://github.com/isabelsgp
 
 **Juan Diego Arevalo**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/Juan123839
+Correo: jd.arevalo@javeriana.edu.co
 
 **Juan Pablo Vanegas**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
