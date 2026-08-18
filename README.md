@@ -33,6 +33,7 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 
 ## Estructura del Proyecto
 
+```text
 FIS_2630_1204_G4/
 │
 ├── .github/
@@ -129,8 +130,6 @@ FIS_2630_1204_G4/
 │
 └── README.md
     └── Documento principal con la descripción, tecnologías, instalación y estructura de SignIA.
-```
-
 ```
 
 ---
