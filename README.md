@@ -33,89 +33,108 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 
 ## Estructura del Proyecto
 ```text
-project-name/
-├── app/
-│   ├── index.js
-│   │   └── Punto de entrada principal de la aplicación.
-│   ├── package.json
-│   │   └── Define las dependencias, scripts y configuración del proyecto.
-│   ├── routes/
-│   │   ├── index.js
-│   │   └── Define las rutas o endpoints principales de la aplicación.
-│   ├── controllers/
-│   │   ├── userController.js
-│   │   └── Contiene la lógica encargada de procesar las solicitudes.
-│   └── services/
-│       ├── userService.js
-│       └── Contiene la lógica de negocio y servicios reutilizables.
+
+## 📂 Estructura del Proyecto
+
+```text
+FIS_2630_1204_G4/
 │
-├── conf/
-│   ├── config.json
-│   │   └── Contiene parámetros generales de configuración.
-│   ├── database.js
-│   │   └── Configura la conexión con la base de datos.
-│   └── environment.example
-│       └── Ejemplo de las variables de entorno necesarias para ejecutar el proyecto.
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   └── Plantillas utilizadas para estandarizar la creación de Issues.
+│   └── workflows/
+│       └── Flujos de automatización e integración continua del proyecto.
+│
+├── assets/
+│   ├── diagrams/
+│   │   └── Diagramas generales utilizados en la documentación.
+│   ├── images/
+│   │   └── Imágenes y recursos gráficos del proyecto.
+│   └── logo/
+│       └── Logo e identidad visual de SignIA.
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── Define las rutas y endpoints de la API.
+│   │   ├── core/
+│   │   │   └── Contiene la configuración general y aspectos de seguridad.
+│   │   ├── database/
+│   │   │   └── Gestiona la conexión entre FastAPI y PostgreSQL.
+│   │   ├── models/
+│   │   │   └── Define los modelos de datos del sistema.
+│   │   ├── schemas/
+│   │   │   └── Define los esquemas utilizados para validar datos.
+│   │   ├── services/
+│   │   │   └── Contiene la lógica de negocio de la aplicación.
+│   │   ├── utils/
+│   │   │   └── Funciones auxiliares reutilizables.
+│   │   └── vision/
+│   │       └── Contiene la lógica de visión por computador con OpenCV y MediaPipe.
+│   └── tests/
+│       └── Pruebas unitarias y de integración del backend.
+│
+├── database/
+│   ├── diagrams/
+│   │   └── Diagramas relacionados con el modelo de datos.
+│   └── migrations/
+│       └── Cambios y versiones de la estructura de la base de datos.
 │
 ├── docs/
-│   ├── architecture.md
-│   │   └── Describe la arquitectura general del sistema.
-│   ├── api.md
-│   │   └── Documenta los endpoints, parámetros y respuestas de la API.
-│   ├── installation.md
-│   │   └── Explica cómo instalar y configurar el proyecto.
-│   └── user_guide.md
-│       └── Guía básica para el uso de la aplicación.
+│   ├── api/
+│   │   └── Documentación relacionada con los endpoints de la API.
+│   ├── architecture/
+│   │   └── Documentación de la arquitectura del sistema.
+│   ├── database/
+│   │   └── Diseño y documentación de la base de datos.
+│   ├── requirements/
+│   │   └── Requerimientos funcionales y no funcionales.
+│   ├── scrum/
+│   │   └── Documentación relacionada con Sprints y gestión Scrum.
+│   └── user-guide/
+│       └── Guías de uso de la plataforma.
+│
+├── frontend/
+│   ├── public/
+│   │   └── Archivos públicos utilizados por la aplicación web.
+│   └── src/
+│       ├── assets/
+│       │   └── Recursos gráficos utilizados directamente por React.
+│       ├── components/
+│       │   └── Componentes reutilizables de la interfaz.
+│       ├── pages/
+│       │   └── Vistas principales de la plataforma.
+│       ├── services/
+│       │   └── Comunicación entre el frontend y la API.
+│       └── utils/
+│           └── Funciones auxiliares utilizadas en el frontend.
 │
 ├── scripts/
-│   ├── setup.sh
-│   │   └── Automatiza la instalación y configuración inicial del proyecto.
-│   ├── start.sh
-│   │   └── Permite iniciar la aplicación.
-│   ├── test.sh
-│   │   └── Ejecuta las pruebas automatizadas.
-│   └── deploy.sh
-│       └── Automatiza tareas relacionadas con el despliegue.
-│
-├── src/
-│   ├── models/
-│   │   ├── user.js
-│   │   └── Define las estructuras o modelos de datos del sistema.
-│   ├── utils/
-│   │   ├── helpers.js
-│   │   └── Contiene funciones auxiliares reutilizables.
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   └── Contiene funciones que se ejecutan antes o después de una solicitud.
-│   └── tests/
-│       ├── user.test.js
-│       └── Contiene pruebas unitarias o de integración del proyecto.
+│   └── Scripts utilizados para automatizar tareas del proyecto.
 │
 ├── temp/
-│   ├── .gitkeep
-│   │   └── Permite conservar la carpeta vacía dentro del repositorio.
-│   ├── example.tmp
-│   │   └── Ejemplo de archivo temporal generado durante la ejecución.
 │   └── uploads/
-│       └── Carpeta destinada a almacenar archivos temporales cargados por usuarios.
+│       └── Archivos temporales generados durante la ejecución.
 │
-├── BOILERPLATE_template.md
-│   └── Documento que explica la estructura base y cómo utilizar este boilerplate.
-│
-├── CONTRIBUTING.md
-│   └── Define las normas y recomendaciones para contribuir al proyecto.
-│
-├── LICENSE
-│   └── Especifica la licencia bajo la cual se distribuye el proyecto.
-│
-├── README.md
-│   └── Documento principal con la descripción, instalación, uso y características del proyecto.
+├── .env.example
+│   └── Plantilla de las variables de entorno necesarias.
 │
 ├── .gitignore
-│   └── Define los archivos y carpetas que Git no debe versionar.
+│   └── Define archivos y carpetas que Git no debe versionar.
 │
-└── .env.example
-    └── Plantilla de las variables de entorno necesarias para ejecutar la aplicación.
+├── BOILERPLATE_template.md
+│   └── Plantilla base utilizada como referencia para organizar el repositorio.
+│
+├── CONTRIBUTING.md
+│   └── Normas y recomendaciones para contribuir al proyecto.
+│
+├── LICENSE
+│   └── Licencia bajo la cual se encuentra el proyecto.
+│
+└── README.md
+    └── Documento principal con la descripción, tecnologías, instalación y estructura de SignIA.
+```
+
 ```
 
 ---
