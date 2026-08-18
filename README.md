@@ -11,12 +11,12 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 ## Equipo del Proyecto
 | Nombre                  | Rol                    | GitHub / Perfil |
 |-------------------------|------------------------|--------------------------------------------|
-| Isabel Gutiérrez        | Scrum Master           | github.com/isabelsgp |
-| Juan Diego Arevalo      | Product Owner          | github.com/Juan123839 |
-| Juan Pablo Vanegas      | Sprint Planner         | github.com/ujuanpvanegasvelandia02-ship-it |
-| David Vallejo           | Configuration Manager  | github.com/David-wallpaper |
-| Juan Diego Arevalo      | QA Lead                | github.com/Juan123839 |
-| Oscar Martinez Mantilla | DevOps Engineer        | github.com/martinezm-oe |
+| Isabel Gutiérrez        | Scrum Master           | https://github.com/isabelsgp |
+| Juan Diego Arevalo      | Product Owner          | https://github.com/Juan123839 |
+| Juan Pablo Vanegas      | Sprint Planner         | https://github.com/ujuanpvanegasvelandia02-ship-it |
+| David Vallejo           | Configuration Manager  | https://github.com/David-wallpaper |
+| Juan Diego Arevalo      | QA Lead                | https://github.com/Juan123839 |
+| Oscar Martinez Mantilla | DevOps Engineer        | https://github.com/martinezm-oe |
 
 ---
 
@@ -192,24 +192,24 @@ docker-compose run ai-model pytest
 **Equipo de desarrollo:**
 
 **Isabel Gutiérrez**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/isabelsgp
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 isabels-gutierrez@javeriana.edu.co  
 
 **Juan Diego Arevalo**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/Juan123839
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jd.arevalo@javeriana.edu.co  
 
 **Juan Pablo Vanegas**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 jpablo_venegas@javeriana.edu.co  
 
 **David Vallejo**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/David-wallpaper
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 vallejo-david@javeriana.edu.co 
 
-**Oscar Martinez Mantilla**  
-Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-GitHub: https://github.com/martinezm-oe
+**Oscar Eduardo Martinez Mantilla**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 martinezm.oe@javeriana.edu.co  
 
 
 --- 
