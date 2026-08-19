@@ -29,7 +29,7 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 - **Procesamiento de datos:** Pandas
 - **Control de versiones:** Git
 
-----
+------
 
 ## Estructura del Proyecto
 
@@ -200,8 +200,8 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 📧 jd.arevalo@javeriana.edu.co  
 
 **Juan Pablo Vanegas**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 jpablo_venegas@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+Correo: Juanpvanegasvelandia02@gmail.com
 
 **David Vallejo**  
 Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
