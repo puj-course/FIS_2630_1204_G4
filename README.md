@@ -6,17 +6,20 @@
 
 SignIA surge como respuesta a las barreras de comunicación existentes entre personas sordas y oyentes y a la necesidad de generar herramientas tecnológicas que permitan ampliar el conocimiento básico de la LSC, la plataforma busca promover el aprendizaje autónomo, la sensibilización frente a la comunidad sorda y el uso de la tecnología como herramienta para contribuir a una comunicación más inclusiva.
 
------
+----
 
 ## Equipo del Proyecto
-| Nombre                  | Rol                    | GitHub / Perfil |
-|-------------------------|------------------------|--------------------------------------------|
-| Isabel Gutiérrez        | Scrum Master           | https://github.com/isabelsgp |
-| Juan Diego Arevalo      | Product Owner          | https://github.com/Juan123839 |
-| Juan Pablo Vanegas      | Sprint Planner         | https://github.com/ujuanpvanegasvelandia02-ship-it |
-| David Vallejo           | Configuration Manager  | https://github.com/David-wallpaper |
-| Juan Diego Arevalo      | QA Lead                | https://github.com/Juan123839 |
-| Oscar Martinez Mantilla | DevOps Engineer        | https://github.com/martinezm-oe |
+
+El equipo de **SignIA** se encuentra organizado mediante roles definidos para apoyar la gestión, planificación, calidad y desarrollo del proyecto.
+
+| Integrante | Rol | GitHub |
+|---|---|---|
+| **Isabel Gutiérrez** | Scrum Master | [@isabelsgp](https://github.com/isabelsgp) |
+| **Juan Diego Arevalo** | Product Owner | [@Juan123839](https://github.com/Juan123839) |
+| **Juan Pablo Vanegas** | Sprint Planner | [@ujuanpvanegasvelandia02-ship-it](https://github.com/ujuanpvanegasvelandia02-ship-it) |
+| **David Vallejo** | Configuration Manager | [@David-wallpaper](https://github.com/David-wallpaper) |
+| **Juan Diego Arevalo** | QA Lead | [@Juan123839](https://github.com/Juan123839) |
+| **Oscar Martinez Mantilla** | DevOps Engineer | [@martinezm-oe](https://github.com/martinezm-oe) |
 
 ---
 
@@ -29,7 +32,7 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 - **Procesamiento de datos:** Pandas
 - **Control de versiones:** Git
 
-----
+------
 
 ## Estructura del Proyecto
 
@@ -200,8 +203,8 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 📧 jd.arevalo@javeriana.edu.co  
 
 **Juan Pablo Vanegas**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 jpablo_venegas@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+Correo: Juanpvanegasvelandia02@gmail.com
 
 **David Vallejo**  
 Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
