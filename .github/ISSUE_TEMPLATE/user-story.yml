@@ -86,71 +86,13 @@ body:
         La Historia de Usuario podrá considerarse terminada cuando se cumplan los siguientes puntos.
 
   - type: checkboxes
-    id: dod
-    attributes:
-      label: "Definition of Done"
-      options:
-        - label: "Todos los criterios de aceptación fueron cumplidos."
-        - label: "La funcionalidad fue implementada."
-        - label: "El código fue subido al repositorio."
-        - label: "Se utilizó una rama correspondiente a la tarea o Historia de Usuario."
-        - label: "Se realizó el Pull Request correspondiente."
-        - label: "El código fue revisado cuando aplica."
-        - label: "Se realizaron las pruebas necesarias."
-        - label: "No existen errores conocidos que impidan utilizar la funcionalidad."
-        - label: "La funcionalidad está integrada con los componentes necesarios."
-        - label: "La documentación relacionada fue actualizada cuando aplica."
-        - label: "El Issue puede cerrarse."
-        - label: "La Historia de Usuario puede moverse a Done en GitHub Projects."
-
-  - type: dropdown
-    id: prioridad
-    attributes:
-      label: "Prioridad"
-      description: "Seleccione la prioridad de la Historia de Usuario."
-      options:
-        - Alta
-        - Media
-        - Baja
-    validations:
-      required: true
-
-  - type: dropdown
-    id: tamano
-    attributes:
-      label: "Tamaño"
-      description: "Seleccione la estimación inicial de la Historia de Usuario."
-      options:
-        - XS
-        - M
-        - L
-    validations:
-      required: true
-
-  - type: input
-    id: milestone
-    attributes:
-      label: "Milestone"
-      description: "Indique el Milestone relacionado."
-      placeholder: "Ejemplo: M1 - Base Multiusuario de SignIA"
-
-  - type: input
-    id: sprint
-    attributes:
-      label: "Sprint"
-      description: "Indique el Sprint en el que se espera trabajar esta Historia de Usuario."
-      placeholder: "Ejemplo: Sprint 3"
-
-  - type: textarea
-    id: dependencias
-    attributes:
-      label: "Dependencias"
-      description: "Indique si esta Historia de Usuario depende de otra tarea, módulo o Historia de Usuario."
-      placeholder: "Ejemplo: requiere que la conexión con PostgreSQL esté configurada."
-
-  - type: textarea
-    id: notas
-    attributes:
-      label: "Notas adicionales"
-      description: "Información adicional necesaria para entender o desarrollar la Historia de Usuario."
-      placeholder: "Opcional"
+id: dod
+attributes:
+  label: "Definition of Done"
+  options:
+    - label: "Se cumplieron los criterios de aceptación."
+    - label: "La funcionalidad fue implementada y probada."
+    - label: "El código fue subido mediante una rama y Pull Request."
+    - label: "La funcionalidad quedó integrada correctamente."
+    - label: "La documentación fue actualizada cuando aplica."
+    - label: "La Historia de Usuario puede cerrarse y moverse a Done."
