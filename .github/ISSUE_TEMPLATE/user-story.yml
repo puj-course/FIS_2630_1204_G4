@@ -5,7 +5,6 @@ labels:
   - "Historia de Usuario"
 
 body:
-
   - type: markdown
     attributes:
       value: |
@@ -86,13 +85,13 @@ body:
         La Historia de Usuario podrá considerarse terminada cuando se cumplan los siguientes puntos.
 
   - type: checkboxes
-id: dod
-attributes:
-  label: "Definition of Done"
-  options:
-    - label: "Se cumplieron los criterios de aceptación."
-    - label: "La funcionalidad fue implementada y probada."
-    - label: "El código fue subido mediante una rama y Pull Request."
-    - label: "La funcionalidad quedó integrada correctamente."
-    - label: "La documentación fue actualizada cuando aplica."
-    - label: "La Historia de Usuario puede cerrarse y moverse a Done."
+    id: dod
+    attributes:
+      label: "Definition of Done"
+      options:
+        - label: "Se cumplieron los criterios de aceptación."
+        - label: "La funcionalidad fue implementada y probada."
+        - label: "El código fue subido mediante una rama y Pull Request."
+        - label: "La funcionalidad quedó integrada correctamente."
+        - label: "La documentación fue actualizada cuando aplica."
+        - label: "La Historia de Usuario puede cerrarse y moverse a Done."
