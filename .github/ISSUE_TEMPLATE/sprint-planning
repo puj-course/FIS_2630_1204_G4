@@ -5,6 +5,7 @@ labels:
   - Sprint
   - Documentation
 body:
+
   - type: input
     id: sprint_number
     attributes:
@@ -73,3 +74,11 @@ body:
       placeholder: |
         - Entregable 1
         - Entregable 2
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas adicionales
+      description: Bloqueos o comentarios importantes.
+      placeholder: |
+        Agregar información adicional aquí.
