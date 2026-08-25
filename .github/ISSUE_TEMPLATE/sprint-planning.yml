@@ -45,6 +45,20 @@ body:
         - Entregable 2
 
   - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de Aceptación
+      description: Condiciones necesarias para considerar finalizado el sprint.
+      placeholder: |
+        - [ ] Las tareas del sprint fueron completadas.
+        - [ ] Los entregables cumplen con los objetivos definidos.
+        - [ ] La documentación fue actualizada.
+        - [ ] Los cambios fueron revisados y aprobados.
+        - [ ] No existen errores críticos pendientes.
+    validations:
+      required: true
+
+  - type: textarea
     id: notes
     attributes:
       label: Notas adicionales
