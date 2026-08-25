@@ -36,6 +36,18 @@ body:
       required: true
 
   - type: textarea
+    id: sprint_backlog
+    attributes:
+      label: Sprint Backlog
+      description: Lista de historias de usuario y tareas seleccionadas para el sprint.
+      placeholder: |
+        - [ ] HU-01: Descripción de la historia de usuario
+        - [ ] HU-02: Descripción de la historia de usuario
+        - [ ] Tarea adicional del sprint
+    validations:
+      required: true
+
+  - type: textarea
     id: deliverables
     attributes:
       label: Entregables
@@ -50,7 +62,7 @@ body:
       label: Criterios de Aceptación
       description: Condiciones necesarias para considerar finalizado el sprint.
       placeholder: |
-        - [ ] Las tareas del sprint fueron completadas.
+        - [ ] Las historias de usuario fueron completadas.
         - [ ] Los entregables cumplen con los objetivos definidos.
         - [ ] La documentación fue actualizada.
         - [ ] Los cambios fueron revisados y aprobados.
