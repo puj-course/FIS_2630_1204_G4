@@ -4,6 +4,7 @@ title: "[Sprint] "
 labels:
   - Sprint
   - Documentation
+
 body:
 
   - type: input
@@ -35,38 +36,6 @@ body:
       required: true
 
   - type: textarea
-    id: team
-    attributes:
-      label: Equipo del Sprint
-      description: Lista de integrantes y roles.
-      placeholder: |
-        - Nombre - Scrum Master
-        - Nombre - Developer
-        - Nombre - Product Owner
-
-  - type: textarea
-    id: backlog
-    attributes:
-      label: Backlog del Sprint
-      description: Lista de tareas del sprint.
-      placeholder: |
-        - [ ] Tarea 1
-        - [ ] Tarea 2
-        - [ ] Tarea 3
-    validations:
-      required: true
-
-  - type: textarea
-    id: acceptance
-    attributes:
-      label: Criterios de aceptación
-      description: Condiciones para dar el sprint como terminado.
-      placeholder: |
-        - [ ] Código probado
-        - [ ] Documentación actualizada
-        - [ ] Cambios integrados
-
-  - type: textarea
     id: deliverables
     attributes:
       label: Entregables
@@ -79,6 +48,6 @@ body:
     id: notes
     attributes:
       label: Notas adicionales
-      description: Bloqueos o comentarios importantes.
+      description: Bloqueos, decisiones o comentarios importantes.
       placeholder: |
         Agregar información adicional aquí.
