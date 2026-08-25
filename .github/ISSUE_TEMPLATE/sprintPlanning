@@ -1,0 +1,75 @@
+name: Sprint Planning
+description: Crear un nuevo Sprint Planning
+title: "[Sprint] "
+labels:
+  - Sprint
+  - Documentation
+body:
+  - type: input
+    id: sprint_number
+    attributes:
+      label: Número del Sprint
+      description: Indica el número del sprint.
+      placeholder: "Sprint 1"
+    validations:
+      required: true
+
+  - type: input
+    id: duration
+    attributes:
+      label: Duración del Sprint
+      description: Fecha de inicio y finalización.
+      placeholder: "10-08-2026 al 14-08-2026"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sprint_goal
+    attributes:
+      label: Sprint Goal
+      description: Describe el objetivo principal del sprint.
+      placeholder: |
+        El objetivo de este sprint es...
+    validations:
+      required: true
+
+  - type: textarea
+    id: team
+    attributes:
+      label: Equipo del Sprint
+      description: Lista de integrantes y roles.
+      placeholder: |
+        - Nombre - Scrum Master
+        - Nombre - Developer
+        - Nombre - Product Owner
+
+  - type: textarea
+    id: backlog
+    attributes:
+      label: Backlog del Sprint
+      description: Lista de tareas del sprint.
+      placeholder: |
+        - [ ] Tarea 1
+        - [ ] Tarea 2
+        - [ ] Tarea 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación
+      description: Condiciones para dar el sprint como terminado.
+      placeholder: |
+        - [ ] Código probado
+        - [ ] Documentación actualizada
+        - [ ] Cambios integrados
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Entregables
+      description: Productos finales del sprint.
+      placeholder: |
+        - Entregable 1
+        - Entregable 2
