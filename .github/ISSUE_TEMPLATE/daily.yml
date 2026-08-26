@@ -5,6 +5,7 @@ labels:
   - "Daily"
 
 body:
+
   - type: input
     id: fecha
     attributes:
@@ -23,13 +24,16 @@ body:
     validations:
       required: true
 
-  - type: markdown
+  - type: textarea
+    id: daily_questions
     attributes:
+      label: "Preguntas de la Daily"
+      description: "Cada integrante debe responder las siguientes preguntas."
       value: |
-        ## Preguntas de la Daily
-
-        Cada integrante debe responder en los comentarios:
-
         1. ¿Qué hice ayer?
+
         2. ¿Qué hice hoy?
-        3. ¿Bloqueos?
+
+        3. ¿Tengo algún bloqueo?
+    validations:
+      required: true
