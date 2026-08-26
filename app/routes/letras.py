@@ -2,7 +2,10 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from app.services.letras_service import obtener_letras_registradas
+from app.services.letras_service import (
+    obtener_letra_por_id,
+    obtener_letras_registradas
+)
 from src.schemas.letra import LetraRespuesta
 
 
@@ -25,3 +28,27 @@ def consultar_letras():
             status_code=500,
             detail="No fue posible consultar las letras"
         ) from error
+
+
+@router.get("/letras/{id_letra}", response_model=LetraRespuesta)
+def consultar_letra(id_letra: int):
+    try:
+        letra = obtener_letra_por_id(id_letra)
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al consultar la letra"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="No fue posible consultar la letra"
+        ) from error
+
+    if letra is None:
+        raise HTTPException(
+            status_code=404,
+            detail="La letra solicitada no existe"
+        )
+
+    return letra
