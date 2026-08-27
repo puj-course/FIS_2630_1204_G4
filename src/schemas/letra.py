@@ -6,3 +6,12 @@ class LetraRespuesta(BaseModel):
     letra: str
     descripcion: str | None = None
     ruta_imagen: str | None = None
+
+class LetraActualizacion(BaseModel):
+    descripcion: str | None = None
+    ruta_imagen: str | None = None
+
+
+class LetraActualizacionRespuesta(BaseModel):
+    mensaje: str
+    letra: LetraRespuesta
