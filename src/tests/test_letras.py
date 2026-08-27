@@ -107,5 +107,112 @@ class TestConsultaLetras(unittest.TestCase):
             {"detail": "No fue posible consultar la letra"}
         )
 
+    @patch(
+        "app.routes.letras.actualizar_informacion_letra"
+    )
+    def test_actualiza_una_letra(
+        self,
+        servicio_simulado
+    ):
+        letra_actualizada = {
+            "id_letra": 1,
+            "letra": "A",
+            "descripcion": "Descripción actualizada",
+            "ruta_imagen": "assets/alfabeto/a.png"
+        }
+
+        servicio_simulado.return_value = letra_actualizada
+
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={
+                "descripcion": "Descripción actualizada"
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "mensaje": (
+                    "La letra fue actualizada correctamente"
+                ),
+                "letra": letra_actualizada
+            }
+        )
+        servicio_simulado.assert_called_once_with(
+            1,
+            {"descripcion": "Descripción actualizada"}
+        )
+
+    @patch(
+        "app.routes.letras.actualizar_informacion_letra"
+    )
+    def test_rechaza_actualizacion_sin_campos(
+        self,
+        servicio_simulado
+    ):
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={}
+        )
+
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "detail": (
+                    "Debe enviar al menos un campo para actualizar"
+                )
+            }
+        )
+        servicio_simulado.assert_not_called()
+
+    @patch(
+        "app.routes.letras.actualizar_informacion_letra"
+    )
+    def test_actualizacion_responde_404_si_no_existe(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.return_value = None
+
+        respuesta = self.cliente.patch(
+            "/letras/999999",
+            json={
+                "descripcion": "Nueva descripción"
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "La letra solicitada no existe"}
+        )
+
+    @patch(
+        "app.routes.letras.actualizar_informacion_letra"
+    )
+    def test_controla_error_al_actualizar_letra(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.side_effect = Exception(
+            "Error simulado de conexión"
+        )
+
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={
+                "descripcion": "Nueva descripción"
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 500)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "No fue posible actualizar la letra"}
+        )
+
 if __name__ == "__main__":
     unittest.main()
