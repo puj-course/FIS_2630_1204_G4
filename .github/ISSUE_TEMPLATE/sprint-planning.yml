@@ -1,0 +1,79 @@
+name: Sprint Planning
+description: Crear un nuevo Sprint Planning
+title: "[Sprint] "
+labels:
+  - Sprint
+  - Documentation
+
+body:
+
+  - type: input
+    id: sprint_number
+    attributes:
+      label: Número del Sprint
+      description: Indica el número del sprint.
+      placeholder: "Sprint 1"
+    validations:
+      required: true
+
+  - type: input
+    id: duration
+    attributes:
+      label: Duración del Sprint
+      description: Fecha de inicio y finalización.
+      placeholder: "10-08-2026 al 14-08-2026"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sprint_goal
+    attributes:
+      label: Sprint Goal
+      description: Describe el objetivo principal del sprint.
+      placeholder: |
+        El objetivo de este sprint es...
+    validations:
+      required: true
+
+  - type: textarea
+    id: sprint_backlog
+    attributes:
+      label: Sprint Backlog
+      description: Lista de historias de usuario y tareas seleccionadas para el sprint.
+      placeholder: |
+        - [ ] HU-01: Descripción de la historia de usuario
+        - [ ] HU-02: Descripción de la historia de usuario
+        - [ ] Tarea adicional del sprint
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Entregables
+      description: Productos finales del sprint.
+      placeholder: |
+        - Entregable 1
+        - Entregable 2
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de Aceptación
+      description: Condiciones necesarias para considerar finalizado el sprint.
+      placeholder: |
+        - [ ] Las historias de usuario fueron completadas.
+        - [ ] Los entregables cumplen con los objetivos definidos.
+        - [ ] La documentación fue actualizada.
+        - [ ] Los cambios fueron revisados y aprobados.
+        - [ ] No existen errores críticos pendientes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas adicionales
+      description: Bloqueos, decisiones o comentarios importantes.
+      placeholder: |
+        Agregar información adicional aquí.

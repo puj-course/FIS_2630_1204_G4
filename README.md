@@ -9,14 +9,17 @@ SignIA surge como respuesta a las barreras de comunicación existentes entre per
 ----
 
 ## Equipo del Proyecto
-| Nombre                  | Rol                    | GitHub / Perfil |
-|-------------------------|------------------------|--------------------------------------------|
-| Isabel Gutiérrez        | Scrum Master           | https://github.com/isabelsgp |
-| Juan Diego Arevalo      | Product Owner          | https://github.com/Juan123839 |
-| Juan Pablo Vanegas      | Sprint Planner         | https://github.com/ujuanpvanegasvelandia02-ship-it |
-| David Vallejo           | Configuration Manager  | https://github.com/David-wallpaper |
-| Juan Diego Arevalo      | QA Lead                | https://github.com/Juan123839 |
-| Oscar Martinez Mantilla | DevOps Engineer        | https://github.com/martinezm-oe |
+
+El equipo de **SignIA** se encuentra organizado mediante roles definidos para apoyar la gestión, planificación, calidad y desarrollo del proyecto.
+
+| Integrante | Rol | GitHub |
+|---|---|---|
+| **Isabel Gutiérrez** | Scrum Master | [@isabelsgp](https://github.com/isabelsgp) |
+| **Juan Diego Arevalo** | Product Owner | [@Juan123839](https://github.com/Juan123839) |
+| **Juan Pablo Vanegas** | Sprint Planner | [@juanpvanegasvelandia02-ship-it](https://github.com/ujuanpvanegasvelandia02-ship-it) |
+| **David Vallejo** | Configuration Manager | [@David-wallpaper](https://github.com/David-wallpaper) |
+| **Juan Diego Arevalo** | QA Lead | [@Juan123839](https://github.com/Juan123839) |
+| **Oscar Martinez Mantilla** | DevOps Engineer | [@martinezm-oe](https://github.com/martinezm-oe) |
 
 ---
 
