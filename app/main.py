@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 
 
@@ -26,7 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(letras_router)
-
+app.include_router(autenticacion_router)
 
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
