@@ -12,7 +12,20 @@ from app.security import (
 class TestConsultaLetras(unittest.TestCase):
 
     def setUp(self):
+        app.dependency_overrides[requerir_administrador] = lambda: {
+            "id_usuario": 2,
+            "nombre": "Administrador de prueba",
+            "correo": "admin.prueba@signia.local",
+            "rol": "administrador"
+        }
+
         self.cliente = TestClient(app)
+
+    def tearDown(self):
+        app.dependency_overrides.pop(
+            requerir_administrador,
+            None
+        )
 
     @patch("app.routes.letras.obtener_letras_registradas")
     def test_devuelve_las_letras_registradas(self, servicio_simulado):
@@ -216,6 +229,65 @@ class TestConsultaLetras(unittest.TestCase):
             respuesta.json(),
             {"detail": "No fue posible actualizar la letra"}
         )
+
+    @patch("app.routes.letras.actualizar_informacion_letra")
+    def test_rechaza_campos_vacios_en_actualizacion(
+        self,
+        servicio_simulado
+    ):
+        casos_invalidos = [
+            ("descripcion", ""),
+            ("descripcion", "   "),
+            ("descripcion", None),
+            ("ruta_imagen", ""),
+            ("ruta_imagen", "   "),
+            ("ruta_imagen", None)
+        ]
+
+        for campo, valor in casos_invalidos:
+            with self.subTest(campo=campo, valor=valor):
+                respuesta = self.cliente.patch(
+                    "/letras/1",
+                    json={campo: valor}
+                )
+
+                self.assertEqual(respuesta.status_code, 422)
+                self.assertIn(
+                    "El campo enviado no puede estar vacío",
+                    respuesta.json()["detail"][0]["msg"]
+                )
+
+        servicio_simulado.assert_not_called()
+
+    @patch("app.routes.letras.actualizar_informacion_letra")
+    def test_elimina_espacios_de_los_datos_actualizados(
+        self,
+        servicio_simulado
+    ):
+        letra_actualizada = {
+            "id_letra": 1,
+            "letra": "A",
+            "descripcion": "Descripción modificada",
+            "ruta_imagen": "assets/alfabeto/a.png"
+        }
+        servicio_simulado.return_value = letra_actualizada
+
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={
+                "descripcion":
+                "   Descripción modificada   "
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        servicio_simulado.assert_called_once_with(
+            1,
+            {"descripcion": "Descripción modificada"}
+        )
+
+
+
 class TestPermisosActualizacionLetra(unittest.TestCase):
 
     def setUp(self):
