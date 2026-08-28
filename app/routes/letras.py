@@ -1,7 +1,7 @@
 import logging
 
-from fastapi import APIRouter, HTTPException
-
+from fastapi import APIRouter, Depends, HTTPException
+from app.security import requerir_administrador
 from app.services.letras_service import (
     actualizar_informacion_letra,
     obtener_letra_por_id,
@@ -64,7 +64,8 @@ def consultar_letra(id_letra: int):
 )
 def actualizar_letra(
     id_letra: int,
-    datos: LetraActualizacion
+    datos: LetraActualizacion,
+    _administrador: dict = Depends(requerir_administrador)
 ):
     cambios = datos.model_dump(exclude_unset=True)
 

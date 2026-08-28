@@ -92,3 +92,14 @@ def obtener_usuario_actual(
         raise crear_error_credenciales()
 
     return usuario
+
+def requerir_administrador(
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+    if usuario_actual["rol"] != "administrador":
+        raise HTTPException(
+            status_code=403,
+            detail="No tiene permisos para modificar el alfabeto"
+        )
+
+    return usuario_actual
