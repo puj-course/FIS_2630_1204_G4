@@ -4,7 +4,10 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
-
+from app.security import (
+    obtener_usuario_actual,
+    requerir_administrador
+)
 
 class TestConsultaLetras(unittest.TestCase):
 
@@ -212,6 +215,102 @@ class TestConsultaLetras(unittest.TestCase):
         self.assertEqual(
             respuesta.json(),
             {"detail": "No fue posible actualizar la letra"}
+        )
+class TestPermisosActualizacionLetra(unittest.TestCase):
+
+    def setUp(self):
+        self.cliente = TestClient(app)
+
+    def tearDown(self):
+        app.dependency_overrides.pop(
+            obtener_usuario_actual,
+            None
+        )
+        app.dependency_overrides.pop(
+            requerir_administrador,
+            None
+        )
+
+    @patch("app.routes.letras.actualizar_informacion_letra")
+    def test_rechaza_actualizacion_sin_autenticacion(
+        self,
+        servicio_simulado
+    ):
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={"descripcion": "Descripción modificada"}
+        )
+
+        self.assertEqual(respuesta.status_code, 401)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "No fue posible validar las credenciales"}
+        )
+        servicio_simulado.assert_not_called()
+
+    @patch("app.routes.letras.actualizar_informacion_letra")
+    def test_rechaza_actualizacion_de_usuario_normal(
+        self,
+        servicio_simulado
+    ):
+        app.dependency_overrides[obtener_usuario_actual] = lambda: {
+            "id_usuario": 1,
+            "nombre": "Usuario de prueba",
+            "correo": "usuario.prueba@signia.local",
+            "rol": "usuario"
+        }
+
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={"descripcion": "Descripción modificada"}
+        )
+
+        self.assertEqual(respuesta.status_code, 403)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "detail":
+                "No tiene permisos para modificar el alfabeto"
+            }
+        )
+        servicio_simulado.assert_not_called()
+
+    @patch("app.routes.letras.actualizar_informacion_letra")
+    def test_permite_actualizacion_de_administrador(
+        self,
+        servicio_simulado
+    ):
+        app.dependency_overrides[obtener_usuario_actual] = lambda: {
+            "id_usuario": 2,
+            "nombre": "Administrador de prueba",
+            "correo": "admin.prueba@signia.local",
+            "rol": "administrador"
+        }
+
+        letra_actualizada = {
+            "id_letra": 1,
+            "letra": "A",
+            "descripcion": "Descripción modificada",
+            "ruta_imagen": "assets/alfabeto/a.png"
+        }
+        servicio_simulado.return_value = letra_actualizada
+
+        respuesta = self.cliente.patch(
+            "/letras/1",
+            json={"descripcion": "Descripción modificada"}
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "mensaje": "La letra fue actualizada correctamente",
+                "letra": letra_actualizada
+            }
+        )
+        servicio_simulado.assert_called_once_with(
+            1,
+            {"descripcion": "Descripción modificada"}
         )
 
 if __name__ == "__main__":
