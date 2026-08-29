@@ -16,7 +16,7 @@ El equipo de **SignIA** se encuentra organizado mediante roles definidos para ap
 |---|---|---|
 | **Isabel Gutiérrez** | Scrum Master | [@isabelsgp](https://github.com/isabelsgp) |
 | **Juan Diego Arevalo** | Product Owner | [@Juan123839](https://github.com/Juan123839) |
-| **Juan Pablo Vanegas** | Sprint Planner | [@ujuanpvanegasvelandia02-ship-it](https://github.com/ujuanpvanegasvelandia02-ship-it) |
+| **Juan Pablo Vanegas** | Sprint Planner | [@juanpvanegasvelandia02-ship-it](https://github.com/ujuanpvanegasvelandia02-ship-it) |
 | **David Vallejo** | Configuration Manager | [@David-wallpaper](https://github.com/David-wallpaper) |
 | **Juan Diego Arevalo** | QA Lead | [@Juan123839](https://github.com/Juan123839) |
 | **Oscar Martinez Mantilla** | DevOps Engineer | [@martinezm-oe](https://github.com/martinezm-oe) |
