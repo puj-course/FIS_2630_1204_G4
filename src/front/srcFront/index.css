@@ -1,0 +1,126 @@
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+body{
+  font-family:'Segoe UI', Arial, sans-serif;
+  background:#FFFFFF;
+  color:#1A1A1A;
+}
+
+button{
+
+  cursor:pointer;
+
+}
+.app{
+  display:flex;
+  min-height:100vh;
+}
+main{
+  flex:1;
+  padding:20px;
+}
+nav{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  width:220px;
+  background:#1e1e1e;
+  color:#fff;
+  padding:20px;
+}
+.Opciones{
+  margin-top:20px;
+  display:flex;
+  flex-direction: column;
+  gap:20px;
+}
+.logoNav{
+  padding-bottom: 20px;
+}
+.logoNav h2{
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+.logoNav p{
+  margin: 0;
+  font-size: 14px;
+  color: #aaaaaa;
+}
+.botonMenu{
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 15px 20px;
+  width: 100%;
+  text-align: left;
+  border-radius: 10px;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  transition: 
+    background 0.3s ease,
+    transform 0.3s ease,
+    color 0.3s ease;
+}
+.botonMenu:hover{
+  background:#333;
+  transform:translateX(8px);
+  color:#60a5fa;
+}
+.botonActivo{
+  background:#333;
+  border:none;
+  border-left:4px solid #2563eb;
+  color:#60a5fa;
+  padding:15px 20px;
+  width:100%;
+  text-align:left;
+  border-radius:0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:transform 0.3s ease;
+}
+.botonMenu,
+.botonActivo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.botonMenu svg,
+.botonActivo svg{
+  transition:transform 0.3s ease;
+}
+.botonMenu:hover svg{
+  transform:scale(1.2);
+}
+.trofeo{
+  animation: salto 2s infinite;
+}
+.trofeoActivo{
+  animation: salto 0.6s ease;
+}
+
+
+@keyframes salto{
+
+  0%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-10px);
+  }
+
+  100%{
+    transform:translateY(0);
+  }
+
+}
