@@ -263,7 +263,135 @@ nav{
 .continuar button:hover{
   transform: translateX(5px);
 }
-
+.practica{
+  min-height: 100vh;
+  background: #111;
+  color: white;
+  padding: 30px;
+}
+.practicaHeader{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.practicaHeader h1{
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+.practicaHeader p{
+  color: #aaa;
+  font-size: 14px;
+}
+.practicaHeader button{
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+.zonaPracti{
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+.camara{
+  height: 400px;
+  background: #222;
+  border-radius: 10px;
+  border: 1px solid #333;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.estadoCamara{
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: #333;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+}
+.deteccion{
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #2563eb;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+.panelPractica{
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.objetivo{
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+.objetivo h3{
+  color: #aaa;
+  font-size: 12px;
+}
+.objetivo strong{
+  display: block;
+  font-size: 50px;
+  color: #60a5fa;
+  margin: 10px;
+}
+.objetivo p{
+  text-align: left;
+  color: #aaa;
+  font-size: 12px;
+}
+.instrucciones{
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  font-size: 13px;
+}
+.instrucciones h2{
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+.instrucciones p{
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.alfabeto{
+  margin-top: 15px;
+  border-top: 1px solid #333;
+  padding-top: 15px;
+}
+.alfabeto h3{
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+.alfabeto button{
+  width: 48px;
+  height: 48px;
+  margin-right: 8px;
+  background: #222;
+  color: white;
+  border-radius: 8px;
+  border: 1px salid #444;
+  font-size: 18px;
+}
+.alfabeto letraActiva{
+  background: #2563eb;
+  color: white;
+  border: none;
+}
 @keyframes salto{
 
   0%{
