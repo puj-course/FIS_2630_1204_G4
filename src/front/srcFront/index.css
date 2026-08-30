@@ -26,7 +26,7 @@ nav{
   display:flex;
   flex-direction:column;
   height:100vh;
-  width:220px;
+  width:200px;
   background:#1e1e1e;
   color:#fff;
   padding:20px;
@@ -101,13 +101,21 @@ nav{
 .botonMenu:hover svg{
   transform:scale(1.2);
 }
-.trofeo{
-  animation: salto 2s infinite;
-}
 .trofeoActivo{
   animation: salto 0.6s ease;
 }
-
+.inferior{
+  margin-top:auto;
+}
+.fraseinf{
+  background:#303030;
+  border-radius:8px;
+  padding:12px;
+  font-size:11px;
+  color:#aaa;
+  text-align:center;
+  margin-bottom:15px;
+}
 
 @keyframes salto{
 
