@@ -177,7 +177,7 @@ cd SignIA
 ```text
 docker-compose up --build
 ```
-
+prueba conflicto
 ## Ejecución de pruebas
 ```text
 docker-compose run backend mvn test
