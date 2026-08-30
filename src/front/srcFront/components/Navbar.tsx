@@ -1,4 +1,4 @@
-import { FaGraduationCap, FaTools, FaTrophy, FaUser } from "react-icons/fa";
+import { FaGraduationCap, FaTools, FaTrophy, FaUser, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
 
 interface Props {
   cambiarPagina: (pagina: string) => void;
@@ -58,6 +58,22 @@ function Navbar({ cambiarPagina, paginaActual }: Props) {
         >
           <FaUser />
           Perfil
+        </button>
+
+      </div>
+      <div className="inferior">
+        <div className="fraseinf"> 
+            Aprender para comunicar,
+          <br/>
+          comunicar para incluir
+        </div>
+        <button className="botonMenu">
+          <FaQuestionCircle />
+          Ayuda
+        </button>
+        <button className="botonMenu">
+          <FaSignOutAlt />
+          Cerrar sesión
         </button>
 
       </div>

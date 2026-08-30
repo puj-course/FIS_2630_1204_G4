@@ -10,17 +10,14 @@ function App() {
 
 
   return (
-    <>
+    <div className="app">
       <Navbar cambiarPagina={setPagina} paginaActual={pagina}/>
-      {
-        pagina === "perfil"
-        ?
-        <Perfil />
-        :
-        <Practica />
-      }
-
-    </>
+      <main>
+        {
+          pagina === "perfil" ? <Perfil />:<Practica />
+        }
+      </main>
+    </div>
   );
 }
 
