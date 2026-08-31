@@ -17,6 +17,9 @@ El backend está construido con FastAPI y PostgreSQL. Actualmente permite:
 - Actualizar parcialmente la descripción o la ruta de imagen de una letra.
 - Restringir la actualización de letras a usuarios con rol `administrador`.
 - Validar los datos enviados antes de ejecutar una actualización.
+- Detectar una mano en tiempo real mediante la cámara utilizando OpenCV y MediaPipe.
+- Extraer los 21 landmarks de la mano detectada.
+- Realizar una clasificación preliminar de las letras A y B mediante reglas geométricas.
 
 Las tablas de sesiones de reconocimiento, resultados y progreso ya existen en la base de datos, pero todavía no cuentan con rutas ni servicios en la API.
 
@@ -407,8 +410,8 @@ El proyecto usa Python 3.12 durante el desarrollo y las siguientes dependencias 
 | pwdlib con Argon2 | `0.3.1` | Generación y verificación de hashes de contraseña. |
 | PyJWT | `2.13.0` | Creación y validación de tokens JWT. |
 | httpx | `0.28.1` | Cliente utilizado por `TestClient` en las pruebas HTTP. |
-| OpenCV | Versión definida en `requirements.txt` | Captura de cámara, procesamiento de imágenes y visualización. |
-| MediaPipe | Versión definida en `requirements.txt` | Detección de manos y extracción de landmarks. |
+| OpenCV | `4.12.0.88` | Captura de cámara, procesamiento de imágenes y visualización. |
+| MediaPipe | `0.10.32` | Detección de manos y extracción de landmarks. |
 
 ## 7. Variables de entorno
 
@@ -443,7 +446,7 @@ Se recomienda utilizar una clave de al menos 32 bytes. El archivo `.env` contien
 - Acceso a una base PostgreSQL o Neon.
 - Cliente `psql` solamente si se crearán tablas desde la terminal.
 - Cámara disponible para ejecutar el prototipo visual.
-- Archivo `hand_landmarker.task` para el módulo de detección de manos.
+- Archivo `hand_landmarker.task` ubicado en `app/vision/prototype/`.
 
 Actualmente no existe una configuración funcional de Docker en el repositorio. Los archivos `.sh` de `scripts` también permanecen vacíos, por lo que la instalación y ejecución se realizan con los comandos descritos en esta guía.
 
