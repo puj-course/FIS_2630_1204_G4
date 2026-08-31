@@ -210,6 +210,19 @@ flowchart TD
     G --> H[Visualización del resultado]
 
 ```
+
+### Representación visual de la mano
+
+El módulo utiliza las conexiones definidas entre landmarks para representar la estructura de la mano.
+
+Estas conexiones permiten visualizar:
+
+- Palma.
+- Articulaciones de los dedos.
+- Posición relativa entre falanges.
+
+Además, cada landmark detectado es representado mediante un punto sobre la imagen capturada.
+
 ### Funciones principales de `hand_detection.py`
 
 El prototipo contiene las siguientes funciones principales:
@@ -242,7 +255,26 @@ Este archivo contiene el modelo utilizado para detectar los landmarks de la mano
 
 El modelo no hace parte del entrenamiento propio de SignIA, sino que corresponde al detector base utilizado para obtener información geométrica de la mano.
 
+### Ejecución del prototipo visual
 
+Actualmente el módulo visual se ejecuta de manera independiente al backend FastAPI.
+
+Requisitos:
+
+- Cámara disponible en el equipo.
+- Dependencias de OpenCV y MediaPipe instaladas.
+- Archivo `hand_landmarker.task` disponible en la ruta configurada.
+
+Durante la ejecución:
+
+1. Se inicializa el modelo Hand Landmarker de MediaPipe.
+2. Se abre la cámara mediante OpenCV.
+3. Cada frame capturado es convertido al formato requerido por MediaPipe.
+4. Se detectan los landmarks de la mano.
+5. Se evalúan las reglas geométricas para la clasificación.
+6. Se muestra el resultado sobre la imagen procesada.
+
+La ejecución puede finalizarse presionando la tecla `Q`.
 
 ### `database`
 
@@ -374,6 +406,8 @@ El proyecto usa Python 3.12 durante el desarrollo y las siguientes dependencias 
 | pwdlib con Argon2 | `0.3.1` | Generación y verificación de hashes de contraseña. |
 | PyJWT | `2.13.0` | Creación y validación de tokens JWT. |
 | httpx | `0.28.1` | Cliente utilizado por `TestClient` en las pruebas HTTP. |
+| OpenCV | Versión definida en `requirements.txt` | Captura de cámara, procesamiento de imágenes y visualización. |
+| MediaPipe | Versión definida en `requirements.txt` | Detección de manos y extracción de landmarks. |
 
 ## 7. Variables de entorno
 
@@ -568,7 +602,6 @@ La estructura contiene espacios para funcionalidades futuras. A la fecha de esta
 - Renovación, revocación o cierre de sesión de tokens.
 - Carga física de imágenes; actualmente solo se actualiza `ruta_imagen`.
 - Rutas para sesiones de reconocimiento, resultados y progreso.
-- Integración del módulo de visión por computador dentro de `app/vision`.
 - Controladores independientes en `app/controllers`.
 - Middleware propio en `src/middleware`.
 - Scripts automáticos de instalación, pruebas, inicio y despliegue.
