@@ -343,13 +343,6 @@ Se recomienda utilizar una clave de al menos 32 bytes. El archivo `.env` contien
 
 Actualmente no existe una configuración funcional de Docker en el repositorio. Los archivos `.sh` de `scripts` también permanecen vacíos, por lo que la instalación y ejecución se realizan con los comandos descritos en esta guía.
 
-### Clonar el repositorio
-
-```bash
-git clone https://github.com/puj-course/FIS_2630_1204_G4.git
-cd FIS_2630_1204_G4
-```
-
 ### Crear el entorno virtual
 
 Linux:
