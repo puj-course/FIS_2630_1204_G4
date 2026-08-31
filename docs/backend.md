@@ -1,6 +1,6 @@
 # Backend de SignIA
 
-Esta guía describe la implementación actual del backend de SignIA. Su propósito es permitir que un integrante nuevo comprenda cómo está organizado el código, cómo se ejecuta localmente, cómo funciona la API y qué archivos debe modificar al agregar una nueva funcionalidad.
+Esta guía describe la implementación actual del backend de SignIA. Su propósito es permitir que un integrante comprenda cómo está organizado el código, cómo se ejecuta localmente, cómo funciona la API y qué archivos debe modificar al agregar una nueva funcionalidad.
 
 La documentación se considera viva: debe actualizarse cada vez que cambien las rutas, los servicios, los esquemas, las variables de entorno, las dependencias o el procedimiento de ejecución.
 
@@ -61,7 +61,7 @@ FIS_2630_1204_G4/
 │   ├── services/
 │   │   ├── autenticacion_service.py
 │   │   └── letras_service.py
-│   └── vision/                      # Reservado para visión por computador
+│   └── vision/                      # Implementado
 ├── conf/
 │   ├── config.py                    # Reservado; actualmente vacío
 │   ├── database.py
