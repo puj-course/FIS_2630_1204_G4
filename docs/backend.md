@@ -20,6 +20,9 @@ El backend está construido con FastAPI y PostgreSQL. Actualmente permite:
 
 Las tablas de sesiones de reconocimiento, resultados y progreso ya existen en la base de datos, pero todavía no cuentan con rutas ni servicios en la API.
 
+El backend también cuenta con un módulo inicial de computación visual ubicado en `app/vision`, encargado de realizar detección de manos en tiempo real mediante cámara. Actualmente este componente funciona como prototipo independiente y permite obtener información geométrica de la mano para una clasificación preliminar de letras del alfabeto LSC.
+
+La integración del módulo visual con la API, el frontend y el almacenamiento de resultados en PostgreSQL se encuentra pendiente.
 ## 2. Arquitectura general
 
 El backend usa una separación sencilla por responsabilidades:
@@ -61,7 +64,9 @@ FIS_2630_1204_G4/
 │   ├── services/
 │   │   ├── autenticacion_service.py
 │   │   └── letras_service.py
-│   └── vision/                      # Implementado
+│   └── vision/
+│       └── prototype/
+│           └── hand_detection.py    # Prototipo de detección visual
 ├── conf/
 │   ├── config.py                    # Reservado; actualmente vacío
 │   ├── database.py
@@ -176,6 +181,68 @@ En una actualización, `descripcion` y `ruta_imagen` son opcionales individualme
 ### `conf/database.py`
 
 Carga las variables del archivo `.env` y crea conexiones mediante `psycopg`. Si `DATABASE_URL` no existe, genera un error explícito. Las rutas no abren conexiones directamente; esta responsabilidad se concentra en los servicios.
+
+### `app/vision`
+
+Este módulo contiene la implementación inicial del componente de computación visual.
+
+Su objetivo es procesar imágenes obtenidas desde una cámara para detectar la posición de la mano del usuario y extraer información necesaria para el reconocimiento del alfabeto de Lengua de Señas Colombiana (LSC).
+
+Actualmente el módulo corresponde a un prototipo funcional que utiliza OpenCV para captura y procesamiento de imágenes, y MediaPipe para la detección de puntos de referencia de la mano.
+
+El flujo actual del procesamiento visual es:
+
+```mermaid
+flowchart TD
+
+    A[Cámara del usuario] --> B[Captura de imagen con OpenCV]
+
+    B --> C[Conversión de formato BGR a RGB]
+
+    C --> D[MediaPipe Hand Landmarker]
+
+    D --> E[Extracción de 21 landmarks]
+
+    E --> F[Procesamiento geométrico]
+
+       F --> G[Clasificación preliminar]
+
+    G --> H[Visualización del resultado]
+
+```
+### Funciones principales de `hand_detection.py`
+
+El prototipo contiene las siguientes funciones principales:
+
+#### `distancia(punto1, punto2)`
+
+Calcula la distancia euclidiana entre dos landmarks de la mano. Esta función permite realizar comparaciones relativas entre puntos independientemente del tamaño de la mano detectada.
+
+#### `es_letra_a(mano)`
+
+Determina si la posición de la mano corresponde con la letra A mediante reglas geométricas:
+
+- Verifica que los dedos índice, medio, anular y meñique se encuentren doblados.
+- Calcula la distancia relativa del pulgar respecto a la palma.
+- Determina si el pulgar se encuentra en una posición cercana a la mano.
+
+#### `es_letra_b(mano)`
+
+Determina si la posición de la mano corresponde con la letra B mediante:
+
+- Detección de dedos extendidos.
+- Verificación de posición del pulgar.
+- Comparación de distancias entre landmarks de los dedos para validar la alineación.
+
+### Archivo del modelo
+
+El componente utiliza el modelo preentrenado `hand_landmarker.task` proporcionado por MediaPipe.
+
+Este archivo contiene el modelo utilizado para detectar los landmarks de la mano y debe encontrarse disponible en la ruta configurada antes de ejecutar el prototipo.
+
+El modelo no hace parte del entrenamiento propio de SignIA, sino que corresponde al detector base utilizado para obtener información geométrica de la mano.
+
+
 
 ### `database`
 
