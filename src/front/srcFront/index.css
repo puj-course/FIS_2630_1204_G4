@@ -407,3 +407,129 @@ nav{
   }
 
 }
+
+/* --- Estilos de Login, Registro y Home (Juan) --- */
+
+.pantalla {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 12px;
+  background: #111;
+  color: white;
+}
+
+.logo {
+  color: #60a5fa;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.pantalla h2 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.lema {
+  font-style: italic;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.pantalla p {
+  color: #aaa;
+  max-width: 420px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.pantalla input {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  background: #1e1e1e;
+  color: white;
+}
+
+.pantalla input:focus {
+  border-color: #2563eb;
+}
+
+.pantalla button {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  background-color: #2563eb;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.pantalla button:hover {
+  opacity: 0.85;
+}
+
+.enlace {
+  color: #60a5fa;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.enlace:hover {
+  color: #facc15;
+}
+
+.tarjetas {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tarjeta {
+  width: 220px;
+  padding: 24px;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.tarjeta:hover {
+  transform: translateY(-4px);
+  border-color: #60a5fa;
+}
+
+.tarjeta h3 {
+  color: #60a5fa;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.tarjeta p {
+  font-size: 14px;
+  color: #aaa;
+  margin: 0;
+  max-width: none;
+}
