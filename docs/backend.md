@@ -65,8 +65,9 @@ FIS_2630_1204_G4/
 │   │   ├── autenticacion_service.py
 │   │   └── letras_service.py
 │   └── vision/
-│       └── prototype/
-│           └── hand_detection.py    # Prototipo de detección visual
+│       └── prototype/ 
+│            ├── hand_detection.py
+│            └── hand_landmarker.task # Modelo de MediaPipe
 ├── conf/
 │   ├── config.py                    # Reservado; actualmente vacío
 │   ├── database.py
@@ -441,6 +442,8 @@ Se recomienda utilizar una clave de al menos 32 bytes. El archivo `.env` contien
 - Python 3.12.
 - Acceso a una base PostgreSQL o Neon.
 - Cliente `psql` solamente si se crearán tablas desde la terminal.
+- Cámara disponible para ejecutar el prototipo visual.
+- Archivo `hand_landmarker.task` para el módulo de detección de manos.
 
 Actualmente no existe una configuración funcional de Docker en el repositorio. Los archivos `.sh` de `scripts` también permanecen vacíos, por lo que la instalación y ejecución se realizan con los comandos descritos en esta guía.
 
@@ -494,6 +497,8 @@ Copy-Item .env.example .env
 ```
 
 Después se deben completar `DATABASE_URL` y `JWT_SECRET`. `JWT_EXPIRE_MINUTES` puede conservar el valor `60`.
+
+
 
 ### Preparar y comprobar PostgreSQL
 
@@ -593,6 +598,8 @@ Las consultas deben continuar usando parámetros de `psycopg`. No deben construi
 | Actualizar una letra | `PATCH /letras/{id_letra}` y SQL `UPDATE ... RETURNING`. |
 | Restringir la edición | Dependencia `requerir_administrador`. |
 | Validar datos editables | `field_validator` en `LetraActualizacion`. |
+| Detección inicial de mano | `app/vision/prototype/hand_detection.py` utilizando OpenCV y MediaPipe. |
+| Clasificación preliminar de letras | Reglas geométricas para identificación inicial de las letras A y B. |
 
 ## 13. Componentes pendientes o reservados
 
@@ -606,7 +613,11 @@ La estructura contiene espacios para funcionalidades futuras. A la fecha de esta
 - Middleware propio en `src/middleware`.
 - Scripts automáticos de instalación, pruebas, inicio y despliegue.
 - Configuración de Docker o Docker Compose.
-
+- Integración del módulo visual con la API FastAPI.
+- Comunicación del módulo visual con el frontend.
+- Envío y procesamiento de frames desde el cliente.
+- Almacenamiento de resultados de reconocimiento.
+- Implementación del reconocimiento completo del alfabeto LSC.
 Esta sección debe reducirse o actualizarse cuando esos componentes sean implementados.
 
 ## 14. Lista de mantenimiento
