@@ -1,0 +1,409 @@
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+body{
+  margin: 0;
+  font-family:'Segoe UI', Arial, sans-serif;
+  background:#111;
+  color:white;
+}
+
+button{
+
+  cursor:pointer;
+
+}
+.app{
+  display:flex;
+  min-height:100vh;
+  width: 100%;
+}
+main{
+  flex:1;
+  min-height: 100vh;
+  background: #111;
+}
+nav{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  width:200px;
+  background:#1e1e1e;
+  color:#fff;
+  padding:20px;
+}
+.Opciones{
+  margin-top:20px;
+  display:flex;
+  flex-direction: column;
+  gap:20px;
+}
+.logoNav{
+  padding-bottom: 20px;
+}
+.logoNav h2{
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+.logoNav p{
+  margin: 0;
+  font-size: 14px;
+  color: #aaaaaa;
+}
+.botonMenu{
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 15px 20px;
+  width: 100%;
+  text-align: left;
+  border-radius: 10px;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  transition: 
+    background 0.3s ease,
+    transform 0.3s ease,
+    color 0.3s ease;
+}
+.botonMenu:hover{
+  background:#333;
+  transform:translateX(8px);
+  color:#60a5fa;
+}
+.botonActivo{
+  background:#333;
+  border:none;
+  border-left:4px solid #2563eb;
+  color:#60a5fa;
+  padding:15px 20px;
+  width:100%;
+  text-align:left;
+  border-radius:0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:transform 0.3s ease;
+}
+.botonMenu,
+.botonActivo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.botonMenu svg,
+.botonActivo svg{
+  transition:transform 0.3s ease;
+}
+.botonMenu:hover svg{
+  transform:scale(1.2);
+}
+.trofeoActivo{
+  animation: salto 0.6s ease;
+}
+.inferior{
+  margin-top:auto;
+}
+.fraseinf{
+  background:#303030;
+  border-radius:8px;
+  padding:12px;
+  font-size:11px;
+  color:#aaa;
+  text-align:center;
+  margin-bottom:15px;
+}
+.perfil{
+  padding:40px;
+  min-height:100vh;
+  background:#111;
+  color:white;
+}
+.perfilHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:35px;
+}
+.usuario{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.avatar{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:#2563eb;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:35px;
+}
+.usuario h2{
+  margin:0;
+  font-size:24px;
+}
+.usuario p{
+  margin-top:5px;
+  color: #aaa;
+}
+.estadisticas{
+  display:flex;
+  gap:15px;
+}
+.estadistica{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#1e1e1e;
+  padding:15px 20px;
+  border-radius:12px;
+  border:1px solid #333;
+}
+.estadistica small{
+  display:block;
+  color: #aaa;
+  font-size:12px;
+}
+.estadistica strong{
+  display:block;
+  margin-top:5px;
+  font-size:18px;
+}
+.progreso{
+  background:#181818;
+  padding:25px;
+  border-radius:15px;
+  border:1px solid #333;
+  margin-bottom:25px;
+}
+.progreso h2{
+  margin-bottom:20px;
+  font-size:20px;
+}
+.modulos{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:20px;
+}
+.modulo{
+  background:#222;
+  padding:15px;
+  border-radius:12px;
+  border:1px solid #333;
+  min-height:170px;
+  position:relative;
+}
+.modulo p{
+  margin-bottom:20px;
+  font-size:15px;
+}
+.modulo span{
+  color:#60a5fa;
+  font-size:13px;
+}
+.barra{
+  height: 8px;
+  width: 100%;
+  background: #333;
+  border-radius: 10px;
+  margin-top: 25px;
+}
+.barra div{
+  height: 100%;
+  width: 80%;
+  background: #2563eb;
+  border-radius: 10px;
+}
+.historial{
+  background: #181818;
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid #333;
+  margin-bottom: 25px;
+}
+.historial h2{
+  margin-bottom: 20px;
+}
+.historial p{
+  background: #222;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.continuar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #181818;
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid #333;
+}
+.continuar h3{
+  margin-bottom: 10px;
+}
+.continuar p{
+  color:#aaa;
+}
+.continuar button{
+  background:#facc15;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+.continuar button:hover{
+  transform: translateX(5px);
+}
+.practica{
+  min-height: 100vh;
+  background: #111;
+  color: white;
+  padding: 30px;
+}
+.practicaHeader{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.practicaHeader h1{
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+.practicaHeader p{
+  color: #aaa;
+  font-size: 14px;
+}
+.practicaHeader button{
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+.zonaPracti{
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+.camara{
+  height: 400px;
+  background: #222;
+  border-radius: 10px;
+  border: 1px solid #333;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.estadoCamara{
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: #333;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+}
+.deteccion{
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #2563eb;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+.panelPractica{
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.objetivo{
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+.objetivo h3{
+  color: #aaa;
+  font-size: 12px;
+}
+.objetivo strong{
+  display: block;
+  font-size: 50px;
+  color: #60a5fa;
+  margin: 10px;
+}
+.objetivo p{
+  text-align: left;
+  color: #aaa;
+  font-size: 12px;
+}
+.instrucciones{
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  font-size: 13px;
+}
+.instrucciones h2{
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+.instrucciones p{
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.alfabeto{
+  margin-top: 15px;
+  border-top: 1px solid #333;
+  padding-top: 15px;
+}
+.alfabeto h3{
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+.alfabeto button{
+  width: 48px;
+  height: 48px;
+  margin-right: 8px;
+  background: #222;
+  color: white;
+  border-radius: 8px;
+  border: 1px salid #444;
+  font-size: 18px;
+}
+.alfabeto letraActiva{
+  background: #2563eb;
+  color: white;
+  border: none;
+}
+@keyframes salto{
+
+  0%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-10px);
+  }
+
+  100%{
+    transform:translateY(0);
+  }
+
+}
