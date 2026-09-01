@@ -531,3 +531,34 @@ nav{
   margin: 0;
   max-width: none;
 }
+
+.estado-backend {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  max-width: calc(100vw - 32px);
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+}
+
+.estado-backend-comprobando {
+  color: #664d03;
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+}
+
+.estado-backend-conectado {
+  color: #0f5132;
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+}
+
+.estado-backend-error {
+  color: #842029;
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+}
