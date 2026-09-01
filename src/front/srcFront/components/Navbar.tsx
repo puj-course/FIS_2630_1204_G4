@@ -3,9 +3,10 @@ import { FaGraduationCap, FaTools, FaTrophy, FaUser, FaQuestionCircle, FaSignOut
 interface Props {
   cambiarPagina: (pagina: string) => void;
   paginaActual:string;
+  cerrarSesion: () => void;
 }
 
-function Navbar({ cambiarPagina, paginaActual }: Props) {
+function Navbar({ cambiarPagina, paginaActual,cerrarSesion }: Props) {
 
   return (
     <nav>
@@ -71,7 +72,7 @@ function Navbar({ cambiarPagina, paginaActual }: Props) {
           <FaQuestionCircle />
           Ayuda
         </button>
-        <button className="botonMenu">
+        <button className="botonMenu" onClick={cerrarSesion}>
           <FaSignOutAlt />
           Cerrar sesión
         </button>
