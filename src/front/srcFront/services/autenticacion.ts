@@ -14,6 +14,17 @@ export interface RespuestaLogin {
   usuario: UsuarioAutenticado;
 }
 
+export interface DatosRegistro {
+  nombre: string;
+  correo: string;
+  contrasena: string;
+}
+
+export interface RespuestaRegistro {
+  mensaje: string;
+  usuario: UsuarioAutenticado;
+}
+
 interface CredencialesLogin {
   correo: string;
   contrasena: string;
@@ -28,6 +39,15 @@ export function iniciarSesion(
   return solicitarApi<RespuestaLogin>("/auth/login", {
     method: "POST",
     body: JSON.stringify(credenciales)
+  });
+}
+
+export function registrarUsuario(
+  datos: DatosRegistro
+): Promise<RespuestaRegistro> {
+  return solicitarApi<RespuestaRegistro>("/auth/registro", {
+    method: "POST",
+    body: JSON.stringify(datos)
   });
 }
 
