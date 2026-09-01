@@ -57,6 +57,9 @@ function App() {
           <Navbar
             cambiarPagina={setPagina}
             paginaActual={pagina}
+            cerrarSesion={() => {setLogueado(false);
+              setPagina("login");
+            }}
           />
 
 
