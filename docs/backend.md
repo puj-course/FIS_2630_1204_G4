@@ -9,6 +9,9 @@ La documentación se considera viva: debe actualizarse cada vez que cambien las 
 El backend está construido con FastAPI y PostgreSQL. Actualmente permite:
 
 - Comprobar el estado de la API.
+- Registrar públicamente nuevos usuarios con el rol `usuario`.
+- Permitir que un administrador registre usuarios o administradores.
+- Validar los datos de registro y almacenar las contraseñas mediante hash Argon2.
 - Autenticar usuarios registrados mediante correo y contraseña.
 - Generar tokens JWT para las sesiones autenticadas.
 - Consultar la información del usuario asociado a un token.
@@ -63,10 +66,12 @@ FIS_2630_1204_G4/
 │   ├── controllers/                 # Reservado; aún sin implementación
 │   ├── routes/
 │   │   ├── autenticacion.py
-│   │   └── letras.py
+│   │   ├── letras.py
+│   │   └── usuarios.py
 │   ├── services/
 │   │   ├── autenticacion_service.py
-│   │   └── letras_service.py
+│   │   ├── letras_service.py
+│   │   └── usuarios_service.py
 │   └── vision/
 │       └── prototype/ 
 │            ├── hand_detection.py
@@ -91,10 +96,12 @@ FIS_2630_1204_G4/
 │   ├── models/                      # Reservado; no se usa ORM actualmente
 │   ├── schemas/
 │   │   ├── autenticacion.py
-│   │   └── letra.py
+│   │   ├── letra.py
+│   │   └── usuario.py
 │   ├── tests/
 │   │   ├── test_autenticacion.py
-│   │   └── test_letras.py
+│   │   ├── test_letras.py
+│   │   └── test_usuarios.py
 │   └── utils/                       # Reservado; aún sin implementación
 ├── .env.example
 └── requirements.txt
@@ -109,7 +116,7 @@ Las carpetas que contienen únicamente `.gitkeep` se conservan como parte de la 
 Es el punto de entrada de FastAPI. Este archivo:
 
 - Crea la aplicación `SignIA API` con versión `1.0.0`.
-- registra los routers de autenticación y letras;
+- registra los routers de autenticación, letras y usuarios;
 - configura CORS para los puertos locales `3000` y `5173`;
 - expone `GET /health` para comprobar el estado del backend.
 
@@ -126,8 +133,9 @@ http://127.0.0.1:5173
 
 Contiene las operaciones HTTP. Las rutas reciben y validan solicitudes, llaman los servicios y convierten los resultados en respuestas controladas.
 
-- `autenticacion.py`: implementa el inicio de sesión y la consulta del usuario actual.
+- `autenticacion.py`: implementa el registro público, el inicio de sesión y la consulta del usuario actual.
 - `letras.py`: implementa el listado, el detalle y la actualización de letras.
+- `usuarios.py`: permite que un administrador registre usuarios y asigne el rol `usuario` o `administrador`.
 
 La carpeta `app/controllers` todavía no se utiliza. En la implementación actual, la coordinación equivalente a un controlador se realiza directamente en los módulos de rutas.
 
@@ -147,6 +155,13 @@ Contiene la lógica que consulta PostgreSQL.
 - `obtener_letras_registradas`: devuelve únicamente letras activas y las ordena alfabéticamente.
 - `obtener_letra_por_id`: consulta una letra por su identificador. Esta operación no filtra por el campo `activa`.
 - `actualizar_informacion_letra`: actualiza solamente los campos enviados y devuelve el registro resultante.
+
+`usuarios_service.py` incluye:
+
+- `crear_usuario`: normaliza el nombre y el correo, genera el hash de la contraseña e inserta el registro en PostgreSQL.
+- `CorreoYaRegistradoError`: representa de forma controlada el intento de registrar un correo que ya existe.
+
+La operación de inserción devuelve únicamente `id_usuario`, `nombre`, `correo` y `rol`. La contraseña recibida y el campo `contrasena_hash` nunca forman parte de la respuesta.
 
 La actualización usa `WHERE id_letra = %s`, por lo que solo afecta la letra seleccionada. Los parámetros se envían por separado y no se concatenan dentro del SQL.
 
@@ -173,6 +188,13 @@ Los esquemas Pydantic definen los datos aceptados y el formato de las respuestas
 - `CredencialesLogin`;
 - `UsuarioAutenticadoRespuesta`;
 - `TokenRespuesta`.
+
+`usuario.py` contiene:
+
+- `DatosRegistroUsuario`, con las validaciones comunes de nombre, correo y contraseña;
+- `UsuarioAutoRegistro`, usado por el registro público y sin posibilidad de elegir un rol;
+- `UsuarioRegistro`, usado por administradores y limitado a los roles `usuario` y `administrador`;
+- `UsuarioRegistroRespuesta`, con el mensaje y los datos públicos del usuario creado.
 
 `letra.py` contiene:
 
@@ -299,11 +321,111 @@ El archivo `seed.sql` contiene hashes de contraseña deliberadamente no utilizab
 | Método | Ruta | Acceso | Descripción | Respuestas principales |
 |---|---|---|---|---|
 | `GET` | `/health` | Público | Comprueba que la aplicación responde. | `200` |
+| `POST` | `/auth/registro` | Público | Registra un nuevo usuario con rol `usuario`. | `201`, `409`, `422`, `500` |
 | `POST` | `/auth/login` | Público | Valida correo y contraseña y genera un JWT. | `200`, `401`, `422`, `500` |
 | `GET` | `/auth/me` | Usuario autenticado | Devuelve el usuario asociado al token. | `200`, `401` |
+| `POST` | `/usuarios` | Administrador | Registra un usuario y permite asignarle un rol válido. | `201`, `401`, `403`, `409`, `422`, `500` |
 | `GET` | `/letras` | Público | Lista las letras activas en orden alfabético. | `200`, `500` |
-| `GET` | `/letras/{id_letra}` | Público | Consulta una letra mediante su identificador. | `200`, `404`, `500` |
+| `GET` | `/letras/{id_letra}` | Público | Consulta una letra mediante su identificador. | `200`, `404`, `422`, `500` |
 | `PATCH` | `/letras/{id_letra}` | Administrador | Actualiza parcialmente descripción o imagen. | `200`, `400`, `401`, `403`, `404`, `422`, `500` |
+
+### Formato general de errores
+
+Los errores controlados de la API usan la clave `detail`:
+
+```json
+{
+  "detail": "Descripción del error"
+}
+```
+
+Cuando Pydantic rechaza los datos de entrada, FastAPI responde `422` y `detail` contiene una lista con la ubicación del campo, el motivo y el tipo de validación que falló.
+
+### Comprobación del estado
+
+`GET /health` no recibe parámetros ni requiere autenticación.
+
+Respuesta exitosa (`200 OK`):
+
+```json
+{
+  "estado": "ok",
+  "mensaje": "El backend de SignIA está funcionando"
+}
+```
+
+### Registro público de usuarios
+
+`POST /auth/registro` permite crear una cuenta sin autenticación previa. El rol no se recibe desde el frontend: el backend asigna siempre `usuario`.
+
+Solicitud:
+
+```json
+{
+  "nombre": "Usuario nuevo",
+  "correo": "usuario@signia.local",
+  "contrasena": "ClaveSegura789"
+}
+```
+
+Respuesta exitosa (`201 Created`):
+
+```json
+{
+  "mensaje": "Usuario registrado correctamente",
+  "usuario": {
+    "id_usuario": 5,
+    "nombre": "Usuario nuevo",
+    "correo": "usuario@signia.local",
+    "rol": "usuario"
+  }
+}
+```
+
+Los campos `nombre`, `correo` y `contrasena` son obligatorios. El nombre debe contener entre 2 y 100 caracteres, el correo entre 5 y 150, y la contraseña entre 12 y 200. Los espacios externos del nombre y el correo se eliminan, y el correo se convierte a minúsculas.
+
+La solicitud no admite campos adicionales. Por esa razón, enviar `rol` en esta ruta produce `422` y no crea el usuario.
+
+Errores principales:
+
+| Código | Condición | Respuesta relevante |
+|---:|---|---|
+| `409` | El correo ya está registrado. | `{"detail": "El correo ya se encuentra registrado"}` |
+| `422` | Faltan campos, no cumplen las longitudes o se envía un campo no admitido. | Detalle de validación generado por FastAPI. |
+| `500` | Ocurre un error inesperado durante el registro. | `{"detail": "No fue posible registrar el usuario"}` |
+
+### Registro de usuarios por un administrador
+
+`POST /usuarios` requiere un token perteneciente a un administrador. A diferencia del registro público, esta ruta permite asignar el rol `usuario` o `administrador`.
+
+Encabezado requerido:
+
+```http
+Authorization: Bearer <token JWT de administrador>
+```
+
+Solicitud:
+
+```json
+{
+  "nombre": "Nuevo administrador",
+  "correo": "nuevo.admin@signia.local",
+  "contrasena": "ClaveSegura456",
+  "rol": "administrador"
+}
+```
+
+El campo `rol` es opcional y toma el valor `usuario` cuando se omite. Cualquier otro valor produce `422`.
+
+La respuesta exitosa tiene la misma estructura del registro público y utiliza el código `201`. Adicionalmente, esta ruta puede responder:
+
+| Código | Condición |
+|---:|---|
+| `401` | El token falta o no es válido. |
+| `403` | El token pertenece a un usuario que no es administrador. |
+| `409` | El correo ya se encuentra registrado. |
+| `422` | Los datos no cumplen el esquema o el rol no es válido. |
+| `500` | Ocurre un error inesperado durante el registro. |
 
 ### Inicio de sesión
 
@@ -343,6 +465,23 @@ Authorization: Bearer <token JWT>
 
 En Swagger UI se debe pulsar **Authorize** y pegar únicamente el token.
 
+### Consulta del usuario autenticado
+
+`GET /auth/me` no recibe cuerpo, pero requiere el encabezado `Authorization` con un token válido.
+
+Respuesta exitosa (`200 OK`):
+
+```json
+{
+  "id_usuario": 2,
+  "nombre": "Administrador de prueba",
+  "correo": "admin.prueba@signia.local",
+  "rol": "administrador"
+}
+```
+
+La ruta devuelve `401` si el token falta, está vencido, es inválido o corresponde a un usuario que ya no existe.
+
 ### Consulta de letras
 
 `GET /letras` devuelve una lista con esta forma:
@@ -359,6 +498,27 @@ En Swagger UI se debe pulsar **Authorize** y pegar únicamente el token.
 ```
 
 Si no existen letras activas, la respuesta es `[]`.
+
+### Consulta del detalle de una letra
+
+`GET /letras/{id_letra}` recibe el identificador numérico como parámetro de ruta. Por ejemplo:
+
+```http
+GET /letras/1
+```
+
+Respuesta exitosa (`200 OK`):
+
+```json
+{
+  "id_letra": 1,
+  "letra": "A",
+  "descripcion": "Representación de la letra A",
+  "ruta_imagen": "assets/alfabeto/a.png"
+}
+```
+
+Esta consulta puede devolver una letra inactiva porque busca directamente por su identificador. Si el registro no existe responde `404`; si ocurre un error de acceso a PostgreSQL responde `500`. Un identificador que no sea numérico es rechazado por FastAPI con `422`.
 
 ### Actualización de una letra
 
@@ -396,6 +556,65 @@ Respuesta exitosa:
 ```
 
 Sin token la operación produce `401`; con un usuario que no sea administrador produce `403`.
+
+### Consumo desde el frontend
+
+Durante el desarrollo local, el frontend puede usar como URL base:
+
+```text
+http://127.0.0.1:8000
+```
+
+Las solicitudes `POST` y `PATCH` que envían JSON deben incluir:
+
+```http
+Content-Type: application/json
+```
+
+Ejemplo de inicio de sesión desde TypeScript:
+
+```typescript
+const respuesta = await fetch(
+  "http://127.0.0.1:8000/auth/login",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ correo, contrasena })
+  }
+);
+
+const datos = await respuesta.json();
+
+if (!respuesta.ok) {
+  throw new Error(datos.detail ?? "No fue posible completar la solicitud");
+}
+```
+
+Ejemplo de consulta pública:
+
+```typescript
+const respuesta = await fetch(
+  "http://127.0.0.1:8000/letras"
+);
+const letras = await respuesta.json();
+```
+
+Ejemplo de solicitud protegida:
+
+```typescript
+const respuesta = await fetch(
+  "http://127.0.0.1:8000/auth/me",
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+);
+```
+
+El frontend debe comprobar `respuesta.ok` antes de usar el resultado como una respuesta exitosa. Un código `4xx` o `5xx` también puede contener JSON y debe procesarse para mostrar el valor de `detail` al usuario. Los orígenes locales en los puertos `3000` y `5173` ya están habilitados mediante CORS.
 
 ## 6. Tecnologías y dependencias
 
@@ -443,6 +662,7 @@ Se recomienda utilizar una clave de al menos 32 bytes. El archivo `.env` contien
 
 - Git.
 - Python 3.12.
+- Módulo `venv` de Python para crear el entorno virtual.
 - Acceso a una base PostgreSQL o Neon.
 - Cliente `psql` solamente si se crearán tablas desde la terminal.
 - Cámara disponible para ejecutar el prototipo visual.
@@ -450,9 +670,37 @@ Se recomienda utilizar una clave de al menos 32 bytes. El archivo `.env` contien
 
 Actualmente no existe una configuración funcional de Docker en el repositorio. Los archivos `.sh` de `scripts` también permanecen vacíos, por lo que la instalación y ejecución se realizan con los comandos descritos en esta guía.
 
+### Instalar lo necesario para crear el entorno virtual
+
+En Ubuntu o distribuciones basadas en Debian se debe instalar Python 3.12 junto con el módulo `venv` y `pip`:
+
+```bash
+sudo apt update
+sudo apt install python3.12 python3.12-venv python3-pip
+```
+
+Si `python3.12` ya está instalado y solamente aparece un error al crear `.venv`, basta con instalar:
+
+```bash
+sudo apt install python3.12-venv
+```
+
+La instalación puede comprobarse con:
+
+```bash
+python3.12 --version
+python3.12 -m venv --help
+```
+
+En Windows se debe instalar Python 3.12 y seleccionar **Add Python to PATH** durante la instalación. El módulo `venv` viene incluido, por lo que no requiere un paquete adicional. Para comprobarlo:
+
+```powershell
+py -3.12 --version
+```
+
 ### Crear el entorno virtual
 
-Linux:
+Linux, desde la raíz del repositorio:
 
 ```bash
 python3.12 -m venv .venv
@@ -466,11 +714,17 @@ uv venv --python 3.12 .venv
 source .venv/bin/activate
 ```
 
-Windows PowerShell:
+Windows PowerShell, desde la raíz del repositorio:
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
+```
+
+Cuando el entorno está activo, la terminal muestra `(.venv)` al inicio de la línea. Para salir del entorno virtual en cualquiera de los sistemas se utiliza:
+
+```bash
+deactivate
 ```
 
 ### Instalar dependencias
@@ -547,14 +801,15 @@ Estado actual:
 
 - 10 pruebas de autenticación.
 - 15 pruebas de letras y permisos.
-- 25 pruebas en total.
+- 13 pruebas de registro de usuarios.
+- 38 pruebas en total.
 
-Las pruebas cubren credenciales correctas e incorrectas, errores de base de datos, generación y validación de tokens, consultas de letras, listado vacío, actualización parcial, validación de datos y autorización administrativa.
+Las pruebas cubren credenciales correctas e incorrectas, errores de base de datos, generación y validación de tokens, registro público y administrativo, correos duplicados, campos obligatorios, roles permitidos, consultas de letras, listado vacío, actualización parcial, validación de datos y autorización administrativa.
 
 Durante las pruebas de errores aparecen trazas generadas por `logger.exception`. Son esperadas porque esas pruebas provocan excepciones simuladas. El resultado válido debe finalizar con:
 
 ```text
-Ran 25 tests
+Ran 38 tests
 OK
 ```
 
@@ -569,10 +824,12 @@ Los códigos usados actualmente son:
 | Código | Significado en la API |
 |---:|---|
 | `200` | Operación completada. |
+| `201` | Usuario registrado correctamente. |
 | `400` | Solicitud de actualización sin campos. |
 | `401` | Credenciales incorrectas o token ausente/inválido. |
 | `403` | Usuario autenticado sin rol de administrador. |
 | `404` | Letra inexistente. |
+| `409` | El correo enviado ya se encuentra registrado. |
 | `422` | Datos que no cumplen el esquema. |
 | `500` | Error interno o fallo de acceso a PostgreSQL. |
 
@@ -594,6 +851,10 @@ Las consultas deben continuar usando parámetros de `psycopg`. No deben construi
 
 | Funcionalidad | Implementación actual |
 |---|---|
+| Registrar una cuenta pública | `POST /auth/registro`, con asignación obligatoria del rol `usuario`. |
+| Registrar usuarios como administrador | `POST /usuarios`, protegido por `requerir_administrador`. |
+| Persistir usuarios | `crear_usuario`, hash Argon2 e inserción SQL con `RETURNING`. |
+| Validar el registro | Esquemas de `src/schemas/usuario.py`, restricción de correo único y manejo de errores `409`, `422` y `500`. |
 | Consultar letras registradas | `GET /letras` y `obtener_letras_registradas`. |
 | Consultar el detalle de una letra | `GET /letras/{id_letra}` y `obtener_letra_por_id`. |
 | Autenticar usuarios | `POST /auth/login`, Argon2 y JWT. |
@@ -608,7 +869,6 @@ Las consultas deben continuar usando parámetros de `psycopg`. No deben construi
 
 La estructura contiene espacios para funcionalidades futuras. A la fecha de esta guía todavía no están implementados:
 
-- Registro de usuarios mediante un endpoint.
 - Renovación, revocación o cierre de sesión de tokens.
 - Carga física de imágenes; actualmente solo se actualiza `ruta_imagen`.
 - Rutas para sesiones de reconocimiento, resultados y progreso.
@@ -621,6 +881,7 @@ La estructura contiene espacios para funcionalidades futuras. A la fecha de esta
 - Envío y procesamiento de frames desde el cliente.
 - Almacenamiento de resultados de reconocimiento.
 - Implementación del reconocimiento completo del alfabeto LSC.
+
 Esta sección debe reducirse o actualizarse cuando esos componentes sean implementados.
 
 ## 14. Lista de mantenimiento
