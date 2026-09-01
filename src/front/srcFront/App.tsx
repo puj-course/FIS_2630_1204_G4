@@ -65,34 +65,23 @@ function App() {
 
 
         :
-
-
-
         <Login
 
-          cambiarPagina={(pagina)=>{
+        cambiarPagina={setPagina}
+
+        alIniciarSesion={()=>{
+
+          setLogueado(true);
+
+          setPagina("home");
+
+        }}
+
+      />
 
 
-            if(pagina==="home"){
 
-
-              setLogueado(true);
-
-              setPagina("home");
-
-
-            }else{
-
-
-              setPagina(pagina);
-
-
-            }
-
-
-          }}
-
-        />
+      
 
 
       )
