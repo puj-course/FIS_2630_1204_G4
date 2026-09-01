@@ -342,7 +342,7 @@ class TestPermisosActualizacionLetra(unittest.TestCase):
             respuesta.json(),
             {
                 "detail":
-                "No tiene permisos para modificar el alfabeto"
+                "No tiene permisos de administrador"
             }
         )
         servicio_simulado.assert_not_called()
