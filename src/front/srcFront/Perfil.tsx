@@ -1,4 +1,13 @@
-function Perfil(){
+interface Props {
+
+  usuario:{
+    nombre:string;
+    correo:string;
+  }
+
+}
+
+function Perfil({ usuario }: Props){
 
   return(
     <div className="perfil">
