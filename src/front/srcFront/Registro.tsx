@@ -8,7 +8,14 @@ import { registrarUsuario } from "./services/autenticacion";
 
 
 interface Props {
+
   cambiarPagina: (pagina: string) => void;
+
+  guardarUsuario: (usuario:{
+    nombre:string;
+    correo:string;
+  }) => void;
+
 }
 
 interface ErroresFormulario {
@@ -115,6 +122,7 @@ function Registro({ cambiarPagina }: Props) {
     if (Object.keys(errores).length > 0) {
       setErroresCampos(errores);
       return;
+
     }
 
     setErroresCampos({});
@@ -167,10 +175,23 @@ function Registro({ cambiarPagina }: Props) {
     );
   }
 
+
+
   return (
+
     <div className="pantalla">
-      <h1 className="logo">SignIA</h1>
-      <h2>Crear cuenta</h2>
+
+
+      <h1 className="logo">
+        SignIA
+      </h1>
+
+
+      <h2>
+        Crear cuenta
+      </h2>
+
+
 
       <form onSubmit={manejarRegistro} noValidate>
         <input
@@ -282,10 +303,18 @@ function Registro({ cambiarPagina }: Props) {
           onClick={() => cambiarPagina("login")}
         >
           Inicia sesión
+
         </span>
+
+
       </p>
+
+
     </div>
+
   );
+
 }
+
 
 export default Registro;
