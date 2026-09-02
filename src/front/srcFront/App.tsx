@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { eliminarSesion } from "./services/autenticacion";
 
 import Navbar from "./components/Navbar";
 
@@ -27,7 +27,7 @@ function App() {
 
 
 
-  const [usuario, setUsuario] = useState({
+  const [, setUsuario] = useState({
 
     nombre:"",
 
@@ -106,6 +106,7 @@ function App() {
 
             cerrarSesion={()=>{
 
+            eliminarSesion();
             setLogueado(false);
 
             setPagina("login");
@@ -143,7 +144,7 @@ function App() {
               ?
 
 
-              <Perfil usuario={usuario}/>
+              <Perfil />
 
 
 
