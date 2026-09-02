@@ -15,6 +15,8 @@ import Practica from "./Practica";
 
 import Home from "./Home";
 
+import Aprender from "./Aprender";
+
 
 
 function App() {
@@ -81,7 +83,7 @@ function App() {
 
 
 
-      
+
 
 
       )
@@ -132,6 +134,15 @@ function App() {
               ?
 
               <Home cambiarPagina={setPagina}/>
+
+
+              :
+
+              pagina==="aprender"
+
+              ?
+
+              <Aprender cambiarPagina={setPagina}/>
 
 
 
