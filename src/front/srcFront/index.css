@@ -567,6 +567,120 @@ nav{
   background-color: #f8d7da;
   border-color: #f5c2c7;
 }
+
+.estadoPerfil {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.estadoPerfil p {
+  color: #aaa;
+}
+
+.rolUsuario {
+  padding: 8px 14px;
+  border: 1px solid #2563eb;
+  border-radius: 20px;
+  color: #60a5fa;
+  font-size: 14px;
+}
+
+.progresoPerfil {
+  max-width: 1000px;
+}
+
+.encabezadoProgreso {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+}
+
+.encabezadoProgreso p {
+  color: #aaa;
+  line-height: 1.5;
+}
+
+.porcentajeProgreso {
+  color: #60a5fa;
+  font-size: 32px;
+  white-space: nowrap;
+}
+
+.barraProgresoPerfil {
+  width: 100%;
+  height: 16px;
+  margin: 25px 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #333;
+}
+
+.rellenoProgresoPerfil {
+  height: 100%;
+  border-radius: 10px;
+  background: #2563eb;
+  transition: width 0.4s ease;
+}
+
+.resumenProgreso {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(150px, 1fr)
+  );
+  gap: 15px;
+}
+
+.datoProgreso {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  background: #222;
+}
+
+.datoProgreso span {
+  color: #aaa;
+  font-size: 13px;
+}
+
+.datoProgreso strong {
+  color: white;
+  font-size: 24px;
+}
+
+.mensajeSinProgreso {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  background: #222;
+  color: #aaa;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .perfil {
+    padding: 25px;
+  }
+
+  .perfilHeader,
+  .encabezadoProgreso {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .porcentajeProgreso {
+    font-size: 28px;
+  }
+
+ }
 .aprender{
 
     min-height:100vh;
