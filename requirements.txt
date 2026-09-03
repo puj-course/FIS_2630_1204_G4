@@ -1,5 +1,19 @@
-fastapi==0.141.1
+====== MacOS ====== 
+
+fastapi==0.128.8
 httpx==0.28.1
 psycopg[binary]==3.3.4
 python-dotenv==1.2.3
 uvicorn==0.52.4
+
+
+
+====== LINUX ====== 
+fastapi==0.141.1
+httpx==0.28.1
+psycopg[binary]==3.3.4
+pwdlib[argon2]==0.3.1
+PyJWT==2.13.0
+python-dotenv==1.2.3
+uvicorn==0.52.4
+pydantic==2.13.4
