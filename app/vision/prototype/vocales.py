@@ -279,3 +279,69 @@ def es_vocal_e(mano):
         and not forma_circular_o(mano)
     )   
 
+def es_vocal_i(mano):
+
+    # Comprueba si la posición de la mano corresponde a la vocal I
+
+    # La vocal I tiene únicamente el dedo meñique estirado
+    return (
+        dedo_doblado(mano, "indice")
+        and dedo_doblado(mano, "medio")
+        and dedo_doblado(mano, "anular")
+        and menique_estirado(mano)
+    )
+
+
+def es_vocal_o(mano):
+
+    # Comprueba si la posición de la mano corresponde a la vocal O
+
+    # La vocal O tiene los dedos recogidos formando una figura circular
+    # donde las puntas se acercan al pulgar
+    return (
+        dedo_doblado(mano, "indice")
+        and dedo_doblado(mano, "medio")
+        and dedo_doblado(mano, "anular")
+        and dedo_doblado(mano, "menique")
+        and forma_circular_o(mano)
+    )
+
+
+def es_vocal_u(mano):
+
+    # Comprueba si la posición de la mano corresponde a la vocal U
+
+    # La vocal U tiene el índice y el meñique extendidos
+    return (
+        indice_estirado(mano)
+        and dedo_doblado(mano, "medio")
+        and dedo_doblado(mano, "anular")
+        and menique_estirado(mano)
+    )
+
+
+def reconocer_vocal(mano):
+
+    # Revisa las condiciones de cada vocal y devuelve la encontrada
+
+    # Se revisa primero la vocal O porque puede confundirse con una mano cerrada
+    if es_vocal_o(mano):
+        return "O"
+
+    # Se revisa la vocal U porque tiene dos dedos extendidos
+    if es_vocal_u(mano):
+        return "U"
+
+    # Se revisa la vocal I porque solamente tiene el meñique levantado
+    if es_vocal_i(mano):
+        return "I"
+
+    # Se revisan A y E al final porque sus posiciones pueden ser parecidas
+    if es_vocal_a(mano):
+        return "A"
+
+    if es_vocal_e(mano):
+        return "E"
+
+    # Se devuelve None cuando la posición no coincide con ninguna vocal
+    return None
