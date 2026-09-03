@@ -6,36 +6,30 @@
 
 SignIA surge como respuesta a las barreras de comunicación existentes entre personas sordas y oyentes y a la necesidad de generar herramientas tecnológicas que permitan ampliar el conocimiento básico de la LSC, la plataforma busca promover el aprendizaje autónomo, la sensibilización frente a la comunidad sorda y el uso de la tecnología como herramienta para contribuir a una comunicación más inclusiva.
 
-----
+-----
 
 ## Equipo del Proyecto
-
-El equipo de **SignIA** se encuentra organizado mediante roles definidos para apoyar la gestión, planificación, calidad y desarrollo del proyecto.
-
-| Integrante | Rol | GitHub |
-|---|---|---|
-| **Isabel Gutiérrez** | Scrum Master | [@isabelsgp](https://github.com/isabelsgp) |
-| **Juan Diego Arevalo** | Product Owner | [@Juan123839](https://github.com/Juan123839) |
-| **Juan Pablo Vanegas** | Sprint Planner | [@juanpvanegasvelandia02-ship-it](https://github.com/ujuanpvanegasvelandia02-ship-it) |
-| **David Vallejo** | Configuration Manager | [@David-wallpaper](https://github.com/David-wallpaper) |
-| **Juan Diego Arevalo** | QA Lead | [@Juan123839](https://github.com/Juan123839) |
-| **Oscar Martinez Mantilla** | DevOps Engineer | [@martinezm-oe](https://github.com/martinezm-oe) |
+| Nombre                  | Rol                    | GitHub / Perfil |
+|-------------------------|------------------------|--------------------------------------------|
+| Isabel Gutiérrez        | Scrum Master           | github.com/isabelsgp |
+| Juan Diego Arevalo      | Product Owner          | github.com/Juan123839 |
+| Juan Pablo Vanegas      | Sprint Planner         | github.com/ujuanpvanegasvelandia02-ship-it |
+| David Vallejo           | Configuration Manager  | github.com/David-wallpaper |
+| Juan Diego Arevalo      | QA Lead                | github.com/Juan123839 |
+| Oscar Martinez Mantilla | DevOps Engineer        | github.com/martinezm-oe |
 
 ---
 
 ## Tecnologías Utilizadas
 
-- **Frontend:** React + TypeScript + Vite
-- **Librería de componentes visuales:** React Icons
+- **Frontend:** React + JavaScript
 - **Backend:** Python – FastAPI
 - **Base de Datos:** PostgreSQL
 - **Visión por Computador:** OpenCV + MediaPipe
 - **Procesamiento de datos:** Pandas
-- **Gestión de dependencias Frontend:** npm + package-lock.json
-- **Gestión de dependencias Backend:** pip + requirements.txt + requirements.lock.txt
 - **Control de versiones:** Git
 
-------
+----
 
 ## Estructura del Proyecto
 
@@ -198,24 +192,24 @@ docker-compose run ai-model pytest
 **Equipo de desarrollo:**
 
 **Isabel Gutiérrez**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 isabels-gutierrez@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/isabelsgp
 
 **Juan Diego Arevalo**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 jd.arevalo@javeriana.edu.co  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/Juan123839
 
 **Juan Pablo Vanegas**  
 Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
-Correo: Juanpvanegasvelandia02@gmail.com
+GitHub: https://github.com/ujuanpvanegasvelandia02-ship-it
 
 **David Vallejo**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 vallejo-david@javeriana.edu.co 
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/David-wallpaper
 
-**Oscar Eduardo Martinez Mantilla**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 martinezm.oe@javeriana.edu.co  
+**Oscar Martinez Mantilla**  
+Estudiante de Ingeniería de Sistemas, Pontificia Universidad Javeriana  
+GitHub: https://github.com/martinezm-oe
 
 
 --- 
