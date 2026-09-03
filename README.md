@@ -25,11 +25,14 @@ El equipo de **SignIA** se encuentra organizado mediante roles definidos para ap
 
 ## Tecnologías Utilizadas
 
-- **Frontend:** React + JavaScript
+- **Frontend:** React + TypeScript + Vite
+- **Librería de componentes visuales:** React Icons
 - **Backend:** Python – FastAPI
 - **Base de Datos:** PostgreSQL
 - **Visión por Computador:** OpenCV + MediaPipe
 - **Procesamiento de datos:** Pandas
+- **Gestión de dependencias Frontend:** npm + package-lock.json
+- **Gestión de dependencias Backend:** pip + requirements.txt + requirements.lock.txt
 - **Control de versiones:** Git
 
 ------
