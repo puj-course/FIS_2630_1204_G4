@@ -186,3 +186,96 @@ def dedos_juntos(mano, dedo_1, dedo_2, limite=0.45):
         punta_2,
     ) < limite
 
+def forma_circular_o(mano):
+
+    # Comprueba si la mano tiene la forma característica de la vocal O
+
+    # Esta función calcula distancias usando solo las posiciones x y y
+    # Se evita usar z porque puede variar más dependiendo de la cámara
+
+    def distancia_2d_relativa(numero_punto_1, numero_punto_2):
+
+        # Se obtienen los dos puntos que se van a comparar
+        punto_1 = mano[numero_punto_1]
+        punto_2 = mano[numero_punto_2]
+
+        # Se calcula la diferencia entre las posiciones de los puntos
+        diferencia_x = punto_1.x - punto_2.x
+        diferencia_y = punto_1.y - punto_2.y
+
+        # Se calcula la distancia entre los dos puntos
+        distancia_entre_puntos = math.sqrt(
+            diferencia_x ** 2
+            + diferencia_y ** 2
+        )
+
+        # Se calcula el tamaño de referencia de la mano
+        # tomando la distancia entre la muñeca y el dedo medio
+        diferencia_mano_x = mano[0].x - mano[9].x
+        diferencia_mano_y = mano[0].y - mano[9].y
+
+        medida_mano = math.sqrt(
+            diferencia_mano_x ** 2
+            + diferencia_mano_y ** 2
+        )
+
+        # Se evita dividir entre cero si la medida de la mano no existe
+        medida_mano = max(medida_mano, 0.000001)
+
+        # Se devuelve la distancia comparada con el tamaño de la mano
+        return distancia_entre_puntos / medida_mano
+
+    # Se revisa que la punta del pulgar y la del índice estén juntas
+    pulgar_toca_indice = distancia_2d_relativa(4, 8) < 0.35
+
+    # Se revisa que las puntas de los dedos permanezcan agrupadas
+    indice_medio_juntos = distancia_2d_relativa(8, 12) < 0.60
+
+    medio_anular_juntos = distancia_2d_relativa(12, 16) < 0.60
+
+    anular_menique_juntos = distancia_2d_relativa(16, 20) < 0.60
+
+    # Se revisa que los dedos mantengan la separación necesaria
+    # para formar el espacio interno de la vocal O
+    indice_separado_de_base = distancia_2d_relativa(5, 8) > 0.40
+
+    medio_separado_de_base = distancia_2d_relativa(9, 12) > 0.40
+
+    return (
+        pulgar_toca_indice
+        and indice_medio_juntos
+        and medio_anular_juntos
+        and anular_menique_juntos
+        and indice_separado_de_base
+        and medio_separado_de_base
+    )
+
+
+def es_vocal_a(mano):
+
+    # Comprueba si la posición de la mano corresponde a la vocal A
+
+    # La vocal A tiene los dedos doblados y el pulgar extendido
+    return (
+        dedo_doblado(mano, "indice")
+        and dedo_doblado(mano, "medio")
+        and dedo_doblado(mano, "anular")
+        and dedo_doblado(mano, "menique")
+        and pulgar_estirado(mano)
+    )
+
+
+def es_vocal_e(mano):
+
+    # Comprueba si la posición de la mano corresponde a la vocal E
+
+    # La vocal E mantiene los dedos recogidos y el pulgar no está extendido
+    return (
+        dedo_doblado(mano, "indice")
+        and dedo_doblado(mano, "medio")
+        and dedo_doblado(mano, "anular")
+        and dedo_doblado(mano, "menique")
+        and not pulgar_estirado(mano)
+        and not forma_circular_o(mano)
+    )   
+
