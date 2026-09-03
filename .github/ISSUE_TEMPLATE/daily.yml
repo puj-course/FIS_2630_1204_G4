@@ -1,0 +1,39 @@
+name: "Daily Scrum"
+description: "Registrar el seguimiento diario del Sprint"
+title: "[Daily] "
+labels:
+  - "Daily"
+
+body:
+
+  - type: input
+    id: fecha
+    attributes:
+      label: "Fecha"
+      description: "Indique la fecha de la Daily."
+      placeholder: "Ejemplo: 22/08/2026"
+    validations:
+      required: true
+
+  - type: input
+    id: sprint
+    attributes:
+      label: "Sprint"
+      description: "Indique el Sprint actual."
+      placeholder: "Ejemplo: Sprint 2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: daily_questions
+    attributes:
+      label: "Preguntas de la Daily"
+      description: "Cada integrante debe responder las siguientes preguntas."
+      value: |
+        1. ¿Qué hice ayer?
+
+        2. ¿Qué hice hoy?
+
+        3. ¿Tengo algún bloqueo?
+    validations:
+      required: true
