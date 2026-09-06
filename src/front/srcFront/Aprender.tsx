@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { obtenerSesion } from "./services/autenticacion";
 
 import imagenA from "./assets/señas/LETRA A.jpg";
 import imagenE from "./assets/señas/LETRA E.jpg";
@@ -36,6 +37,25 @@ const letras:Letra[] = [
 
 function Aprender({cambiarPagina}:Props){
     const [letraSeleccionada,setLetraSeleccionada] = useState<Letra | null > (null);
+    
+    const sesion = obtenerSesion();
+    const esAdministrador = sesion?.usuario.rol === "administrador";
+
+    const [editando, setEditando] = useState(false);
+    const [descripcionEditada, setDescripcionEditada] = useState("");
+
+    const iniciarEdicion = () => {
+        if (!letraSeleccionada) return;
+        setDescripcionEditada(letraSeleccionada.descripcion);
+        setEditando(true);
+    };
+
+    const guardarCambios = () => {
+        if (!letraSeleccionada) return;
+        letraSeleccionada.descripcion = descripcionEditada;
+        setEditando(false);
+    };
+
     return(
         <div className="aprender">
             <h1>
@@ -63,7 +83,10 @@ function Aprender({cambiarPagina}:Props){
                 "letraBox"
               }
 
-              onClick={()=>setLetraSeleccionada(letra)}
+              onClick={()=>{
+                setLetraSeleccionada(letra);
+                setEditando(false);
+              }}
 
             >
 
@@ -115,15 +138,41 @@ function Aprender({cambiarPagina}:Props){
 
 
             </div>
+     
+            {
+              !editando && (
+                <p>
+                  {letraSeleccionada.descripcion}
+                </p>
+              )
+            }
+
+            {
+              esAdministrador && editando && (
+                <div className="editorDescripcion">
+                  <textarea
+                    value={descripcionEditada}
+                    onChange={(e)=>setDescripcionEditada(e.target.value)}
+                    rows={4}
+                  />
+                  <div className="accionesEdicion">
+                    <button onClick={guardarCambios}>
+                      Guardar cambios
+                    </button>
+                    <button
+                      className="botonCancelar"
+                      onClick={()=>setEditando(false)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )
+            }
 
 
 
-            <p>
-
-              {letraSeleccionada.descripcion}
-
-            </p>
-
+            <div className="accionesLetra">
 
 
             <button
@@ -137,7 +186,16 @@ function Aprender({cambiarPagina}:Props){
               Practicar esta letra
 
             </button>
+            
+            {
+                esAdministrador && !editando && (
+                  <button className="botonEditar" onClick={iniciarEdicion}>
+                    Editar instrucciones
+                  </button>
+                )
+              }
 
+            </div>
 
           </section>
 
@@ -146,14 +204,11 @@ function Aprender({cambiarPagina}:Props){
 
       }
 
-
-
     </div>
 
   );
 
 
 }
-
-
 export default Aprender;
+
