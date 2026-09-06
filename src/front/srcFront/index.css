@@ -791,3 +791,76 @@ nav{
     border-radius:10px;
     cursor:pointer;
 }
+
+.accionesLetra {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.botonEditar {
+  padding: 15px 15%;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #facc15;
+  color: #111;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.botonEditar:hover {
+  transform: translateX(4px);
+  opacity: 0.9;
+}
+
+.editorDescripcion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 15px 0;
+  width: 100%;
+}
+
+.editorDescripcion textarea {
+  background: #222;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  resize: vertical;
+}
+
+.editorDescripcion textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.accionesEdicion {
+  display: flex;
+  gap: 12px;
+}
+
+.accionesEdicion button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+  transition: opacity 0.15s ease;
+}
+
+.accionesEdicion button:hover {
+  opacity: 0.85;
+}
+
+.botonCancelar {
+  background: #333 !important;
+}
