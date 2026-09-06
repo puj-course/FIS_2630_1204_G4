@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import crear_token_acceso, obtener_usuario_actual
 from app.services.autenticacion_service import autenticar_usuario
@@ -9,7 +9,14 @@ from src.schemas.autenticacion import (
     TokenRespuesta,
     UsuarioAutenticadoRespuesta
 )
-
+from app.services.usuarios_service import (
+    CorreoYaRegistradoError,
+    crear_usuario
+)
+from src.schemas.usuario import (
+    UsuarioAutoRegistro,
+    UsuarioRegistroRespuesta
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,3 +79,38 @@ def consultar_usuario_actual(
     usuario=Depends(obtener_usuario_actual)
 ):
     return usuario
+
+@router.post(
+    "/registro",
+    response_model=UsuarioRegistroRespuesta,
+    status_code=status.HTTP_201_CREATED
+)
+def autorregistrar_usuario(datos: UsuarioAutoRegistro):
+    try:
+        usuario = crear_usuario(
+            nombre=datos.nombre,
+            correo=datos.correo,
+            contrasena=datos.contrasena,
+            rol="usuario"
+        )
+
+    except CorreoYaRegistradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El correo ya se encuentra registrado"
+        ) from error
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error durante el autorregistro"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No fue posible registrar el usuario"
+        ) from error
+
+    return {
+        "mensaje": "Usuario registrado correctamente",
+        "usuario": usuario
+    }

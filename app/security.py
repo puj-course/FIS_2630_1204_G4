@@ -99,7 +99,7 @@ def requerir_administrador(
     if usuario_actual["rol"] != "administrador":
         raise HTTPException(
             status_code=403,
-            detail="No tiene permisos para modificar el alfabeto"
+            detail="No tiene permisos de administrador"
         )
 
     return usuario_actual
