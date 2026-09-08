@@ -2,10 +2,32 @@ import { useState } from "react";
 import { obtenerSesion } from "./services/autenticacion";
 
 import imagenA from "./assets/señas/LETRA A.jpg";
+import imagenB from "./assets/señas/LETRA B.jpg";
+import imagenC from "./assets/señas/LETRA C.jpg";
+import imagenD from "./assets/señas/LETRA D.jpg";
 import imagenE from "./assets/señas/LETRA E.jpg";
+import imagenF from "./assets/señas/LETRA F.jpg";
+import imagenG from "./assets/señas/LETRA G.jpg";
+import imagenH from "./assets/señas/LETRA H.jpg";
 import imagenI from "./assets/señas/LETRA I.jpg";
+import imagenJ from "./assets/señas/LETRA J.jpg";
+import imagenK from "./assets/señas/LETRA K.jpg";
+import imagenL from "./assets/señas/LETRA L.jpg";
+import imagenM from "./assets/señas/LETRA M.jpg";
+import imagenN from "./assets/señas/LETRA N.jpg";
+import imagenÑ from "./assets/señas/LETRA Ñ.jpg";
 import imagenO from "./assets/señas/LETRA O.jpg";
+import imagenP from "./assets/señas/LETRA P.jpg";
+import imagenQ from "./assets/señas/LETRA Q.jpg";
+import imagenR from "./assets/señas/LETRA R.jpg";
+import imagenS from "./assets/señas/LETRA S.jpg";
+import imagenT from "./assets/señas/LETRA T.jpg";
 import imagenU from "./assets/señas/LETRA U.jpg";
+import imagenV from "./assets/señas/LETRA V.jpg";
+import imagenW from "./assets/señas/LETRA W.jpg";
+import imagenX from "./assets/señas/LETRA X.jpg";
+import imagenY from "./assets/señas/LETRA Y.jpg";
+import imagenZ from "./assets/señas/LETRA Z.jpg";
 
 interface Props{
     cambiarPagina: (pagina:string)=>void;
