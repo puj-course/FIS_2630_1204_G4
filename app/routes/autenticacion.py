@@ -114,3 +114,4 @@ def autorregistrar_usuario(datos: UsuarioAutoRegistro):
         "mensaje": "Usuario registrado correctamente",
         "usuario": usuario
     }
+router.include_router(router_recuperacion)
