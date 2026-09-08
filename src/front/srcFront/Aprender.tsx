@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { obtenerSesion } from "./services/autenticacion";
+
+import { obtenerLetras } from "./services/letras";
+import { ErrorApi } from "./services/api";
 
 import imagenA from "./assets/señas/LETRA A.jpg";
 import imagenB from "./assets/señas/LETRA B.jpg";
@@ -29,7 +32,9 @@ import imagenX from "./assets/señas/LETRA X.jpg";
 import imagenY from "./assets/señas/LETRA Y.jpg";
 import imagenZ from "./assets/señas/LETRA Z.jpg";
 
-const impagePorLetra: Record<string, string> = {
+import type { Letra } from "./services/letras";
+
+const imagenPorLetra: Record<string, string> = {
   A: imagenA, B: imagenB, C: imagenC, D: imagenD, E: imagenE, F: imagenF, G: imagenG, H: imagenH,
   I: imagenI, J: imagenJ, K: imagenK, L: imagenL, M: imagenM, N: imagenN, Ñ: imagenÑ, O: imagenO,
   P: imagenP, Q: imagenQ, R: imagenR, S: imagenS, T: imagenT, U: imagenU, V: imagenV, W: imagenW, 
@@ -42,6 +47,11 @@ interface Props{
 
 function Aprender({cambiarPagina}:Props){
     const [letraSeleccionada,setLetraSeleccionada] = useState<Letra | null > (null);
+    const [letras, setLetras] = useState<Letra[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [mensajeError, setMensajeError] = useState("");
+
+
     
     const sesion = obtenerSesion();
     const esAdministrador = sesion?.usuario.rol === "administrador";
@@ -60,6 +70,37 @@ function Aprender({cambiarPagina}:Props){
         letraSeleccionada.descripcion = descripcionEditada;
         setEditando(false);
     };
+
+    useEffect(() => {
+        let activo = true;
+        async function cargar() {
+            try {
+                const datos = await obtenerLetras();
+                if (activo) setLetras(datos);
+            } catch (error) {
+            if (activo) setMensajeError(
+                error instanceof ErrorApi ? error.message : "No fue posible cargar las letras."
+            );
+            } finally {
+                if (activo) setCargando(false);
+            }
+        }
+        void cargar();
+        return () => { activo = false; };
+    }, []);
+
+    if (cargando) {
+        return <div className="aprender estadoPerfil"><p>Cargando letras...</p></div>;
+    }
+    if (mensajeError) {
+        return (
+            <div className="aprender estadoPerfil">
+            <h2>No fue posible cargar las letras</h2>
+            <p role="alert">{mensajeError}</p>
+            </div>
+        );
+    }
+
 
     return(
         <div className="aprender">
