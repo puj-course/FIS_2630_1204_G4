@@ -17,12 +17,12 @@ from app.services.correo_recuperacion_service import (
 class TestConfiguracionCorreoRecuperacion(unittest.TestCase):
     def setUp(self):
         self.entorno = {
-            "SMTP_HOST": "smtp.example.com",
+            "SMTP_HOST": "smtp-mail.outlook.com",
             "SMTP_PORT": "587",
             "SMTP_SECURITY": "starttls",
             "SMTP_USER": "cuenta@example.com",
-            "SMTP_PASSWORD": "clave-smtp-exclusiva-de-prueba",
-            "SMTP_FROM": "signia@example.com",
+            "MICROSOFT_CLIENT_ID": "11111111-2222-4333-8444-555555555555",
+            "SMTP_FROM": "cuenta@example.com",
             "RECUPERACION_URL": "https://signia.example.com/restablecer-contrasena"
         }
         parche = patch.dict(os.environ, self.entorno, clear=True)
@@ -32,13 +32,13 @@ class TestConfiguracionCorreoRecuperacion(unittest.TestCase):
     def test_acepta_configuracion_completa(self):
         configuracion = obtener_configuracion_correo()
 
-        self.assertEqual(configuracion.host, "smtp.example.com")
+        self.assertEqual(configuracion.host, "smtp-mail.outlook.com")
         self.assertEqual(configuracion.puerto, 587)
         self.assertEqual(configuracion.seguridad, "starttls")
 
     def test_rechaza_variables_obligatorias_vacias(self):
         for nombre in (
-            "SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM",
+            "SMTP_HOST", "SMTP_USER", "MICROSOFT_CLIENT_ID", "SMTP_FROM",
             "RECUPERACION_URL"
         ):
             with self.subTest(variable=nombre):
@@ -47,7 +47,7 @@ class TestConfiguracionCorreoRecuperacion(unittest.TestCase):
                         obtener_configuracion_correo()
 
     def test_rechaza_puertos_invalidos(self):
-        for puerto in ("abc", "", "0", "-1", "65536"):
+        for puerto in ("abc", "", "0", "-1", "65536", "465", "25"):
             with self.subTest(puerto=puerto):
                 with patch.dict(os.environ, {"SMTP_PORT": puerto}):
                     with self.assertRaises(ConfiguracionCorreoError):
@@ -63,12 +63,26 @@ class TestConfiguracionCorreoRecuperacion(unittest.TestCase):
             with self.assertRaises(ConfiguracionCorreoError):
                 obtener_configuracion_correo()
 
-    def test_acepta_tls_desde_el_inicio(self):
+    def test_rechaza_ssl_465_para_outlook_personal(self):
         with patch.dict(os.environ, {"SMTP_SECURITY": "ssl", "SMTP_PORT": "465"}):
-            configuracion = obtener_configuracion_correo()
+            with self.assertRaises(ConfiguracionCorreoError):
+                obtener_configuracion_correo()
 
-        self.assertEqual(configuracion.seguridad, "ssl")
-        self.assertEqual(configuracion.puerto, 465)
+    def test_rechaza_configuracion_de_otra_cuenta_o_servidor(self):
+        for cambios in (
+            {"SMTP_FROM": "otra@example.com"},
+            {"SMTP_HOST": "smtp.example.com"},
+            {"MICROSOFT_CLIENT_ID": "no-es-un-id"},
+            {"SMTP_USER": "correo-invalido"}
+        ):
+            with self.subTest(cambios=cambios), patch.dict(os.environ, cambios):
+                with self.assertRaises(ConfiguracionCorreoError):
+                    obtener_configuracion_correo()
+
+    def test_no_requiere_contrasena_de_hotmail(self):
+        with patch.dict(os.environ, {"SMTP_PASSWORD": ""}):
+            configuracion = obtener_configuracion_correo()
+        self.assertFalse(hasattr(configuracion, "contrasena"))
 
     def test_permite_http_para_desarrollo_local(self):
         for host in ("localhost", "127.0.0.1", "[::1]"):
@@ -103,7 +117,7 @@ class TestConfiguracionCorreoRecuperacion(unittest.TestCase):
         configuracion = obtener_configuracion_correo()
 
         self.assertNotIn(configuracion.usuario, repr(configuracion))
-        self.assertNotIn(configuracion.contrasena, repr(configuracion))
+        self.assertNotIn(configuracion.remitente, repr(configuracion))
 
 
 class TestEnvioCorreoRecuperacion(unittest.TestCase):
@@ -111,12 +125,12 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
         from app.services.correo_recuperacion_service import ConfiguracionCorreo
 
         self.configuracion = ConfiguracionCorreo(
-            host="smtp.example.com",
+            host="smtp-mail.outlook.com",
             puerto=587,
             seguridad="starttls",
             usuario="cuenta@example.com",
-            contrasena="clave-smtp-exclusiva-de-prueba",
-            remitente="signia@example.com",
+            client_id="11111111-2222-4333-8444-555555555555",
+            remitente="cuenta@example.com",
             url_recuperacion="https://signia.example.com/restablecer-contrasena"
         )
         self.fecha = datetime(2026, 1, 1, 12, 15, tzinfo=timezone.utc)
@@ -131,12 +145,13 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
         )
         self.smtp = parche_smtp.start()
         self.addCleanup(parche_smtp.stop)
-        parche_ssl = patch(
-            "app.services.correo_recuperacion_service.smtplib.SMTP_SSL",
-            return_value=self.servidor
+        self.token_microsoft = "access-token-microsoft-de-prueba"
+        parche_token = patch(
+            "app.services.correo_recuperacion_service.obtener_token_microsoft",
+            return_value=self.token_microsoft
         )
-        self.smtp_ssl = parche_ssl.start()
-        self.addCleanup(parche_ssl.stop)
+        self.obtener_token = parche_token.start()
+        self.addCleanup(parche_token.stop)
 
     def enviar(self, configuracion=None):
         enviar_correo_recuperacion(
@@ -152,13 +167,23 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
         operaciones = [llamada[0] for llamada in self.servidor.method_calls]
         self.assertEqual(
             operaciones,
-            ["ehlo", "starttls", "ehlo", "login", "send_message"]
+            ["ehlo", "starttls", "ehlo", "auth", "send_message"]
         )
         contexto = self.servidor.starttls.call_args.kwargs["context"]
         self.assertTrue(contexto.check_hostname)
         self.assertEqual(contexto.verify_mode, ssl.CERT_REQUIRED)
-        self.smtp.assert_called_once_with("smtp.example.com", 587, timeout=10)
-        self.smtp_ssl.assert_not_called()
+        self.smtp.assert_called_once_with("smtp-mail.outlook.com", 587, timeout=10)
+        self.servidor.login.assert_not_called()
+        self.obtener_token.assert_called_once_with(
+            self.configuracion.client_id, self.configuracion.usuario
+        )
+        mecanismo, respuesta = self.servidor.auth.call_args.args
+        self.assertEqual(mecanismo, "XOAUTH2")
+        self.assertEqual(
+            respuesta(),
+            f"user=cuenta@example.com\x01auth=Bearer {self.token_microsoft}\x01\x01"
+        )
+        self.assertEqual(respuesta(b"error del servidor"), "")
 
     def test_no_envia_credenciales_si_falla_tls(self):
         self.servidor.starttls.side_effect = smtplib.SMTPNotSupportedError(
@@ -168,20 +193,21 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
         with self.assertRaises(smtplib.SMTPNotSupportedError):
             self.enviar()
 
-        self.servidor.login.assert_not_called()
+        self.servidor.auth.assert_not_called()
         self.servidor.send_message.assert_not_called()
 
-    def test_utiliza_tls_desde_inicio_cuando_se_configura(self):
-        self.enviar(replace(self.configuracion, seguridad="ssl", puerto=465))
+    def test_no_envia_token_a_otro_servidor(self):
+        with self.assertRaises(ConfiguracionCorreoError):
+            self.enviar(replace(self.configuracion, host="otro.example.com"))
 
         self.smtp.assert_not_called()
-        self.smtp_ssl.assert_called_once()
-        self.assertEqual(self.smtp_ssl.call_args.args, ("smtp.example.com", 465))
-        contexto = self.smtp_ssl.call_args.kwargs["context"]
-        self.assertTrue(contexto.check_hostname)
-        self.assertEqual(contexto.verify_mode, ssl.CERT_REQUIRED)
-        self.servidor.starttls.assert_not_called()
-        self.servidor.login.assert_called_once()
+        self.obtener_token.assert_not_called()
+
+    def test_no_conecta_smtp_sin_autorizacion_microsoft(self):
+        self.obtener_token.side_effect = RuntimeError("Autorización pendiente")
+        with self.assertRaises(RuntimeError):
+            self.enviar()
+        self.smtp.assert_not_called()
 
     def test_envia_enlace_y_vencimiento_solo_al_destinatario(self):
         self.enviar()
@@ -190,12 +216,12 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
         mensaje = llamada.args[0]
         self.assertEqual(str(mensaje["To"]), "persona@example.com")
         self.assertEqual(llamada.kwargs["to_addrs"], ["persona@example.com"])
-        self.assertEqual(llamada.kwargs["from_addr"], "signia@example.com")
+        self.assertEqual(llamada.kwargs["from_addr"], "cuenta@example.com")
         self.assertIsNone(mensaje["Cc"])
         self.assertIsNone(mensaje["Bcc"])
         contenido = mensaje.get_content()
         self.assertIn("2026-01-01 12:15 UTC", contenido)
-        self.assertNotIn(self.configuracion.contrasena, contenido)
+        self.assertNotIn(self.token_microsoft, mensaje.as_string())
         enlace = next(linea for linea in contenido.splitlines() if linea.startswith("https://"))
         partes = urlsplit(enlace)
         self.assertEqual(partes.netloc, "signia.example.com")
@@ -206,7 +232,7 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
         )
 
     def test_no_envia_si_falla_autenticacion_smtp(self):
-        self.servidor.login.side_effect = smtplib.SMTPAuthenticationError(
+        self.servidor.auth.side_effect = smtplib.SMTPAuthenticationError(
             535, b"Error simulado"
         )
 
