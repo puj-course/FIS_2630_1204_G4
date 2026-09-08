@@ -29,6 +29,13 @@ import imagenX from "./assets/señas/LETRA X.jpg";
 import imagenY from "./assets/señas/LETRA Y.jpg";
 import imagenZ from "./assets/señas/LETRA Z.jpg";
 
+const impagePorLetra: Record<string, string> = {
+  A: imagenA, B: imagenB, C: imagenC, D: imagenD, E: imagenE, F: imagenF, G: imagenG, H: imagenH,
+  I: imagenI, J: imagenJ, K: imagenK, L: imagenL, M: imagenM, N: imagenN, Ñ: imagenÑ, O: imagenO,
+  P: imagenP, Q: imagenQ, R: imagenR, S: imagenS, T: imagenT, U: imagenU, V: imagenV, W: imagenW, 
+  X: imagenX, Y: imagenY, Z: imagenZ,
+}
+
 interface Props{
     cambiarPagina: (pagina:string)=>void;
 }
