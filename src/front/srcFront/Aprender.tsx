@@ -75,6 +75,21 @@ const letras:Letra[] = [
     {
         letra:"M", descripcion: "La letra M en Lengua de Señas Colombiana se realiza colocando el pulgar debajo de los dedos índice, medio y anular, los cuales se doblan hacia la palma cubriéndolo.",imagen:imagenM
     },
+    {
+        letra:"N", descripcion: "La letra N en Lengua de Señas Colombiana se realiza colocando el pulgar debajo de los dedos índice y medio, los cuales se doblan hacia la palma cubriéndolo.",imagen:imagenN
+    },
+    {
+        letra:"Ñ", descripcion: "La letra Ñ en Lengua de Señas Colombiana parte de la configuración de la letra N, agregando un movimiento ondulante con la mano que representa la virgulilla característica de esta letra propia del español.",imagen:imagenÑ
+    },
+    {
+        letra:"P", descripcion: "La letra P en Lengua de Señas Colombiana se realiza con la misma configuración de la letra K, pero orientando la mano hacia abajo en lugar de hacia arriba.",imagen:imagenP
+    },
+    {
+        letra:"Q", descripcion: "La letra Q en Lengua de Señas Colombiana se representa con la misma configuración de la letra G, pero orientando la mano hacia abajo en lugar de en posición horizontal hacia el frente.",imagen:imagenQ
+    },
+    {
+        letra:"R", descripcion: "La letra R en Lengua de Señas Colombiana se realiza cruzando el dedo índice sobre el dedo medio, mientras los demás dedos permanecen cerrados.",imagen:imagenR
+    },
 ];
 
 function Aprender({cambiarPagina}:Props){
