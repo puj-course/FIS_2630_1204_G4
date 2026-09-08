@@ -40,21 +40,29 @@ interface Letra{
 
 const letras:Letra[] = [
     {
-        letra:"A", descripcion: "La letra A en Lenguaje de Señas Colombiana se realiza formando un puño con los dedos cerrados sobre la palma de la mano. El pulgar debe estar apoyado al costado del dedo indice, creando la configuracion caracteristica de esta letra.",imagen:imagenA
+        letra:"A", descripcion: "La letra A en Lengua de Señas Colombiana se realiza formando un puño con los dedos cerrados sobre la palma de la mano. El pulgar debe estar apoyado al costado del dedo índice, creando la configuración característica de esta letra.",imagen:imagenA
     },
     {
-        letra:"E", descripcion: "La letra E en Lengua de Senas Colombiana se realiza manteniendo los dedos flexionados hacia la palma de la mano, con el pulgar ubicado sobre ellos. Esta configuracion representa la segunda vocal del alfabeto.",imagen:imagenE
+        letra:"B", descripcion: "La letra B en Lengua de Señas Colombiana se realiza con la mano abierta, los cuatro dedos extendidos y juntos hacia arriba, mientras el pulgar se dobla sobre la palma de la mano.",imagen:imagenB
     },
     {
-        letra:"I", descripcion: "La letra I en Lengua de Senas Colombiana se representa manteniendo los dedos cerrados sobre la palma de la mano y extendiendo unicamente el dedo meñique hacia arriba. Esta configuracion corresponde a la tercera vocal del alfabeto.",imagen:imagenI
+        letra:"C", descripcion: "La letra C en Lengua de Señas Colombiana se representa curvando los dedos y el pulgar para formar la silueta de la letra C, dejando un espacio abierto entre ellos como si se sostuviera un objeto circular.",imagen:imagenC
     },
     {
-        letra:"O", descripcion: "La letra O en Lengua de Senas Colombiana se realiza uniendo las puntas de los dedos con el pulgar formando una figura circular. Esta configuracion representa la forma de la letra O dentro del alfabeto.",imagen:imagenO
+        letra:"D", descripcion: "La letra D en Lengua de Señas Colombiana se realiza extendiendo el dedo índice hacia arriba mientras el pulgar y los demás dedos se unen formando un círculo en la base.",imagen:imagenD
     },
     {
-        letra:"U", descripcion: "La letra U en Lengua de Senas Colombiana se representa manteniendo los dedos indice y medio extendidos y juntos, mientras los demas dedos permanecen cerrados. Esta configuracion corresponde a la ultima vocal del alfabeto.",imagen:imagenU
+        letra:"E", descripcion: "La letra E en Lengua de Señas Colombiana se realiza manteniendo los dedos flexionados hacia la palma de la mano, con el pulgar ubicado sobre ellos. Esta configuración representa la segunda vocal del alfabeto.",imagen:imagenE
     },
-
+    {
+        letra:"F", descripcion: "La letra F en Lengua de Señas Colombiana se representa uniendo las puntas del pulgar y el índice en un pequeño círculo, mientras los dedos medio, anular y meñique permanecen extendidos.",imagen:imagenF
+    },
+    {
+        letra:"G", descripcion: "La letra G en Lengua de Señas Colombiana se realiza extendiendo el dedo índice y el pulgar de forma paralela y horizontal, manteniendo una pequeña separación entre ambos.",imagen:imagenG
+    },
+    {
+        letra:"H", descripcion: "La letra H en Lengua de Señas Colombiana se representa extendiendo los dedos índice y medio juntos en posición horizontal, mientras el pulgar y los demás dedos permanecen cerrados.",imagen:imagenH
+    },
 ];
 
 function Aprender({cambiarPagina}:Props){
