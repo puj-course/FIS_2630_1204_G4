@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.usuarios import router as usuarios_router
-from app.routes.perfil import router as perfil_router
 
 app = FastAPI(
     title="SignIA API",
@@ -30,7 +29,6 @@ app.add_middleware(
 app.include_router(letras_router)
 app.include_router(autenticacion_router)
 app.include_router(usuarios_router)
-app.include_router(perfil_router)
 
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
