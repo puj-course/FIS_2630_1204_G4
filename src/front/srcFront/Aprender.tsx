@@ -105,6 +105,12 @@ const letras:Letra[] = [
     {
         letra:"X", descripcion: "La letra X en Lengua de Señas Colombiana se realiza doblando el dedo índice en forma de gancho, mientras los demás dedos permanecen cerrados en el puño.",imagen:imagenX
     },
+    {
+        letra:"Y", descripcion: "La letra Y en Lengua de Señas Colombiana se realiza extendiendo el pulgar y el dedo meñique, mientras los dedos índice, medio y anular permanecen doblados hacia la palma.",imagen:imagenY
+    },
+    {
+        letra:"Z", descripcion: "La letra Z en Lengua de Señas Colombiana se representa extendiendo el dedo índice y trazando en el aire la forma de la letra Z, con los demás dedos cerrados.",imagen:imagenZ
+    },
 ];
 
 function Aprender({cambiarPagina}:Props){
