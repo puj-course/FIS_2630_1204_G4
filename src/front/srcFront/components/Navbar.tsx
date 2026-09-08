@@ -44,13 +44,13 @@ function Navbar({ cambiarPagina, paginaActual,cerrarSesion }: Props) {
         </button>
 
 
-        <button 
+        {/*<button 
           className={paginaActual === "logros" ? "botonActivo" : "botonMenu"}
           onClick={() => cambiarPagina("logros")}
         >
           <FaTrophy className={paginaActual === "logros" ? "trofeoActivo" : ""}/>
           Logros
-        </button>
+        </button>*/}
 
 
         <button 
