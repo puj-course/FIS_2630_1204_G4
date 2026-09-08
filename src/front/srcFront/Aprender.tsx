@@ -64,6 +64,9 @@ const letras:Letra[] = [
         letra:"H", descripcion: "La letra H en Lengua de Señas Colombiana se representa extendiendo los dedos índice y medio juntos en posición horizontal, mientras el pulgar y los demás dedos permanecen cerrados.",imagen:imagenH
     },
     {
+        letra:"I", descripcion: "La letra I en Lengua de Senas Colombiana se representa manteniendo los dedos cerrados sobre la palma de la mano y extendiendo unicamente el dedo meñique hacia arriba. Esta configuracion corresponde a la tercera vocal del alfabeto.",imagen:imagenI
+    },
+    {
         letra:"J", descripcion: "La letra J en Lengua de Señas Colombiana parte de la configuración de la letra I, con el dedo meñique extendido, y se traza en el aire una trayectoria curva que representa el trazo de esta letra.",imagen:imagenJ
     },
     {
@@ -82,6 +85,9 @@ const letras:Letra[] = [
         letra:"Ñ", descripcion: "La letra Ñ en Lengua de Señas Colombiana parte de la configuración de la letra N, agregando un movimiento ondulante con la mano que representa la virgulilla característica de esta letra propia del español.",imagen:imagenÑ
     },
     {
+        letra:"O", descripcion: "La letra O en Lengua de Senas Colombiana se realiza uniendo las puntas de los dedos con el pulgar formando una figura circular. Esta configuracion representa la forma de la letra O dentro del alfabeto.",imagen:imagenO
+    },
+    {
         letra:"P", descripcion: "La letra P en Lengua de Señas Colombiana se realiza con la misma configuración de la letra K, pero orientando la mano hacia abajo en lugar de hacia arriba.",imagen:imagenP
     },
     {
@@ -95,6 +101,9 @@ const letras:Letra[] = [
     },
     {
         letra:"T", descripcion: "La letra T en Lengua de Señas Colombiana se representa formando un puño cerrado con el pulgar ubicado entre el dedo índice y el dedo medio.",imagen:imagenT
+    },
+    {
+        letra:"U", descripcion: "La letra U en Lengua de Senas Colombiana se representa manteniendo los dedos indice y medio extendidos y juntos, mientras los demas dedos permanecen cerrados. Esta configuracion corresponde a la ultima vocal del alfabeto.",imagen:imagenU
     },
     {
         letra:"V", descripcion: "La letra V en Lengua de Señas Colombiana se realiza extendiendo los dedos índice y medio separados formando una V, mientras el pulgar y los demás dedos permanecen cerrados.",imagen:imagenV
