@@ -90,6 +90,21 @@ const letras:Letra[] = [
     {
         letra:"R", descripcion: "La letra R en Lengua de Señas Colombiana se realiza cruzando el dedo índice sobre el dedo medio, mientras los demás dedos permanecen cerrados.",imagen:imagenR
     },
+    {
+        letra:"S", descripcion: "La letra S en Lengua de Señas Colombiana se realiza formando un puño cerrado con el pulgar colocado sobre los demás dedos por delante.",imagen:imagenS
+    },
+    {
+        letra:"T", descripcion: "La letra T en Lengua de Señas Colombiana se representa formando un puño cerrado con el pulgar ubicado entre el dedo índice y el dedo medio.",imagen:imagenT
+    },
+    {
+        letra:"V", descripcion: "La letra V en Lengua de Señas Colombiana se realiza extendiendo los dedos índice y medio separados formando una V, mientras el pulgar y los demás dedos permanecen cerrados.",imagen:imagenV
+    },
+    {
+        letra:"W", descripcion: "La letra W en Lengua de Señas Colombiana se representa extendiendo los dedos índice, medio y anular separados entre sí, mientras el pulgar sostiene el meñique doblado.",imagen:imagenW
+    },
+    {
+        letra:"X", descripcion: "La letra X en Lengua de Señas Colombiana se realiza doblando el dedo índice en forma de gancho, mientras los demás dedos permanecen cerrados en el puño.",imagen:imagenX
+    },
 ];
 
 function Aprender({cambiarPagina}:Props){
