@@ -63,6 +63,18 @@ const letras:Letra[] = [
     {
         letra:"H", descripcion: "La letra H en Lengua de Señas Colombiana se representa extendiendo los dedos índice y medio juntos en posición horizontal, mientras el pulgar y los demás dedos permanecen cerrados.",imagen:imagenH
     },
+    {
+        letra:"J", descripcion: "La letra J en Lengua de Señas Colombiana parte de la configuración de la letra I, con el dedo meñique extendido, y se traza en el aire una trayectoria curva que representa el trazo de esta letra.",imagen:imagenJ
+    },
+    {
+        letra:"K", descripcion: "La letra K en Lengua de Señas Colombiana se realiza extendiendo los dedos índice y medio en forma de V, mientras el pulgar se apoya entre ambos dedos, tocando la base del dedo medio.",imagen:imagenK
+    },
+    {
+        letra:"L", descripcion: "La letra L en Lengua de Señas Colombiana se representa extendiendo el dedo índice hacia arriba y el pulgar hacia el costado, formando un ángulo recto que asemeja la forma de la letra.",imagen:imagenL
+    },
+    {
+        letra:"M", descripcion: "La letra M en Lengua de Señas Colombiana se realiza colocando el pulgar debajo de los dedos índice, medio y anular, los cuales se doblan hacia la palma cubriéndolo.",imagen:imagenM
+    },
 ];
 
 function Aprender({cambiarPagina}:Props){
