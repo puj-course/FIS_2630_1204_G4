@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { eliminarSesion } from "./services/autenticacion";
+
 
 import Navbar from "./components/Navbar";
 
@@ -29,7 +29,7 @@ function App() {
 
 
 
-  const [, setUsuario] = useState({
+  const [usuario, setUsuario] = useState({
 
     nombre:"",
 
@@ -62,7 +62,7 @@ function App() {
 
           guardarUsuario={setUsuario}
 
-        />
+        />  
 
 
 
@@ -83,7 +83,7 @@ function App() {
 
 
 
-
+      
 
 
       )
@@ -108,7 +108,6 @@ function App() {
 
             cerrarSesion={()=>{
 
-            eliminarSesion();
             setLogueado(false);
 
             setPagina("login");
@@ -135,13 +134,13 @@ function App() {
 
               <Home cambiarPagina={setPagina}/>
 
-
+              
               :
 
               pagina==="aprender"
 
               ?
-
+              
               <Aprender cambiarPagina={setPagina}/>
 
 
@@ -155,7 +154,7 @@ function App() {
               ?
 
 
-              <Perfil />
+              <Perfil usuario={usuario}/>
 
 
 
