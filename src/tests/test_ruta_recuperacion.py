@@ -22,12 +22,12 @@ from src.schemas.recuperacion import SolicitudRecuperacion
 class TestRutaRecuperacion(unittest.TestCase):
     def setUp(self):
         self.configuracion = ConfiguracionCorreo(
-            host="smtp.example.com",
+            host="smtp-mail.outlook.com",
             puerto=587,
             seguridad="starttls",
             usuario="cuenta@example.com",
-            contrasena="clave-smtp-exclusiva-de-prueba",
-            remitente="signia@example.com",
+            client_id="11111111-2222-4333-8444-555555555555",
+            remitente="cuenta@example.com",
             url_recuperacion="https://signia.example.com/restablecer-contrasena"
         )
         self.solicitud = RecuperacionCreada(
@@ -140,7 +140,7 @@ class TestRutaRecuperacion(unittest.TestCase):
         )
 
         self.assertNotIn(self.solicitud.token, respuesta.text)
-        self.assertNotIn(self.configuracion.contrasena, respuesta.text)
+        self.assertNotIn(self.configuracion.usuario, respuesta.text)
         self.assertEqual(set(respuesta.json()), {"mensaje"})
 
     def test_configuracion_incompleta_responde_503_sin_consultar_usuario(self):
@@ -185,8 +185,9 @@ class TestRutaRecuperacion(unittest.TestCase):
         self.assertNotIn("Detalle privado de conexión", " ".join(logs.output))
         self.assertNotIn("Detalle privado de conexión", respuesta.text)
 
-    def test_error_de_envio_no_registra_correo_token_ni_contrasena(self):
-        secreto = f"{self.solicitud.correo} {self.solicitud.token} {self.configuracion.contrasena}"
+    def test_error_de_envio_no_registra_correo_ni_tokens(self):
+        token_microsoft = "access-token-microsoft-de-prueba"
+        secreto = f"{self.solicitud.correo} {self.solicitud.token} {token_microsoft}"
         self.enviar.side_effect = RuntimeError(secreto)
 
         with self.assertLogs("app.routes.recuperacion_contrasena", level="ERROR") as logs:
@@ -197,7 +198,7 @@ class TestRutaRecuperacion(unittest.TestCase):
 
         self.assertEqual(respuesta.status_code, 202)
         for dato in (
-            self.solicitud.correo, self.solicitud.token, self.configuracion.contrasena
+            self.solicitud.correo, self.solicitud.token, token_microsoft
         ):
             self.assertNotIn(dato, " ".join(logs.output))
             self.assertNotIn(dato, respuesta.text)
