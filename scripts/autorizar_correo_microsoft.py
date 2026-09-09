@@ -24,8 +24,9 @@ def main(argumentos=None) -> int:
         configuracion = obtener_configuracion_correo()
         if opciones.comprobar:
             persistencia = crear_persistencia_microsoft(
-                configuracion.client_id, configuracion.usuario
+                configuracion.client_id, configuracion.usuario, configuracion.transporte
             )
+            print(f"Envío: {configuracion.transporte}")
             print(f"Sistema: {platform.system()} / {platform.machine()}")
             print(f"Almacén seguro: {type(persistencia).__name__}")
             print("Configuración y almacenamiento inicializados correctamente.")
@@ -34,7 +35,8 @@ def main(argumentos=None) -> int:
         autorizar_cuenta_microsoft(
             configuracion.client_id,
             configuracion.usuario,
-            mostrar=lambda mensaje: print(mensaje, flush=True)
+            mostrar=lambda mensaje: print(mensaje, flush=True),
+            transporte=configuracion.transporte
         )
     except (ConfiguracionCorreoError, AutorizacionMicrosoftError) as error:
         print(str(error), file=sys.stderr)
