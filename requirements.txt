@@ -8,3 +8,4 @@ uvicorn==0.52.4
 opencv-contrib-python==5.0.0.93
 mediapipe==1.0.1
 email-validator==2.3.0
+-r requirements-recuperacion.txt
