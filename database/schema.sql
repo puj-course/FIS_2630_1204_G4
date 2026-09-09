@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS progreso_usuario (
         )
 );
 
-CREATE TABLE recuperaciones_contrasena (
+CREATE TABLE IF NOT EXISTS recuperaciones_contrasena (
     id_recuperacion BIGINT GENERATED ALWAYS AS IDENTITY,
     id_usuario BIGINT NOT NULL,
     token_hash VARCHAR(64) NOT NULL,
