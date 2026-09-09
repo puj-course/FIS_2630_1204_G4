@@ -62,7 +62,8 @@ class TestAutorizacionMicrosoft(unittest.TestCase):
             "access_token": "access-token-de-prueba"
         }
         self.aplicacion.initiate_device_flow.return_value = {
-            "user_code": "CODIGO-PRUEBA", "device_code": "device-code-privado"
+            "user_code": "CODIGO-PRUEBA", "device_code": "device-code-privado",
+            "verification_uri": "https://www.microsoft.com/link"
         }
         self.aplicacion.acquire_token_by_device_flow.return_value = {
             "access_token": "access-token-de-prueba",
@@ -113,7 +114,8 @@ class TestAutorizacionMicrosoft(unittest.TestCase):
         self.persistencia.save.assert_called_once()
         salida = "\n".join(mensajes)
         self.assertIn("CODIGO-PRUEBA", salida)
-        self.assertIn("https://microsoft.com/devicelogin", salida)
+        self.assertIn("https://www.microsoft.com/link", salida)
+        self.assertNotIn("https://microsoft.com/devicelogin", salida)
         for secreto in ("access-token-de-prueba", "refresh-token-de-prueba", "device-code-privado"):
             self.assertNotIn(secreto, salida)
 
@@ -135,9 +137,11 @@ class TestAutorizacionMicrosoft(unittest.TestCase):
         self.persistencia.save.assert_not_called()
 
     def test_flujo_no_disponible_no_espera_ni_guarda(self):
-        self.aplicacion.initiate_device_flow.return_value = {"error": "unauthorized_client"}
-        with self.assertRaises(oauth.AutorizacionMicrosoftError):
-            oauth.autorizar_cuenta_microsoft(CLIENT_ID, CORREO, mostrar=lambda _: None)
+        for flujo in ({"error": "unauthorized_client"}, {"user_code": "CODIGO-PRUEBA"}):
+            with self.subTest(flujo=flujo):
+                self.aplicacion.initiate_device_flow.return_value = flujo
+                with self.assertRaises(oauth.AutorizacionMicrosoftError):
+                    oauth.autorizar_cuenta_microsoft(CLIENT_ID, CORREO, mostrar=lambda _: None)
         self.aplicacion.acquire_token_by_device_flow.assert_not_called()
         self.persistencia.save.assert_not_called()
 
