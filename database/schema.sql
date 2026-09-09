@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS recuperaciones_contrasena (
 );
 
 -- Permite consultar las solicitudes recientes de cada usuario
-CREATE INDEX idx_recuperaciones_usuario_fecha
+CREATE INDEX IF NOT EXISTS idx_recuperaciones_usuario_fecha
     ON recuperaciones_contrasena (id_usuario, fecha_creacion DESC);
 
 COMMIT;
