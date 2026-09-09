@@ -13,16 +13,28 @@ from msal_extensions import (
 
 AUTORIDAD_MICROSOFT = "https://login.microsoftonline.com/consumers"
 PERMISOS_CORREO = ["https://outlook.office.com/SMTP.Send"]
+PERMISOS_GRAPH = ["https://graph.microsoft.com/Mail.Send"]
 
 
 class AutorizacionMicrosoftError(RuntimeError):
     pass
 
 
-def crear_persistencia_microsoft(client_id: str, correo: str):
+def obtener_permisos_correo(transporte: str):
+    if transporte == "smtp":
+        return PERMISOS_CORREO
+    if transporte == "graph":
+        return PERMISOS_GRAPH
+    raise AutorizacionMicrosoftError("El transporte de correo no es válido")
+
+
+def crear_persistencia_microsoft(client_id: str, correo: str, transporte="smtp"):
+    obtener_permisos_correo(transporte)
     identificador = str(UUID(client_id))
     cuenta = hashlib.sha256(correo.strip().lower().encode("utf-8")).hexdigest()
     carpeta = Path.home() / ".signia" / "microsoft" / identificador
+    if transporte == "graph":
+        carpeta = carpeta / "graph"
     carpeta.mkdir(parents=True, exist_ok=True, mode=0o700)
     ubicacion = carpeta / f"{cuenta}.bin"
 
@@ -60,8 +72,9 @@ def crear_aplicacion_microsoft(client_id: str, cache):
     )
 
 
-def obtener_token_microsoft(client_id: str, correo: str) -> str:
-    persistencia = crear_persistencia_microsoft(client_id, correo)
+def obtener_token_microsoft(client_id: str, correo: str, transporte="smtp") -> str:
+    permisos = obtener_permisos_correo(transporte)
+    persistencia = crear_persistencia_microsoft(client_id, correo, transporte)
     cache = PersistedTokenCache(
         persistencia,
         lock_location=persistencia.get_location() + ".lock"
@@ -77,7 +90,7 @@ def obtener_token_microsoft(client_id: str, correo: str) -> str:
 
     # MSAL reutiliza el token o lo renueva sin iniciar un flujo interactivo
     resultado = aplicacion.acquire_token_silent(
-        scopes=PERMISOS_CORREO,
+        scopes=permisos,
         account=cuentas[0]
     )
     token = resultado.get("access_token") if resultado else None
@@ -91,11 +104,14 @@ def obtener_token_microsoft(client_id: str, correo: str) -> str:
     return token
 
 
-def autorizar_cuenta_microsoft(client_id: str, correo: str, mostrar=print) -> None:
-    persistencia = crear_persistencia_microsoft(client_id, correo)
+def autorizar_cuenta_microsoft(
+    client_id: str, correo: str, mostrar=print, transporte="smtp"
+) -> None:
+    permisos = obtener_permisos_correo(transporte)
+    persistencia = crear_persistencia_microsoft(client_id, correo, transporte)
     cache_temporal = msal.SerializableTokenCache()
     aplicacion = crear_aplicacion_microsoft(client_id, cache_temporal)
-    flujo = aplicacion.initiate_device_flow(scopes=PERMISOS_CORREO)
+    flujo = aplicacion.initiate_device_flow(scopes=permisos)
 
     if not flujo.get("user_code") or not flujo.get("verification_uri"):
         raise AutorizacionMicrosoftError(
