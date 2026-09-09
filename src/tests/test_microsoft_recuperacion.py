@@ -33,6 +33,15 @@ class TestPersistenciaMicrosoft(unittest.TestCase):
             self.assertTrue(ruta.is_relative_to(self.carpeta / ".signia"))
             self.assertNotIn(CORREO, str(ruta))
 
+    def test_graph_tiene_cache_distinta_de_smtp(self):
+        with patch.object(oauth, "build_encrypted_persistence") as construir:
+            construir.return_value.is_encrypted = True
+            oauth.crear_persistencia_microsoft(CLIENT_ID, CORREO)
+            oauth.crear_persistencia_microsoft(CLIENT_ID, CORREO, "graph")
+        rutas = [Path(llamada.args[0]) for llamada in construir.call_args_list]
+        self.assertNotEqual(rutas[0], rutas[1])
+        self.assertEqual(rutas[1].parent, rutas[0].parent / "graph")
+
     def test_rechaza_almacenamiento_sin_cifrado(self):
         with patch.object(oauth, "build_encrypted_persistence") as construir:
             construir.return_value.is_encrypted = False
@@ -78,6 +87,19 @@ class TestAutorizacionMicrosoft(unittest.TestCase):
             parche = patch.object(oauth, nombre, return_value=resultado)
             parche.start()
             self.addCleanup(parche.stop)
+
+    def test_graph_autoriza_y_renueva_con_permiso_mail_send(self):
+        oauth.autorizar_cuenta_microsoft(
+            CLIENT_ID, CORREO, mostrar=lambda _: None, transporte="graph"
+        )
+        self.aplicacion.initiate_device_flow.assert_called_once_with(
+            scopes=["https://graph.microsoft.com/Mail.Send"]
+        )
+        oauth.obtener_token_microsoft(CLIENT_ID, CORREO, transporte="graph")
+        self.aplicacion.acquire_token_silent.assert_called_once_with(
+            scopes=["https://graph.microsoft.com/Mail.Send"], account=self.cuenta
+        )
+        oauth.crear_persistencia_microsoft.assert_called_with(CLIENT_ID, CORREO, "graph")
 
     def test_renueva_token_para_la_cuenta_remitente(self):
         token = oauth.obtener_token_microsoft(CLIENT_ID, " Remitente@Hotmail.COM ")
@@ -169,9 +191,22 @@ class TestComprobacionMicrosoft(unittest.TestCase):
                 patch("builtins.print"):
             configurar.return_value.client_id = CLIENT_ID
             configurar.return_value.usuario = CORREO
+            configurar.return_value.transporte = "graph"
             self.assertEqual(script.main(["--comprobar"]), 0)
-            persistir.assert_called_once_with(CLIENT_ID, CORREO)
+            persistir.assert_called_once_with(CLIENT_ID, CORREO, "graph")
             autorizar.assert_not_called()
+
+    def test_script_autoriza_el_transporte_configurado(self):
+        from scripts import autorizar_correo_microsoft as script
+
+        with patch.object(script, "obtener_configuracion_correo") as configurar, \
+                patch.object(script, "autorizar_cuenta_microsoft") as autorizar:
+            configurar.return_value.client_id = CLIENT_ID
+            configurar.return_value.usuario = CORREO
+            configurar.return_value.transporte = "graph"
+            self.assertEqual(script.main([]), 0)
+            self.assertEqual(autorizar.call_args.args, (CLIENT_ID, CORREO))
+            self.assertEqual(autorizar.call_args.kwargs["transporte"], "graph")
 
     def test_comprobar_devuelve_error_si_almacen_seguro_falla(self):
         from scripts import autorizar_correo_microsoft as script
