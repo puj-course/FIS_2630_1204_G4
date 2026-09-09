@@ -97,13 +97,13 @@ def autorizar_cuenta_microsoft(client_id: str, correo: str, mostrar=print) -> No
     aplicacion = crear_aplicacion_microsoft(client_id, cache_temporal)
     flujo = aplicacion.initiate_device_flow(scopes=PERMISOS_CORREO)
 
-    if "user_code" not in flujo:
+    if not flujo.get("user_code") or not flujo.get("verification_uri"):
         raise AutorizacionMicrosoftError(
             "Microsoft no permitió iniciar la autorización. Revisa el ID de "
             "aplicación, las cuentas personales y los flujos de cliente público."
         )
 
-    mostrar("Abre https://microsoft.com/devicelogin en tu navegador.")
+    mostrar(f"Abre {flujo['verification_uri']} en tu navegador.")
     mostrar(f"Introduce este código: {flujo['user_code']}")
     mostrar(f"Inicia sesión con la cuenta remitente: {correo}")
     mostrar("Comprueba el nombre de tu aplicación y acepta el permiso de envío.")
