@@ -1,3 +1,5 @@
+import argparse
+import platform
 import sys
 
 from app.services.correo_recuperacion_service import (
@@ -6,13 +8,29 @@ from app.services.correo_recuperacion_service import (
 )
 from app.services.microsoft_oauth_service import (
     AutorizacionMicrosoftError,
-    autorizar_cuenta_microsoft
+    autorizar_cuenta_microsoft,
+    crear_persistencia_microsoft
 )
 
 
-def main() -> int:
+def main(argumentos=None) -> int:
+    parser = argparse.ArgumentParser(description="Autorizar el correo de SignIA")
+    parser.add_argument(
+        "--comprobar", action="store_true",
+        help="Revisar configuración y acceso inicial al almacén seguro sin iniciar sesión"
+    )
+    opciones = parser.parse_args(argumentos)
     try:
         configuracion = obtener_configuracion_correo()
+        if opciones.comprobar:
+            persistencia = crear_persistencia_microsoft(
+                configuracion.client_id, configuracion.usuario
+            )
+            print(f"Sistema: {platform.system()} / {platform.machine()}")
+            print(f"Almacén seguro: {type(persistencia).__name__}")
+            print("Configuración y almacenamiento inicializados correctamente.")
+            print("Pendiente: autorizar la cuenta y comprobar un envío real.")
+            return 0
         autorizar_cuenta_microsoft(
             configuracion.client_id,
             configuracion.usuario,
