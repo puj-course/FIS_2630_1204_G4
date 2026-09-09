@@ -7,6 +7,8 @@ from email.message import EmailMessage
 from urllib.parse import urlencode, urlsplit, urlunsplit
 from uuid import UUID
 
+import httpx
+
 from dotenv import load_dotenv
 from email_validator import EmailNotValidError, validate_email
 
@@ -20,6 +22,10 @@ class ConfiguracionCorreoError(ValueError):
     pass
 
 
+class EnvioMicrosoftGraphError(RuntimeError):
+    pass
+
+
 @dataclass(frozen=True)
 class ConfiguracionCorreo:
     host: str
@@ -29,9 +35,14 @@ class ConfiguracionCorreo:
     client_id: str
     remitente: str = field(repr=False)
     url_recuperacion: str
+    transporte: str = "smtp"
 
 
 def obtener_configuracion_correo() -> ConfiguracionCorreo:
+    transporte = os.getenv("CORREO_TRANSPORTE", "smtp").strip().lower()
+    if transporte not in ("smtp", "graph"):
+        raise ConfiguracionCorreoError("CORREO_TRANSPORTE debe ser smtp o graph")
+
     host = os.getenv("SMTP_HOST", "").strip()
     usuario = os.getenv("SMTP_USER", "").strip()
     client_id = os.getenv("MICROSOFT_CLIENT_ID", "").strip()
@@ -39,16 +50,16 @@ def obtener_configuracion_correo() -> ConfiguracionCorreo:
     url = os.getenv("RECUPERACION_URL", "").strip()
     seguridad = os.getenv("SMTP_SECURITY", "starttls").strip().lower()
 
-    if not all((host, usuario, client_id, remitente, url)):
+    if not all((usuario, client_id, remitente, url)) or (transporte == "smtp" and not host):
         raise ConfiguracionCorreoError("Falta configurar el correo de recuperación")
 
-    if host.lower() != "smtp-mail.outlook.com" or seguridad != "starttls":
+    if transporte == "smtp" and (host.lower() != "smtp-mail.outlook.com" or seguridad != "starttls"):
         raise ConfiguracionCorreoError(
             "Para Hotmail utiliza smtp-mail.outlook.com y STARTTLS"
         )
 
     try:
-        puerto = int(os.getenv("SMTP_PORT", "587"))
+        puerto = int(os.getenv("SMTP_PORT", "587")) if transporte == "smtp" else 587
         if puerto != 587:
             raise ValueError
 
@@ -90,7 +101,8 @@ def obtener_configuracion_correo() -> ConfiguracionCorreo:
         usuario=usuario,
         client_id=client_id,
         remitente=remitente,
-        url_recuperacion=url
+        url_recuperacion=url,
+        transporte=transporte
     )
 
 
@@ -125,6 +137,40 @@ def enviar_correo_recuperacion(
         "Si no solicitaste este cambio, puedes ignorar este mensaje.\n"
         "Tu contraseña actual todavía no ha cambiado.\n"
     )
+
+    if configuracion.transporte == "graph":
+        token_microsoft = obtener_token_microsoft(
+            configuracion.client_id, configuracion.usuario, transporte="graph"
+        )
+        try:
+            respuesta = httpx.post(
+                "https://graph.microsoft.com/v1.0/me/sendMail",
+                headers={"Authorization": f"Bearer {token_microsoft}"},
+                json={
+                    "message": {
+                        "subject": str(mensaje["Subject"]),
+                        "body": {
+                            "contentType": "Text",
+                            "content": mensaje.get_content()
+                        },
+                        "toRecipients": [{"emailAddress": {"address": correo}}]
+                    }
+                },
+                timeout=10,
+                follow_redirects=False
+            )
+        except httpx.RequestError:
+            raise EnvioMicrosoftGraphError(
+                "No fue posible conectar con Microsoft Graph"
+            ) from None
+        if respuesta.status_code != 202:
+            raise EnvioMicrosoftGraphError(
+                f"Microsoft Graph rechazó el envío (HTTP {respuesta.status_code})"
+            )
+        return
+
+    if configuracion.transporte != "smtp":
+        raise ConfiguracionCorreoError("El transporte de correo no es válido")
 
     if (
         configuracion.host != "smtp-mail.outlook.com"
