@@ -30,7 +30,7 @@ def crear_solicitud_recuperacion(correo: str) -> RecuperacionCreada | None:
 
     with obtener_conexion() as conexion:
         with conexion.cursor(row_factory=dict_row) as cursor:
-            
+
             cursor.execute(
                 """
                 SELECT id_usuario, correo
