@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-
+from app.routes.recuperacion_contrasena import router as router_recuperacion
 from app.security import crear_token_acceso, obtener_usuario_actual
 from app.services.autenticacion_service import autenticar_usuario
 from src.schemas.autenticacion import (
@@ -114,3 +114,4 @@ def autorregistrar_usuario(datos: UsuarioAutoRegistro):
         "mensaje": "Usuario registrado correctamente",
         "usuario": usuario
     }
+router.include_router(router_recuperacion)
