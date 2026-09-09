@@ -60,22 +60,35 @@ function Aprender({ cambiarPagina }: Props) {
   const esAdministrador = sesion?.usuario.rol === "administrador";
   const [errorImagenRemota, setErrorImagenRemota] = useState(false);
 
-  useEffect(() => {
-    cargarLetras();
-  }, []);
+    useEffect(() => {
+    let activo = true;
 
-  const cargarLetras = async () => {
-    setCargando(true);
-    setMensajeCarga("");
-    try {
-      const resultado = await obtenerLetras();
-      setLetrasBackend(resultado);
-    } catch {
-      setMensajeCarga("No fue posible cargar el alfabeto en este momento");
-    } finally {
-      setCargando(false);
-    }
-  };
+    const cargarLetras = async () => {
+      try {
+        const resultado = await obtenerLetras();
+
+        if (activo) {
+          setLetrasBackend(resultado);
+        }
+      } catch {
+        if (activo) {
+          setMensajeCarga(
+            "No fue posible cargar el alfabeto en este momento"
+          );
+        }
+      } finally {
+        if (activo) {
+          setCargando(false);
+        }
+      }
+    };
+
+    void cargarLetras();
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const seleccionarLetra = (letra: LetraBackend) => {
     setLetraSeleccionada(letra);
