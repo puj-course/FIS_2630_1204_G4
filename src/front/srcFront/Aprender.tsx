@@ -77,13 +77,13 @@ function Aprender({ cambiarPagina }: Props) {
     }
   };
 
-const seleccionarLetra = (letra: LetraBackend) => {
-  setLetraSeleccionada(letra);
-  setEditando(false);
-  setMensajeError("");
-  setMensajeExito("");
-  setErrorImagenRemota(false); // 👈 nuevo
-};
+  const seleccionarLetra = (letra: LetraBackend) => {
+    setLetraSeleccionada(letra);
+    setEditando(false);
+    setMensajeError("");
+    setMensajeExito("");
+    setErrorImagenRemota(false);
+  };
 
   const iniciarEdicion = () => {
     if (!letraSeleccionada) return;
@@ -124,19 +124,22 @@ const seleccionarLetra = (letra: LetraBackend) => {
   return (
     <div className="aprender">
       <h1>Aprender LSC</h1>
-      <p>Selecciona una letra para conocer su presentacion en lengua de señas</p>
+      {!cargando && !mensajeCarga && letrasBackend.length > 0 && (
+        <p>Selecciona una letra para conocer su representación en lengua de señas.</p>
+      )}
 
-      {cargando && <p>Cargando alfabeto...</p>}
+      {cargando && <p role="status">Cargando alfabeto...</p>}
 
       {!cargando && mensajeCarga && (
-        <div className="mensajeError">
+        <div className="mensajeError" role="alert">
           <p>{mensajeCarga}</p>
         </div>
       )}
 
       {!cargando && !mensajeCarga && letrasBackend.length === 0 && (
-        <div className="mensajeSinLetras">
-          <p>Todavía no hay letras registradas en el alfabeto.</p>
+        <div className="mensajeSinLetras" role="status">
+          <h2>No hay letras disponibles por el momento</h2>
+          <p>Cuando se agreguen letras al alfabeto, aparecerán en esta sección.</p>
         </div>
       )}
 
@@ -158,7 +161,7 @@ const seleccionarLetra = (letra: LetraBackend) => {
         </div>
       )}
 
-      {letraSeleccionada && (
+      {!cargando && !mensajeCarga && letrasBackend.length > 0 && letraSeleccionada && (
         <section className="detalleLetra">
           <h2>Letra {letraSeleccionada.letra}</h2>
 
@@ -167,7 +170,7 @@ const seleccionarLetra = (letra: LetraBackend) => {
               <img
                 src={letraSeleccionada.ruta_imagen}
                 alt={`Seña letra ${letraSeleccionada.letra}`}
-                onError={() => setErrorImagenRemota(true)} // 👈 clave del fix
+                onError={() => setErrorImagenRemota(true)}
               />
             ) : imagenesLocales[letraSeleccionada.letra.toUpperCase().trim()] ? (
               <img
