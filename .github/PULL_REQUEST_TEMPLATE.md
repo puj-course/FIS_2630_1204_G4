@@ -1,53 +1,43 @@
 # Descripción del cambio
 
-
-## Tipo de cambio
-
-- [ ] Nueva funcionalidad
-- [ ] Corrección de error
-- [ ] Mejora de código
-- [ ] Configuración del proyecto
-- [ ] Documentación
-
-
-## Historia de Usuario relacionada
-
-
-Ref:
-
-Ejemplo:
-Ref #25
-
+<!-- Explica brevemente qué se implementó, corrigió o modificó en este PR -->
 
 ## Cambios realizados
 
+<!-- Lista de los principales cambios incluidos en este PR -->
 
 - 
 - 
 - 
+
+
+## Issue relacionada
+
+<!-- Relaciona la tarea o historia de usuario correspondiente -->
+
+Refs #
 
 
 ## Validaciones realizadas
 
-- [ ] El proyecto inicia correctamente
-- [ ] Se verificó la funcionalidad implementada
-- [ ] No se presentan errores en consola
-- [ ] Se realizaron pruebas manuales
+<!-- Indica las pruebas o verificaciones realizadas -->
+
+- [x] Se verificó que el proyecto ejecute correctamente.
+- [x] Se realizaron pruebas de la funcionalidad modificada.
+- [x] Se revisaron posibles errores en consola.
+- [x] Se validaron cambios relacionados.
 
 
 ## Evidencias
 
+<!-- Agregar capturas, videos, logs o información adicional si aplica -->
 
+## Notas
 
-## Checklist
-
-- [ ] El código sigue la estructura del proyecto
-- [ ] Se revisaron los cambios antes de crear el PR
-- [ ] No se incluyeron archivos innecesarios
-- [ ] Se actualizaron dependencias si era necesario
-- [ ] Se actualizó documentación si aplica
-
+<!-- Notas adicionales -->
 
 ## Cierre de Issue
+
+<!-- Usar Closes si este PR finaliza completamente una tarea -->
 
 Closes #
