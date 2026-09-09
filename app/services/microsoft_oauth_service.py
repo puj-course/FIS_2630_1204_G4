@@ -1,4 +1,5 @@
 import hashlib
+import sys
 from pathlib import Path
 from uuid import UUID
 
@@ -31,10 +32,22 @@ def crear_persistencia_microsoft(client_id: str, correo: str):
             raise AutorizacionMicrosoftError("El almacenamiento debe estar cifrado")
         return persistencia
     except Exception as error:
+        ayuda = {
+            "win32": (
+                "En Windows, ejecuta la autorización y el backend con la misma "
+                "cuenta de Windows; la caché está protegida por DPAPI."
+            ),
+            "darwin": (
+                "En macOS, desbloquea el llavero de inicio de sesión y permite "
+                "el acceso de Python a Keychain cuando el sistema lo solicite."
+            ),
+            "linux": (
+                "En Linux se necesita libsecret, PyGObject dentro de .venv "
+                "y una sesión de escritorio con el llavero desbloqueado."
+            )
+        }.get(sys.platform, "Utiliza Windows, macOS o Linux con almacenamiento cifrado.")
         raise AutorizacionMicrosoftError(
-            "No fue posible abrir el almacén seguro del sistema. "
-            "En Linux se necesita libsecret y una sesión de escritorio "
-            "con el llavero desbloqueado."
+            "No fue posible abrir el almacén seguro del sistema. " + ayuda
         ) from error
 
 
