@@ -39,12 +39,16 @@ class TestPersistenciaMicrosoft(unittest.TestCase):
             with self.assertRaises(oauth.AutorizacionMicrosoftError):
                 oauth.crear_persistencia_microsoft(CLIENT_ID, CORREO)
 
-    def test_falla_con_mensaje_util_si_falta_llavero(self):
-        with patch.object(
-            oauth, "build_encrypted_persistence", side_effect=ImportError("gi")
-        ):
-            with self.assertRaisesRegex(oauth.AutorizacionMicrosoftError, "libsecret"):
-                oauth.crear_persistencia_microsoft(CLIENT_ID, CORREO)
+    def test_falla_con_mensaje_del_sistema_sin_exponer_detalles(self):
+        for sistema, ayuda in (("linux", "libsecret"), ("win32", "DPAPI"), ("darwin", "Keychain")):
+            with self.subTest(sistema=sistema), patch.object(oauth.sys, "platform", sistema):
+                with patch.object(
+                    oauth, "build_encrypted_persistence",
+                    side_effect=RuntimeError("detalle-privado")
+                ):
+                    with self.assertRaisesRegex(oauth.AutorizacionMicrosoftError, ayuda) as error:
+                        oauth.crear_persistencia_microsoft(CLIENT_ID, CORREO)
+                self.assertNotIn("detalle-privado", str(error.exception))
 
 
 class TestAutorizacionMicrosoft(unittest.TestCase):
@@ -149,6 +153,32 @@ class TestClientePublicoMicrosoft(unittest.TestCase):
             token_cache=cache,
             timeout=10
         )
+
+
+class TestComprobacionMicrosoft(unittest.TestCase):
+    def test_comprobar_no_inicia_autorizacion_interactiva(self):
+        from scripts import autorizar_correo_microsoft as script
+
+        with patch.object(script, "obtener_configuracion_correo") as configurar, \
+                patch.object(script, "crear_persistencia_microsoft") as persistir, \
+                patch.object(script, "autorizar_cuenta_microsoft") as autorizar, \
+                patch("builtins.print"):
+            configurar.return_value.client_id = CLIENT_ID
+            configurar.return_value.usuario = CORREO
+            self.assertEqual(script.main(["--comprobar"]), 0)
+            persistir.assert_called_once_with(CLIENT_ID, CORREO)
+            autorizar.assert_not_called()
+
+    def test_comprobar_devuelve_error_si_almacen_seguro_falla(self):
+        from scripts import autorizar_correo_microsoft as script
+
+        with patch.object(script, "obtener_configuracion_correo"), \
+                patch.object(script, "crear_persistencia_microsoft", side_effect=RuntimeError("secreto")), \
+                patch.object(script, "autorizar_cuenta_microsoft") as autorizar, \
+                patch("builtins.print") as imprimir:
+            self.assertEqual(script.main(["--comprobar"]), 1)
+            self.assertNotIn("secreto", str(imprimir.call_args))
+            autorizar.assert_not_called()
 
 
 if __name__ == "__main__":
