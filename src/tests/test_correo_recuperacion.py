@@ -2,6 +2,8 @@ import os
 import smtplib
 import ssl
 import unittest
+
+import httpx
 from dataclasses import replace
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
@@ -9,6 +11,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from app.services.correo_recuperacion_service import (
     ConfiguracionCorreoError,
+    EnvioMicrosoftGraphError,
     enviar_correo_recuperacion,
     obtener_configuracion_correo
 )
@@ -28,6 +31,18 @@ class TestConfiguracionCorreoRecuperacion(unittest.TestCase):
         parche = patch.dict(os.environ, self.entorno, clear=True)
         parche.start()
         self.addCleanup(parche.stop)
+
+    def test_graph_no_requiere_servidor_smtp(self):
+        with patch.dict(os.environ, {
+            "CORREO_TRANSPORTE": "graph", "SMTP_HOST": "",
+            "SMTP_PORT": "", "SMTP_SECURITY": ""
+        }):
+            self.assertEqual(obtener_configuracion_correo().transporte, "graph")
+
+    def test_rechaza_transporte_desconocido(self):
+        with patch.dict(os.environ, {"CORREO_TRANSPORTE": "otro"}):
+            with self.assertRaises(ConfiguracionCorreoError):
+                obtener_configuracion_correo()
 
     def test_acepta_configuracion_completa(self):
         configuracion = obtener_configuracion_correo()
@@ -160,6 +175,63 @@ class TestEnvioCorreoRecuperacion(unittest.TestCase):
             self.fecha,
             configuracion or self.configuracion
         )
+
+    def test_graph_envia_enlace_al_destinatario_con_token_de_graph(self):
+        with patch("app.services.correo_recuperacion_service.httpx.post") as enviar:
+            enviar.return_value.status_code = 202
+            self.enviar(replace(self.configuracion, transporte="graph"))
+        self.smtp.assert_not_called()
+        self.obtener_token.assert_called_once_with(
+            self.configuracion.client_id, self.configuracion.usuario, transporte="graph"
+        )
+        self.assertEqual(enviar.call_count, 1)
+        llamada = enviar.call_args
+        self.assertEqual(llamada.args, ("https://graph.microsoft.com/v1.0/me/sendMail",))
+        self.assertEqual(llamada.kwargs["headers"], {
+            "Authorization": f"Bearer {self.token_microsoft}"
+        })
+        self.assertFalse(llamada.kwargs["follow_redirects"])
+        self.assertEqual(llamada.kwargs["timeout"], 10)
+        self.assertNotEqual(llamada.kwargs.get("verify"), False)
+        mensaje = llamada.kwargs["json"]["message"]
+        self.assertEqual(mensaje["toRecipients"], [
+            {"emailAddress": {"address": "persona@example.com"}}
+        ])
+        self.assertEqual(set(mensaje), {"subject", "body", "toRecipients"})
+        self.assertEqual(mensaje["body"]["contentType"], "Text")
+        self.assertIn("#token=token-exclusivo-de-prueba", mensaje["body"]["content"])
+        self.assertIn("2026-01-01 12:15 UTC", mensaje["body"]["content"])
+        self.assertNotIn(self.token_microsoft, str(mensaje))
+
+    def test_graph_rechazos_no_reintentan_ni_usan_smtp(self):
+        for estado in (301, 401, 403, 429, 500):
+            with self.subTest(estado=estado):
+                with patch("app.services.correo_recuperacion_service.httpx.post") as enviar:
+                    enviar.return_value.status_code = estado
+                    enviar.return_value.text = "detalle-privado"
+                    with self.assertRaises(EnvioMicrosoftGraphError) as error:
+                        self.enviar(replace(self.configuracion, transporte="graph"))
+                    self.assertIn(str(estado), str(error.exception))
+                    self.assertNotIn("detalle-privado", str(error.exception))
+                    enviar.assert_called_once()
+        self.smtp.assert_not_called()
+
+    def test_graph_error_de_red_no_expone_tokens_ni_reintenta(self):
+        with patch("app.services.correo_recuperacion_service.httpx.post") as enviar:
+            enviar.side_effect = httpx.ConnectError(self.token_microsoft)
+            with self.assertRaises(EnvioMicrosoftGraphError) as error:
+                self.enviar(replace(self.configuracion, transporte="graph"))
+            self.assertNotIn(self.token_microsoft, str(error.exception))
+            enviar.assert_called_once()
+        self.smtp.assert_not_called()
+
+    def test_graph_sin_autorizacion_no_envia(self):
+        self.obtener_token.side_effect = RuntimeError("Autorización pendiente")
+        with patch("app.services.correo_recuperacion_service.httpx.post") as enviar:
+            with self.assertRaises(RuntimeError):
+                self.enviar(replace(self.configuracion, transporte="graph"))
+            enviar.assert_not_called()
+        self.smtp.assert_not_called()
 
     def test_cifra_antes_de_autenticar_y_enviar(self):
         self.enviar()
