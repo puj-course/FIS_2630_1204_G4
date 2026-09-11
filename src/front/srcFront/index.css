@@ -864,3 +864,35 @@ nav{
 .botonCancelar {
   background: #333 !important;
 }
+
+.mensajeSinLetras {
+  margin-top: 30px;
+  padding: 30px 20px;
+  border-radius: 15px;
+  background: #1e1e1e;
+  border: 1px dashed #333;
+  color: #aaa;
+  text-align: center;
+  font-size: 15px;
+}
+
+.mensajeError {
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid #dc2626;
+  color: #f87171;
+  text-align: center;
+  font-size: 14px;
+}
+
+.mensaje-error {
+  color: #f87171;
+  font-size: 13px;
+}
+
+.mensaje-exito {
+  color: #4ade80;
+  font-size: 13px;
+}
