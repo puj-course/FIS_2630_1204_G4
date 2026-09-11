@@ -16,7 +16,7 @@ from app.vision.vocales import reconocer_vocal
 
 
 # Este es el archivo que MediaPipe usa para detectar la mano
-RUTA_MODELO = (
+RRUTA_MODELO = str(
     Path(__file__).resolve()
     .parent.parent
     / "models"
