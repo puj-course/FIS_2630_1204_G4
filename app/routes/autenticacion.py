@@ -17,6 +17,9 @@ from src.schemas.usuario import (
     UsuarioAutoRegistro,
     UsuarioRegistroRespuesta
 )
+from app.routes.restablecimiento_contrasena import (
+    router as router_restablecimiento
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,3 +118,4 @@ def autorregistrar_usuario(datos: UsuarioAutoRegistro):
         "usuario": usuario
     }
 router.include_router(router_recuperacion)
+router.include_router(router_restablecimiento)
