@@ -1,3 +1,6 @@
+# Se añade import de pathlib para manejar rutas de archivos de manera más robusta
+from pathlib import Path
+
 # Counter nos ayuda a contar cuantas veces aparece cada vocal
 # deque guarda solo las ultimas respuestas del programa
 from collections import Counter, deque
@@ -13,7 +16,12 @@ from app.vision.vocales import reconocer_vocal
 
 
 # Este es el archivo que MediaPipe usa para detectar la mano
-RUTA_MODELO = "hand_landmarker.task"
+RUTA_MODELO = (
+    Path(__file__).resolve()
+    .parent.parent
+    / "models"
+    / "hand_landmarker.task"
+)
 
 # El numero 0 representa la camara principal del computador
 INDICE_CAMARA = 0
