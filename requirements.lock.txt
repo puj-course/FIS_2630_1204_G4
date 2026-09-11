@@ -19,16 +19,28 @@ certifi==2026.7.22
     #   httpcore
     #   httpx
     #   mediapipe
+    #   requests
 cffi==2.1.1
     # via
     #   argon2-cffi-bindings
+    #   cryptography
     #   sounddevice
+charset-normalizer==3.5.1
+    # via requests
 click==8.5.0
     # via uvicorn
 contourpy==1.3.3
     # via matplotlib
+cryptography==50.0.1
+    # via
+    #   msal
+    #   pyjwt
 cycler==0.12.1
     # via matplotlib
+dnspython==2.8.0
+    # via email-validator
+email-validator==2.3.0
+    # via -r requirements.txt
 fastapi==0.141.1
     # via -r requirements.txt
 flatbuffers==25.12.19
@@ -46,13 +58,21 @@ httpx==0.28.1
 idna==3.19
     # via
     #   anyio
+    #   email-validator
     #   httpx
+    #   requests
 kiwisolver==1.5.1
     # via matplotlib
 matplotlib==3.11.1
     # via mediapipe
 mediapipe==1.0.1
     # via -r requirements.txt
+msal==1.38.0
+    # via
+    #   -r requirements-recuperacion.txt
+    #   msal-extensions
+msal-extensions==1.3.1
+    # via -r requirements-recuperacion.txt
 numpy==2.5.2
     # via
     #   contourpy
@@ -73,20 +93,28 @@ psycopg-binary==3.3.4 ; implementation_name != 'pypy'
     # via psycopg
 pwdlib==0.3.1
     # via -r requirements.txt
+pycairo==1.29.1 ; sys_platform == 'linux'
+    # via pygobject
 pycparser==3.0 ; implementation_name != 'PyPy'
     # via cffi
 pydantic==2.13.4
     # via fastapi
 pydantic-core==2.46.4
     # via pydantic
+pygobject==3.52.4 ; sys_platform == 'linux'
+    # via -r requirements-recuperacion.txt
 pyjwt==2.13.0
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   msal
 pyparsing==3.3.2
     # via matplotlib
 python-dateutil==2.9.0.post0
     # via matplotlib
 python-dotenv==1.2.3
     # via -r requirements.txt
+requests==2.34.2
+    # via msal
 six==1.17.0
     # via python-dateutil
 sounddevice==0.5.6
@@ -108,5 +136,7 @@ typing-inspection==0.4.4
     #   pydantic
 tzdata==2026.3 ; sys_platform == 'win32'
     # via psycopg
+urllib3==2.7.0
+    # via requests
 uvicorn==0.52.4
     # via -r requirements.txt
