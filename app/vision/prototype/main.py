@@ -9,7 +9,7 @@ import cv2
 import mediapipe as mp
 
 # Traemos la funcion que revisa si la mano forma A, E, I, O o U
-from vocales import reconocer_vocal
+from app.vision.vocales import reconocer_vocal
 
 
 # Este es el archivo que MediaPipe usa para detectar la mano
