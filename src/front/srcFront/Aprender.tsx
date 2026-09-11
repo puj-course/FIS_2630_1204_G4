@@ -61,7 +61,7 @@ function Aprender({cambiarPagina}:Props){
 
     const iniciarEdicion = () => {
         if (!letraSeleccionada) return;
-        setDescripcionEditada(letraSeleccionada.descripcion);
+        setDescripcionEditada(letraSeleccionada.descripcion ?? "");
         setEditando(true);
     };
 
@@ -168,19 +168,15 @@ function Aprender({cambiarPagina}:Props){
 
               {/* img*/}
 
-              {
-                letraSeleccionada.imagen
-                ?
+            {imagenPorLetra[letraSeleccionada.letra] ? (
                 <img
-                  src={letraSeleccionada.imagen}
-                  alt={`Seña letra ${letraSeleccionada.letra}`}
+                    src={imagenPorLetra[letraSeleccionada.letra]}
+                    alt={`Seña letra ${letraSeleccionada.letra}`}
                 />
-                :
-                <p>
-                  Imagen de la seña
-                </p>
+            ) : (
+                <p>Imagen de la seña</p>
+            )}
 
-              }
 
 
             </div>
