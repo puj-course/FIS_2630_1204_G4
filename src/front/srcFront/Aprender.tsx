@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { obtenerSesion } from "./services/autenticacion";
 
-import { obtenerLetras } from "./services/letras";
+import { obtenerLetras, actualizarLetra } from "./services/letras";
 import { ErrorApi } from "./services/api";
+
 
 import imagenA from "./assets/señas/LETRA A.jpg";
 import imagenB from "./assets/señas/LETRA B.jpg";
@@ -51,6 +52,9 @@ function Aprender({cambiarPagina}:Props){
     const [cargando, setCargando] = useState(true);
     const [mensajeError, setMensajeError] = useState("");
 
+    //agregamos dos nuevos estados para que funcione actualizar las descripciones de las letras
+    const [guardando, setGuardado] = useState(false);
+    const [errorGuardado, setErrorGuardado] = useState("");
 
     
     const sesion = obtenerSesion();
@@ -65,10 +69,26 @@ function Aprender({cambiarPagina}:Props){
         setEditando(true);
     };
 
-    const guardarCambios = () => {
-        if (!letraSeleccionada) return;
-        letraSeleccionada.descripcion = descripcionEditada;
-        setEditando(false);
+    //Actualizamos la funcion gaurdar cambios, y le agregamos un mensaje de error
+    const guardarCambios = async () => {
+        if (!letraSeleccionada || !sesion) return;
+
+        setGuardado(true);
+        setErrorGuardado("");
+
+        try {
+            const resultado = await actualizarLetra( letraSeleccionada.id_letra, { descripcion: descripcionEditada},sesion.access_token);
+
+            setLetraSeleccionada(resultado.letra);
+            setLetras((prev) => prev.map((l) => l.id_letra === resultado.letra.id_letra ? resultado.letra : l));
+            setEditando(false);
+
+        } catch (error) {
+            setErrorGuardado(error instanceof ErrorApi ? error.message : "No fue posible guardar los cambios.");
+            
+        } finally {
+            setGuardado(false);
+        }
     };
 
     useEffect(() => {
