@@ -85,7 +85,7 @@ function Aprender({cambiarPagina}:Props){
 
         } catch (error) {
             setErrorGuardado(error instanceof ErrorApi ? error.message : "No fue posible guardar los cambios.");
-            
+
         } finally {
             setGuardado(false);
         }
@@ -217,9 +217,10 @@ function Aprender({cambiarPagina}:Props){
                     onChange={(e)=>setDescripcionEditada(e.target.value)}
                     rows={4}
                   />
+                  {errorGuardado && (<p role="alert">{errorGuardado}</p>)}
                   <div className="accionesEdicion">
-                    <button onClick={guardarCambios}>
-                      Guardar cambios
+                    <button onClick={guardarCambios} disabled={guardando}>
+                        {guardando ? "Guardando..." : "Guardar cambios"}
                     </button>
                     <button
                       className="botonCancelar"
