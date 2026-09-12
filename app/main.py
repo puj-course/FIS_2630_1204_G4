@@ -5,6 +5,7 @@ from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.usuarios import router as usuarios_router
 from app.routes.perfil import router as perfil_router
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="SignIA API",
@@ -25,6 +26,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
+)
+
+app.mount(
+    "/assets",
+    StaticFiles(directory="app/assets"),
+    name="assets"
 )
 
 app.include_router(letras_router)
