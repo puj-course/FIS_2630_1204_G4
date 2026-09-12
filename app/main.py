@@ -13,6 +13,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.mount(
+    "/assets",
+    StaticFiles(directory="app/assets"),
+    name="assets"
+)
+
 origenes_permitidos = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -26,12 +32,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
-)
-
-app.mount(
-    "/assets",
-    StaticFiles(directory="app/assets"),
-    name="assets"
 )
 
 app.include_router(letras_router)
