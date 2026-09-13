@@ -12,6 +12,10 @@ from contextlib import asynccontextmanager
 from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
 
+from app.routes.resultados_reconocimiento import (
+    router as resultados_reconocimiento_router,
+)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
@@ -54,6 +58,7 @@ app.include_router(autenticacion_router)
 app.include_router(usuarios_router)
 app.include_router(perfil_router)
 app.include_router(vision_router)
+app.include_router(resultados_reconocimiento_router)
 
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
