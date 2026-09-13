@@ -48,7 +48,8 @@ function Aprender({ cambiarPagina }: Props) {
   const [letrasBackend, setLetrasBackend] = useState<LetraBackend[]>([]);
   const [letraSeleccionada, setLetraSeleccionada] = useState<LetraBackend | null>(null);
   const [cargando, setCargando] = useState(true);
-  const [mensajeCarga, setMensajeCarga] = useState("");
+
+  const [errorCarga, setErrorCarga] = useState("");
 
   const [editando, setEditando] = useState(false);
   const [descripcionEditada, setDescripcionEditada] = useState("");
