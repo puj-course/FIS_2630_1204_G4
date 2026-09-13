@@ -49,3 +49,12 @@ class ResultadoRegistrado(BaseModel):
 class ResultadoReconocimientoRespuesta(BaseModel):
     mensaje: str
     resultado: ResultadoRegistrado
+
+
+class ResultadosReconocimientoConsultaRespuesta(BaseModel):
+    total: int = Field(
+        ge=0,
+        description="Cantidad de resultados encontrados"
+    )
+
+    resultados: list[ResultadoRegistrado]
