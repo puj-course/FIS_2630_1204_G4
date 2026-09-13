@@ -7,31 +7,33 @@ export interface Letra {
   ruta_imagen: string | null;
 }
 
-// Esto se hace para poder actualizar la descripcion de una letra desde la interfaz del admin
-export interface CambiosLetra {
+export interface LetraActualizacion {
   descripcion?: string;
+  ruta_imagen?: string;
 }
 
-export interface RespuestaActualizacionLetra {
+export interface LetraActualizacionRespuesta {
   mensaje: string;
-  letra: Letra; 
+  letra: Letra;
 }
 
 export function obtenerLetras(): Promise<Letra[]> {
   return solicitarApi<Letra[]>("/letras");
 }
 
-//Esta funcion lo que nos permite hacer es poder actualizar la info en la DB
 export function actualizarLetra(
-  idLetra: number, 
-  cambios: CambiosLetra,
-  token: string,
-): Promise<RespuestaActualizacionLetra> {
-  return solicitarApi<RespuestaActualizacionLetra>(`/letras/${idLetra}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(cambios)
-  });
+  idLetra: number,
+  datos: LetraActualizacion,
+  token: string
+): Promise<LetraActualizacionRespuesta> {
+  return solicitarApi<LetraActualizacionRespuesta>(
+    `/letras/${idLetra}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(datos)
+    }
+  );
 }
