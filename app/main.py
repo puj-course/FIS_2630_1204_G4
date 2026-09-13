@@ -7,10 +7,25 @@ from app.routes.usuarios import router as usuarios_router
 from app.routes.perfil import router as perfil_router
 from fastapi.staticfiles import StaticFiles
 
+from contextlib import asynccontextmanager
+
+from app.routes.vision import router as vision_router
+from app.services.vision_service import cerrar_detectores
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        yield
+    finally:
+        # Libera los modelos al cerrar el backend
+        cerrar_detectores()
+
+
 app = FastAPI(
     title="SignIA API",
     description="Backend para la plataforma de aprendizaje del alfabeto LSC",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.mount(
@@ -38,6 +53,7 @@ app.include_router(letras_router)
 app.include_router(autenticacion_router)
 app.include_router(usuarios_router)
 app.include_router(perfil_router)
+app.include_router(vision_router)
 
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
