@@ -40,11 +40,11 @@ class TestRutaResultadosReconocimiento(unittest.TestCase):
             obtener_usuario_actual
         ] = lambda: self.usuario
 
-    def crear_resultado_simulado(self):
+    def crear_resultado_simulado(self, id_usuario=9):
         return {
             "id_resultado": 48,
             "id_sesion": 31,
-            "id_usuario": 9,
+            "id_usuario": id_usuario,
             "id_letra_objetivo": 1,
             "letra_objetivo": "A",
             "id_letra_detectada": 1,
@@ -117,6 +117,66 @@ class TestRutaResultadosReconocimiento(unittest.TestCase):
             letra_detectada="A",
             confianza=0.95,
         )
+
+    @patch(
+        "app.routes.resultados_reconocimiento."
+        "registrar_resultado_reconocimiento"
+    )
+    def test_asocia_resultado_a_cada_usuario_autenticado(
+        self,
+        servicio_simulado,
+    ):
+        usuarios = [
+            {
+                "id_usuario": 9,
+                "nombre": "Primer usuario",
+                "correo": "primero@signia.local",
+                "rol": "usuario",
+            },
+            {
+                "id_usuario": 15,
+                "nombre": "Segundo usuario",
+                "correo": "segundo@signia.local",
+                "rol": "usuario",
+            },
+        ]
+
+        for usuario in usuarios:
+            with self.subTest(
+                id_usuario=usuario["id_usuario"]
+            ):
+                app.dependency_overrides[
+                    obtener_usuario_actual
+                ] = lambda: usuario
+
+                servicio_simulado.return_value = (
+                    self.crear_resultado_simulado(
+                        usuario["id_usuario"]
+                    )
+                )
+
+                respuesta = self.cliente.post(
+                    "/resultados-reconocimiento",
+                    json=self.datos_validos,
+                )
+
+                self.assertEqual(
+                    respuesta.status_code,
+                    201,
+                )
+                self.assertEqual(
+                    respuesta.json()["resultado"]["id_usuario"],
+                    usuario["id_usuario"],
+                )
+
+                servicio_simulado.assert_called_once_with(
+                    id_usuario=usuario["id_usuario"],
+                    id_letra_objetivo=1,
+                    letra_detectada="A",
+                    confianza=0.95,
+                )
+
+                servicio_simulado.reset_mock()
 
     @patch(
         "app.routes.resultados_reconocimiento."
