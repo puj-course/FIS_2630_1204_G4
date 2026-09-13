@@ -132,3 +132,48 @@ def registrar_resultado_reconocimiento(
         "es_correcto": resultado["es_correcto"],
         "fecha_resultado": resultado["fecha_resultado"]
     }
+
+def obtener_resultados_usuario(id_usuario: int):
+    """
+    Recupera los resultados pertenecientes a un usuario.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    r.id_resultado,
+                    s.id_sesion,
+                    s.id_usuario,
+                    r.id_letra_objetivo,
+                    objetivo.letra AS letra_objetivo,
+                    r.id_letra_detectada,
+                    detectada.letra AS letra_detectada,
+                    r.confianza,
+                    r.es_correcto,
+                    r.fecha_resultado
+                FROM resultados_reconocimiento AS r
+                INNER JOIN sesiones_reconocimiento AS s
+                    ON s.id_sesion = r.id_sesion
+                INNER JOIN letras AS objetivo
+                    ON objetivo.id_letra = r.id_letra_objetivo
+                INNER JOIN letras AS detectada
+                    ON detectada.id_letra = r.id_letra_detectada
+                WHERE s.id_usuario = %s
+                ORDER BY
+                    r.fecha_resultado DESC,
+                    r.id_resultado DESC;
+                """,
+                (id_usuario,)
+            )
+
+            resultados = cursor.fetchall()
+
+    return [
+        {
+            **resultado,
+            "confianza": float(resultado["confianza"]),
+        }
+        for resultado in resultados
+    ]
