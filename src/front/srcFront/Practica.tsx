@@ -9,6 +9,8 @@ import {
 import Camara from "./components/Camara";
 import { useCamara } from "./hooks/useCamara";
 
+import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
+
 
 
 function Practica() {
@@ -113,11 +115,14 @@ function Practica() {
           <div className="objetivo">
             <h3>Objetivo</h3>
             <strong>{letraActual}</strong>
-            <p>Precisión</p>
 
-            <div className="barra">
-              <div></div>
-            </div>
+            {camaraActiva ? (
+              <ResultadoReconocimiento videoRef={videoRef} />
+            ) : (
+              <p>
+                Activa la cámara para iniciar el reconocimiento.
+              </p>
+            )}
           </div>
 
           <div className="instrucciones">
