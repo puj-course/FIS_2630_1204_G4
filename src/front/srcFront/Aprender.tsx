@@ -19,7 +19,8 @@ function Aprender({ cambiarPagina }: Props) {
     useState<LetraBackend | null>(null);
 
   const [cargando, setCargando] = useState(true);
-  const [mensajeCarga, setMensajeCarga] = useState("");
+
+  const [errorCarga, setErrorCarga] = useState("");
 
   const [editando, setEditando] = useState(false);
   const [descripcionEditada, setDescripcionEditada] = useState("");
@@ -41,11 +42,14 @@ function Aprender({ cambiarPagina }: Props) {
 
         if (activo) {
           setLetrasBackend(resultado);
+          setErrorCarga("");
         }
-      } catch {
+      } catch (error) {
         if (activo) {
-          setMensajeCarga(
-            "No fue posible cargar el alfabeto en este momento"
+          setErrorCarga(
+            error instanceof ErrorApi
+              ? error.message
+              : "No fue posible cargar el alfabeto en este momento"
           );
         }
       } finally {
@@ -142,9 +146,9 @@ function Aprender({ cambiarPagina }: Props) {
       )}
 
 
-      {!cargando && mensajeCarga && (
+      {!cargando && errorCarga && (
         <div className="mensajeError" role="alert">
-          <p>{mensajeCarga}</p>
+          <p>{errorCarga}</p>
         </div>
       )}
 
