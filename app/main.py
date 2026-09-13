@@ -5,11 +5,18 @@ from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.usuarios import router as usuarios_router
 from app.routes.perfil import router as perfil_router
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="SignIA API",
     description="Backend para la plataforma de aprendizaje del alfabeto LSC",
     version="1.0.0"
+)
+
+app.mount(
+    "/assets",
+    StaticFiles(directory="app/assets"),
+    name="assets"
 )
 
 origenes_permitidos = [
