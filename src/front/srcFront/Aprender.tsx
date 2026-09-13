@@ -67,14 +67,17 @@ function Aprender({ cambiarPagina }: Props) {
     const cargarLetras = async () => {
       try {
         const resultado = await obtenerLetras();
-
+        
         if (activo) {
           setLetrasBackend(resultado);
+          setErrorCarga("");
         }
-      } catch {
+      } catch (error) {
         if (activo) {
-          setMensajeCarga(
-            "No fue posible cargar el alfabeto en este momento"
+          setErrorCarga(
+            error instanceof ErrorApi
+              ? error.message
+              : "No fue posible cargar el alfabeto en este momento"
           );
         }
       } finally {
