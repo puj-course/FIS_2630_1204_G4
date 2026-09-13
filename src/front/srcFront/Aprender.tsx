@@ -67,7 +67,7 @@ function Aprender({ cambiarPagina }: Props) {
     const cargarLetras = async () => {
       try {
         const resultado = await obtenerLetras();
-        
+
         if (activo) {
           setLetrasBackend(resultado);
           setErrorCarga("");
@@ -141,26 +141,27 @@ function Aprender({ cambiarPagina }: Props) {
   return (
     <div className="aprender">
       <h1>Aprender LSC</h1>
-      {!cargando && !mensajeCarga && letrasBackend.length > 0 && (
+      {!cargando && !errorCarga && letrasBackend.length > 0 && (
         <p>Selecciona una letra para conocer su representación en lengua de señas.</p>
-      )}
+       )
+      }
 
       {cargando && <p role="status">Cargando alfabeto...</p>}
 
-      {!cargando && mensajeCarga && (
+      {!cargando && errorCarga && (
         <div className="mensajeError" role="alert">
-          <p>{mensajeCarga}</p>
+          <p>{errorCarga}</p>
         </div>
       )}
 
-      {!cargando && !mensajeCarga && letrasBackend.length === 0 && (
+      {!cargando && !errorCarga && letrasBackend.length === 0 && (
         <div className="mensajeSinLetras" role="status">
           <h2>No hay letras disponibles por el momento</h2>
           <p>Cuando se agreguen letras al alfabeto, aparecerán en esta sección.</p>
         </div>
       )}
 
-      {!cargando && !mensajeCarga && letrasBackend.length > 0 && (
+      {!cargando && !errorCarga && letrasBackend.length > 0 && (
         <div className="contenedorLetras">
           {letrasBackend.map((letra) => (
             <button
@@ -178,7 +179,7 @@ function Aprender({ cambiarPagina }: Props) {
         </div>
       )}
 
-      {!cargando && !mensajeCarga && letrasBackend.length > 0 && letraSeleccionada && (
+      {!cargando && !errorCarga && letrasBackend.length > 0 && letraSeleccionada && (
         <section className="detalleLetra">
           <h2>Letra {letraSeleccionada.letra}</h2>
 
