@@ -290,7 +290,110 @@ class TestRutaResultadosReconocimiento(unittest.TestCase):
                 )
             },
         )
+    @patch(
+        "app.routes.resultados_reconocimiento."
+        "obtener_resultados_usuario"
+    )
+    def test_consulta_requiere_autenticacion(
+        self,
+        servicio_simulado,
+    ):
+        respuesta = self.cliente.get(
+            "/resultados-reconocimiento"
+        )
 
+        self.assertEqual(respuesta.status_code, 401)
+        servicio_simulado.assert_not_called()
+
+    @patch(
+        "app.routes.resultados_reconocimiento."
+        "obtener_resultados_usuario"
+    )
+    def test_consulta_resultados_del_usuario_autenticado(
+        self,
+        servicio_simulado,
+    ):
+        self.autenticar_usuario()
+
+        servicio_simulado.return_value = [
+            self.crear_resultado_simulado()
+        ]
+
+        respuesta = self.cliente.get(
+            "/resultados-reconocimiento"
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()["total"], 1)
+        self.assertEqual(
+            len(respuesta.json()["resultados"]),
+            1,
+        )
+        self.assertEqual(
+            respuesta.json()["resultados"][0]["id_usuario"],
+            9,
+        )
+
+        servicio_simulado.assert_called_once_with(
+            id_usuario=9
+        )
+
+    @patch(
+        "app.routes.resultados_reconocimiento."
+        "obtener_resultados_usuario"
+    )
+    def test_consulta_sin_resultados_devuelve_lista_vacia(
+        self,
+        servicio_simulado,
+    ):
+        self.autenticar_usuario()
+
+        servicio_simulado.return_value = []
+
+        respuesta = self.cliente.get(
+            "/resultados-reconocimiento"
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "total": 0,
+                "resultados": [],
+            },
+        )
+
+        servicio_simulado.assert_called_once_with(
+            id_usuario=9
+        )
+
+    @patch(
+        "app.routes.resultados_reconocimiento."
+        "obtener_resultados_usuario"
+    )
+    def test_consulta_controla_error_de_base_de_datos(
+        self,
+        servicio_simulado,
+    ):
+        self.autenticar_usuario()
+
+        servicio_simulado.side_effect = Exception(
+            "Error simulado de consulta"
+        )
+
+        respuesta = self.cliente.get(
+            "/resultados-reconocimiento"
+        )
+
+        self.assertEqual(respuesta.status_code, 500)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "detail": (
+                    "No fue posible consultar los resultados"
+                )
+            },
+        )
 
 if __name__ == "__main__":
     unittest.main()
