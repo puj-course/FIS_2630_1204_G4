@@ -1,72 +1,101 @@
 import { useState } from "react";
-
 import { eliminarSesion } from "./services/autenticacion";
 
 import Navbar from "./components/Navbar";
+
 import EstadoBackend from "./components/EstadoBackend";
 
 import Login from "./Login";
+
 import Registro from "./Registro";
+
 import Perfil from "./Perfil";
+
 import Practica from "./Practica";
+
 import Home from "./Home";
+
 import Aprender from "./Aprender";
-import Recuperar from "./Recuperar";
+
 
 
 function App() {
 
+
   const [logueado, setLogueado] = useState(false);
+
 
   const [pagina, setPagina] = useState("login");
 
 
+
   const [, setUsuario] = useState({
-    nombre: "",
-    correo: ""
+
+    nombre:"",
+
+    correo:""
+
   });
 
 
+
+
+
   return (
+
     <>
+
 
       <EstadoBackend />
 
 
+
       {!logueado ? (
+
 
         pagina === "registro" ?
 
-          <Registro
-            cambiarPagina={setPagina}
-            guardarUsuario={setUsuario}
-          />
+
+        <Registro
+
+          cambiarPagina={setPagina}
+
+          guardarUsuario={setUsuario}
+
+        />
+
+
 
         :
+        <Login
 
-        pagina === "recuperar" ?
+        cambiarPagina={setPagina}
 
-          <Recuperar
-            cambiarPagina={setPagina}
-          />
+        alIniciarSesion={()=>{
 
-        :
+          setLogueado(true);
 
-          <Login
-            cambiarPagina={setPagina}
-            alIniciarSesion={() => {
-              setLogueado(true);
-              setPagina("home");
-            }}
-          />
+          setPagina("home");
+
+        }}
+
+      />
+
+
+
+
 
 
       )
 
+
+
       :
 
 
+
       (
+
 
         <div className="app">
 
@@ -77,71 +106,84 @@ function App() {
 
             paginaActual={pagina}
 
-            cerrarSesion={() => {
+            cerrarSesion={()=>{
 
-              eliminarSesion();
+            eliminarSesion();
+            setLogueado(false);
 
-              setLogueado(false);
+            setPagina("login");
 
-              setPagina("login");
+            setUsuario({
+              nombre:"",
+              correo:""
+            });
 
-              setUsuario({
-                nombre: "",
-                correo: ""
-              });
-
-            }}
+          }}
 
           />
 
 
+
           <main>
 
+
             {
-              pagina === "home"
+
+              pagina==="home"
 
               ?
 
-              <Home
-                cambiarPagina={setPagina}
-              />
+              <Home cambiarPagina={setPagina}/>
 
 
               :
 
-              pagina === "aprender"
+              pagina==="aprender"
 
               ?
 
-              <Aprender
-                cambiarPagina={setPagina}
-              />
+              <Aprender cambiarPagina={setPagina}/>
+
 
 
               :
 
-              pagina === "perfil"
+
+
+              pagina==="perfil"
 
               ?
+
 
               <Perfil />
 
 
+
               :
+
+
 
               <Practica />
 
+
             }
+
 
           </main>
 
 
+
         </div>
+
 
       )}
 
+
+
     </>
+
   );
+
 
 }
 
