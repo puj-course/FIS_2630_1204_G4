@@ -95,15 +95,6 @@ function Login({
         <button type="submit" disabled={cargando}>
           {cargando ? "Validando..." : "Iniciar sesión"}
         </button>
-        <p className="recuperar">
-          ¿Olvidaste tu contraseña?{" "}
-          <span
-            className="enlace"
-            onClick={() => cambiarPagina("recuperar")}
-          >
-            Haz clic aquí
-          </span>
-        </p>
       </form>
 
       <p>

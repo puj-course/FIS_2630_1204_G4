@@ -6,25 +6,8 @@ import {
   type Letra
 } from "./services/letras";
 
-import Camara from "./components/Camara";
-import { useCamara } from "./hooks/useCamara";
-
-import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
-
-
 
 function Practica() {
-    const {
-    videoRef,
-    estado: estadoCamara,
-    mensajeError: errorCamara,
-    iniciarCamara,
-    detenerCamara,
-  } = useCamara();
-
-  const camaraActiva = estadoCamara === "activa";
-  const solicitandoCamara = estadoCamara === "solicitando";
-
   const [letras, setLetras] = useState<Letra[]>([]);
   const [letraSeleccionada, setLetraSeleccionada] =
     useState<Letra | null>(null);
@@ -76,53 +59,39 @@ function Practica() {
     <div className="practica">
       <section className="practicaHeader">
         <div>
-          <h1>Alfabeto: Letra {letraActual}</h1>
+          <h1>
+            Alfabeto: Letra {letraActual}
+          </h1>
           <p>
             Posiciona tu mano frente a la cámara para practicar.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            if (camaraActiva || solicitandoCamara) {
-              detenerCamara();
-            } else {
-              void iniciarCamara();
-            }
-          }}
-        >
-          {solicitandoCamara
-            ? "Cancelar"
-            : camaraActiva
-              ? "Apagar cámara"
-              : "Activar cámara"}
+        <button type="button">
+          Apagar cámara
         </button>
       </section>
 
-
       <section className="zonaPracti">
-        <Camara
-          videoRef={videoRef}
-          activa={camaraActiva}
-          solicitando={solicitandoCamara}
-          mensajeError={errorCamara}
-        />
+        <div className="camara">
+          <div className="estadoCamara">
+            Grabando
+          </div>
 
-
+          <div className="deteccion">
+            Detectando mano...
+          </div>
+        </div>
 
         <div className="panelPractica">
           <div className="objetivo">
             <h3>Objetivo</h3>
             <strong>{letraActual}</strong>
+            <p>Precisión</p>
 
-            {camaraActiva ? (
-              <ResultadoReconocimiento videoRef={videoRef} />
-            ) : (
-              <p>
-                Activa la cámara para iniciar el reconocimiento.
-              </p>
-            )}
+            <div className="barra">
+              <div></div>
+            </div>
           </div>
 
           <div className="instrucciones">
