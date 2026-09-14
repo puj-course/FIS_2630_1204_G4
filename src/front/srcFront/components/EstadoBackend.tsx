@@ -12,22 +12,22 @@ function EstadoBackend() {
     "Verificando conexión con el backend..."
   );
 
+  const [visible, setVisible] = useState(true);
+
+
+  // Comprueba la conexión con el backend
   useEffect(() => {
     let componenteActivo = true;
 
     comprobarConexionBackend()
       .then((respuesta) => {
-        if (!componenteActivo) {
-          return;
-        }
+        if (!componenteActivo) return;
 
         setEstado("conectado");
         setMensaje(respuesta.mensaje);
       })
       .catch((error: unknown) => {
-        if (!componenteActivo) {
-          return;
-        }
+        if (!componenteActivo) return;
 
         setEstado("error");
         setMensaje(
@@ -41,6 +41,26 @@ function EstadoBackend() {
       componenteActivo = false;
     };
   }, []);
+
+
+  // Oculta el mensaje después de tres segundos
+  useEffect(() => {
+    if (estado === "comprobando") return;
+
+    const temporizador = window.setTimeout(() => {
+      setVisible(false);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(temporizador);
+    };
+  }, [estado]);
+
+
+  if (!visible) {
+    return null;
+  }
+
 
   return (
     <div
