@@ -12,11 +12,17 @@ import {
 import { capturarFotograma } from "../utils/capturarFotograma";
 
 
+const TAMANO_HISTORIAL = 5;
+
+
 export function useReconocimiento(
   videoRef: RefObject<HTMLVideoElement | null>,
 ) {
   const [resultado, setResultado] =
     useState<VisionRespuesta | null>(null);
+
+  const [confianza, setConfianza] =
+    useState<number | null>(null);
 
   const [procesando, setProcesando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
@@ -29,6 +35,8 @@ export function useReconocimiento(
     let limiteEspera: number | undefined;
     let peticion: AbortController | null = null;
 
+    const historial: Array<VisionRespuesta["letra"]> = [];
+
 
     async function procesarFotograma() {
       if (!activo) {
@@ -40,7 +48,6 @@ export function useReconocimiento(
       try {
         const video = videoRef.current;
 
-        // Espera a que el visor esté disponible
         if (!video) {
           temporizador = window.setTimeout(
             procesarFotograma,
@@ -49,9 +56,11 @@ export function useReconocimiento(
           return;
         }
 
-        const imagenBase64 = capturarFotograma(video, lienzo);
+        const imagenBase64 = capturarFotograma(
+          video,
+          lienzo,
+        );
 
-        // Espera a que exista un fotograma
         if (!imagenBase64) {
           temporizador = window.setTimeout(
             procesarFotograma,
@@ -63,7 +72,6 @@ export function useReconocimiento(
         const controlador = new AbortController();
         peticion = controlador;
 
-        // Limita el tiempo de espera de la petición
         limiteEspera = window.setTimeout(() => {
           tiempoAgotado = true;
           controlador.abort();
@@ -71,7 +79,6 @@ export function useReconocimiento(
 
         setProcesando(true);
 
-        // Envía una imagen y espera la respuesta
         const respuesta = await reconocerImagen(
           imagenBase64,
           controlador.signal,
@@ -81,10 +88,29 @@ export function useReconocimiento(
           return;
         }
 
+        historial.push(respuesta.letra);
+
+        if (historial.length > TAMANO_HISTORIAL) {
+          historial.shift();
+        }
+
+        const coincidencias = respuesta.letra
+          ? historial.filter(
+              (letra) => letra === respuesta.letra
+            ).length
+          : 0;
+
+        const confianzaCalculada = (
+          respuesta.letra
+          && historial.length === TAMANO_HISTORIAL
+        )
+          ? coincidencias / TAMANO_HISTORIAL
+          : null;
+
         setResultado(respuesta);
+        setConfianza(confianzaCalculada);
         setMensajeError("");
 
-        // Programa la siguiente captura después de recibir respuesta
         temporizador = window.setTimeout(
           procesarFotograma,
           400,
@@ -96,6 +122,7 @@ export function useReconocimiento(
         }
 
         setResultado(null);
+        setConfianza(null);
 
         setMensajeError(
           tiempoAgotado
@@ -116,7 +143,6 @@ export function useReconocimiento(
     }
 
 
-    // Crea un lienzo reutilizable para las capturas
     const lienzo = document.createElement("canvas");
 
     temporizador = window.setTimeout(
@@ -125,7 +151,6 @@ export function useReconocimiento(
     );
 
 
-    // Detiene el envío y descarta las respuestas pendientes
     return () => {
       activo = false;
 
@@ -137,9 +162,9 @@ export function useReconocimiento(
   }, [videoRef, intento]);
 
 
-  // Inicia otro intento después de un error
   function reintentar() {
     setResultado(null);
+    setConfianza(null);
     setMensajeError("");
     setProcesando(false);
     setIntento((anterior) => anterior + 1);
@@ -148,6 +173,7 @@ export function useReconocimiento(
 
   return {
     resultado,
+    confianza,
     procesando,
     mensajeError,
     reintentar,
