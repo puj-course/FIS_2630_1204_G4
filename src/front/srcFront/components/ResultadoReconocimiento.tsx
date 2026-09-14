@@ -161,7 +161,7 @@ function ResultadoReconocimiento({
             disabled={
               !resultadoEstable
               || guardando
-              || procesando
+              
             }
           >
             {guardando
