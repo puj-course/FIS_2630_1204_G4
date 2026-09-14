@@ -6,11 +6,13 @@ from app.security import obtener_usuario_actual
 from app.services.resultados_reconocimiento_service import (
     LetraDetectadaNoEncontradaError,
     LetraObjetivoNoEncontradaError,
+    obtener_resultados_usuario,
     registrar_resultado_reconocimiento,
 )
 from src.schemas.resultado_reconocimiento import (
     ResultadoReconocimientoEntrada,
     ResultadoReconocimientoRespuesta,
+    ResultadosReconocimientoConsultaRespuesta,
 )
 
 
@@ -22,7 +24,50 @@ router = APIRouter(
     tags=["Resultados de reconocimiento"],
 )
 
+@router.get(
+    "",
+    response_model=ResultadosReconocimientoConsultaRespuesta,
+    status_code=status.HTTP_200_OK,
+    summary="Consultar resultados de reconocimiento",
+    responses={
+        401: {
+            "description": "El usuario no está autenticado",
+        },
+        500: {
+            "description": "No fue posible consultar los resultados",
+        },
+    },
+)
+def consultar_resultados(
+    usuario_actual: dict = Depends(obtener_usuario_actual),
+):
+    """
+    Recupera los resultados del usuario autenticado.
 
+    - Obtiene el usuario desde el token.
+    - Consulta únicamente las sesiones pertenecientes al usuario.
+    - Devuelve una lista vacía cuando no existen resultados.
+    """
+
+    try:
+        resultados = obtener_resultados_usuario(
+            id_usuario=usuario_actual["id_usuario"]
+        )
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al consultar los resultados"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No fue posible consultar los resultados",
+        ) from error
+
+    return {
+        "total": len(resultados),
+        "resultados": resultados,
+    }
 @router.post(
     "",
     response_model=ResultadoReconocimientoRespuesta,

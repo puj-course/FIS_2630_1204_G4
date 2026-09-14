@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from app.services.resultados_reconocimiento_service import (
     LetraDetectadaNoEncontradaError,
     LetraObjetivoNoEncontradaError,
+    obtener_resultados_usuario,
     registrar_resultado_reconocimiento,
 )
 
@@ -199,6 +200,98 @@ class TestServicioResultadosReconocimiento(unittest.TestCase):
 
         self.assertEqual(cursor.execute.call_count, 2)
 
+        self.assertEqual(cursor.execute.call_count, 2)
+
+    @patch(
+        "app.services.resultados_reconocimiento_service.obtener_conexion"
+    )
+    def test_consulta_resultados_del_usuario(
+        self,
+        obtener_conexion_simulada,
+    ):
+        cursor = self.preparar_conexion(
+            obtener_conexion_simulada
+        )
+
+        fecha = datetime(
+            2026,
+            9,
+            13,
+            tzinfo=timezone.utc,
+        )
+
+        cursor.fetchall.return_value = [
+            {
+                "id_resultado": 48,
+                "id_sesion": 31,
+                "id_usuario": 9,
+                "id_letra_objetivo": 1,
+                "letra_objetivo": "A",
+                "id_letra_detectada": 1,
+                "letra_detectada": "A",
+                "confianza": Decimal("0.9500"),
+                "es_correcto": True,
+                "fecha_resultado": fecha,
+            },
+            {
+                "id_resultado": 49,
+                "id_sesion": 32,
+                "id_usuario": 9,
+                "id_letra_objetivo": 1,
+                "letra_objetivo": "A",
+                "id_letra_detectada": 2,
+                "letra_detectada": "B",
+                "confianza": Decimal("0.8300"),
+                "es_correcto": False,
+                "fecha_resultado": fecha,
+            },
+        ]
+
+        resultados = obtener_resultados_usuario(
+            id_usuario=9
+        )
+
+        self.assertEqual(len(resultados), 2)
+        self.assertEqual(resultados[0]["id_usuario"], 9)
+        self.assertEqual(resultados[1]["id_usuario"], 9)
+        self.assertEqual(resultados[0]["confianza"], 0.95)
+        self.assertEqual(resultados[1]["confianza"], 0.83)
+
+        consulta = cursor.execute.call_args.args[0]
+        parametros = cursor.execute.call_args.args[1]
+
+        self.assertIn(
+            "WHERE s.id_usuario = %s",
+            consulta,
+        )
+        self.assertEqual(parametros, (9,))
+
+    @patch(
+        "app.services.resultados_reconocimiento_service.obtener_conexion"
+    )
+    def test_consulta_sin_resultados_devuelve_lista_vacia(
+        self,
+        obtener_conexion_simulada,
+    ):
+        cursor = self.preparar_conexion(
+            obtener_conexion_simulada
+        )
+
+        cursor.fetchall.return_value = []
+
+        resultados = obtener_resultados_usuario(
+            id_usuario=25
+        )
+
+        self.assertEqual(resultados, [])
+
+        parametros = cursor.execute.call_args.args[1]
+
+        self.assertEqual(parametros, (25,))
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 if __name__ == "__main__":
     unittest.main()
