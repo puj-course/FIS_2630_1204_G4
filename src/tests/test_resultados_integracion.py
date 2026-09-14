@@ -201,7 +201,145 @@ class TestIntegracionResultados(unittest.TestCase):
             registro["total_resultados"],
             2,
         )
+    def test_separa_resultados_de_usuarios_diferentes(self):
+        primer_registro = self.cliente.post(
+            "/resultados-reconocimiento",
+            json={
+                "id_letra_objetivo": self.id_letra_a,
+                "letra_detectada": "A",
+                "confianza": 0.92,
+            },
+        )
 
+        self.assertEqual(
+            primer_registro.status_code,
+            201,
+        )
+
+        with self.conexion.cursor(
+            row_factory=dict_row
+        ) as cursor:
+            correo_segundo = (
+                f"integracion-segundo-"
+                f"{uuid4().hex}@signia.local"
+            )
+
+            cursor.execute(
+                """
+                INSERT INTO usuarios (
+                    nombre,
+                    correo,
+                    contrasena_hash,
+                    rol
+                )
+                VALUES (%s, %s, %s, 'usuario')
+                RETURNING
+                    id_usuario,
+                    nombre,
+                    correo,
+                    rol;
+                """,
+                (
+                    "Segundo usuario integración",
+                    correo_segundo,
+                    "hash-prueba-integracion",
+                )
+            )
+
+            segundo_usuario = cursor.fetchone()
+
+        app.dependency_overrides[
+            obtener_usuario_actual
+        ] = lambda: segundo_usuario
+
+        segundo_registro = self.cliente.post(
+            "/resultados-reconocimiento",
+            json={
+                "id_letra_objetivo": self.id_letra_b,
+                "letra_detectada": "B",
+                "confianza": 0.89,
+            },
+        )
+
+        self.assertEqual(
+            segundo_registro.status_code,
+            201,
+        )
+
+        consulta_segundo = self.cliente.get(
+            "/resultados-reconocimiento"
+        )
+
+        self.assertEqual(
+            consulta_segundo.status_code,
+            200,
+        )
+        self.assertEqual(
+            consulta_segundo.json()["total"],
+            1,
+        )
+        self.assertEqual(
+            consulta_segundo.json()["resultados"][0][
+                "id_usuario"
+            ],
+            segundo_usuario["id_usuario"],
+        )
+
+        app.dependency_overrides[
+            obtener_usuario_actual
+        ] = lambda: self.usuario
+
+        consulta_primero = self.cliente.get(
+            "/resultados-reconocimiento"
+        )
+
+        self.assertEqual(
+            consulta_primero.status_code,
+            200,
+        )
+        self.assertEqual(
+            consulta_primero.json()["total"],
+            1,
+        )
+        self.assertEqual(
+            consulta_primero.json()["resultados"][0][
+                "id_usuario"
+            ],
+            self.usuario["id_usuario"],
+        )
+
+        with self.conexion.cursor(
+            row_factory=dict_row
+        ) as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    s.id_usuario,
+                    COUNT(r.id_resultado) AS total
+                FROM sesiones_reconocimiento AS s
+                INNER JOIN resultados_reconocimiento AS r
+                    ON r.id_sesion = s.id_sesion
+                WHERE s.id_usuario IN (%s, %s)
+                GROUP BY s.id_usuario;
+                """,
+                (
+                    self.usuario["id_usuario"],
+                    segundo_usuario["id_usuario"],
+                )
+            )
+
+            cantidades = {
+                registro["id_usuario"]: registro["total"]
+                for registro in cursor.fetchall()
+            }
+
+        self.assertEqual(
+            cantidades,
+            {
+                self.usuario["id_usuario"]: 1,
+                segundo_usuario["id_usuario"]: 1,
+            },
+        )
 
 if __name__ == "__main__":
     unittest.main()
