@@ -117,7 +117,13 @@ function Practica() {
             <strong>{letraActual}</strong>
 
             {camaraActiva ? (
-              <ResultadoReconocimiento videoRef={videoRef} />
+              <ResultadoReconocimiento
+  key={letraSeleccionada?.id_letra ?? "sin-letra"}
+  videoRef={videoRef}
+  idLetraObjetivo={
+    letraSeleccionada?.id_letra ?? null
+  }
+/>
             ) : (
               <p>
                 Activa la cámara para iniciar el reconocimiento.
