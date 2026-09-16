@@ -4,12 +4,12 @@ import sys
 
 from app.services.correo_recuperacion_service import (
     ConfiguracionCorreoError,
-    obtener_configuracion_correo
+    obtener_configuracion_correo,
 )
 from app.services.microsoft_oauth_service import (
     AutorizacionMicrosoftError,
     autorizar_cuenta_microsoft,
-    crear_persistencia_microsoft
+    crear_persistencia_microsoft,
 )
 
 

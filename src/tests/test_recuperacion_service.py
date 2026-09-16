@@ -4,10 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from psycopg.rows import dict_row
 
-from app.services.recuperacion_service import (
-    crear_solicitud_recuperacion,
-    generar_hash_token
-)
+from app.services.recuperacion_service import crear_solicitud_recuperacion, generar_hash_token
 
 
 class TestHashTokenRecuperacion(unittest.TestCase):

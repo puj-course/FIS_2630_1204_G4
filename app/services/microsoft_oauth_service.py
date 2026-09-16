@@ -4,12 +4,7 @@ from pathlib import Path
 from uuid import UUID
 
 import msal
-from msal_extensions import (
-    CrossPlatLock,
-    PersistedTokenCache,
-    build_encrypted_persistence
-)
-
+from msal_extensions import CrossPlatLock, PersistedTokenCache, build_encrypted_persistence
 
 AUTORIDAD_MICROSOFT = "https://login.microsoftonline.com/consumers"
 PERMISOS_CORREO = ["https://outlook.office.com/SMTP.Send"]

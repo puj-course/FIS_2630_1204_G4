@@ -3,15 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import requerir_administrador
-from app.services.usuarios_service import (
-    CorreoYaRegistradoError,
-    crear_usuario
-)
-from src.schemas.usuario import (
-    UsuarioRegistro,
-    UsuarioRegistroRespuesta
-)
-
+from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario
+from src.schemas.usuario import UsuarioRegistro, UsuarioRegistroRespuesta
 
 logger = logging.getLogger(__name__)
 

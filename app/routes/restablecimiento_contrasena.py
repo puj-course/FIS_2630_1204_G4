@@ -6,13 +6,9 @@ from fastapi.routing import APIRoute
 
 from app.services.restablecimiento_service import (
     SolicitudRecuperacionInvalidaError,
-    restablecer_contrasena
+    restablecer_contrasena,
 )
-from src.schemas.restablecimiento import (
-    RespuestaRestablecimiento,
-    SolicitudRestablecimiento
-)
-
+from src.schemas.restablecimiento import RespuestaRestablecimiento, SolicitudRestablecimiento
 
 logger = logging.getLogger(__name__)
 NO_CACHE = {"Cache-Control": "no-store"}

@@ -6,10 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import crear_token_acceso
-from app.services.autenticacion_service import (
-    autenticar_usuario,
-    generar_hash_contrasena
-)
+from app.services.autenticacion_service import autenticar_usuario, generar_hash_contrasena
 
 
 class TestServicioAutenticacion(unittest.TestCase):

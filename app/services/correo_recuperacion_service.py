@@ -8,12 +8,10 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 from uuid import UUID
 
 import httpx
-
 from dotenv import load_dotenv
 from email_validator import EmailNotValidError, validate_email
 
 from app.services.microsoft_oauth_service import obtener_token_microsoft
-
 
 load_dotenv()
 

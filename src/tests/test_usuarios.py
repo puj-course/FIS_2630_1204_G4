@@ -4,10 +4,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.security import (
-    obtener_usuario_actual,
-    requerir_administrador
-)
+from app.security import obtener_usuario_actual, requerir_administrador
 from app.services.usuarios_service import CorreoYaRegistradoError
 
 

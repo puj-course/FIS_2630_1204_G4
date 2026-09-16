@@ -1,18 +1,14 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from app.security import requerir_administrador
 from app.services.letras_service import (
     actualizar_informacion_letra,
     obtener_letra_por_id,
-    obtener_letras_registradas
+    obtener_letras_registradas,
 )
-from src.schemas.letra import (
-    LetraActualizacion,
-    LetraActualizacionRespuesta,
-    LetraRespuesta
-)
-
+from src.schemas.letra import LetraActualizacion, LetraActualizacionRespuesta, LetraRespuesta
 
 logger = logging.getLogger(__name__)
 

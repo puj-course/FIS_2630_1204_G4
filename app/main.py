@@ -1,20 +1,19 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
-from app.routes.usuarios import router as usuarios_router
 from app.routes.perfil import router as perfil_router
-from fastapi.staticfiles import StaticFiles
-
-from contextlib import asynccontextmanager
-
-from app.routes.vision import router as vision_router
-from app.services.vision_service import cerrar_detectores
-
 from app.routes.resultados_reconocimiento import (
     router as resultados_reconocimiento_router,
 )
+from app.routes.usuarios import router as usuarios_router
+from app.routes.vision import router as vision_router
+from app.services.vision_service import cerrar_detectores
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

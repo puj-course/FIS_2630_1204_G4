@@ -5,10 +5,7 @@ from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.security import (
-    crear_token_acceso,
-    obtener_usuario_actual
-)
+from app.security import crear_token_acceso, obtener_usuario_actual
 from app.services.perfil_service import obtener_progreso_usuario
 
 

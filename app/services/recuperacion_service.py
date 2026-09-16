@@ -7,7 +7,6 @@ from psycopg.rows import dict_row
 
 from conf.database import obtener_conexion
 
-
 VIGENCIA_RECUPERACION = timedelta(minutes=15)
 INTERVALO_ENTRE_SOLICITUDES = timedelta(seconds=60)
 

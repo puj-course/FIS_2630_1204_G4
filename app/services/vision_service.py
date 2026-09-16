@@ -9,7 +9,6 @@ import numpy as np
 from app.vision.detector import DetectorMano
 from app.vision.reconocimiento import reconocer_mano
 
-
 LIMITE_IMAGEN_BYTES = 5 * 1024 * 1024
 
 _detectores: dict[bool, DetectorMano] = {}

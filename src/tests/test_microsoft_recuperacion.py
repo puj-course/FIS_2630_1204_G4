@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 from app.services import microsoft_oauth_service as oauth
 
-
 CLIENT_ID = "11111111-2222-4333-8444-555555555555"
 CORREO = "remitente@hotmail.com"
 
