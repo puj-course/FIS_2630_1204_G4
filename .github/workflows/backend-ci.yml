@@ -28,6 +28,6 @@ jobs:
             # destruirla después parece innecesario por ahora.
 
             - name: Ejecutar pruebas
-              run: pytest
+              run: pytest --cov=app
 
         
