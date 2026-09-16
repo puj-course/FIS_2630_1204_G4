@@ -22,5 +22,12 @@ jobs:
             - name: Revisar estilo del codigo con ruff
               run: ruff check
 
+            # Se pensó en probar la integración con base de datos, pero se
+            # decide saltar en el CI porque no hay una base de datos
+            # disponible en este entorno. Crearla solo para esta prueba y
+            # destruirla después parece innecesario por ahora.
+
             - name: Ejecutar pruebas
               run: pytest
+
+        
