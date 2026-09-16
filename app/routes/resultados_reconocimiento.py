@@ -15,7 +15,6 @@ from src.schemas.resultado_reconocimiento import (
     ResultadosReconocimientoConsultaRespuesta,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

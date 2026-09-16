@@ -6,7 +6,6 @@ from app.security import obtener_usuario_actual
 from app.services.perfil_service import obtener_progreso_usuario
 from src.schemas.perfil import PerfilRespuesta
 
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(

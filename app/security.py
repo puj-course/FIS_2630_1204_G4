@@ -9,7 +9,6 @@ from jwt.exceptions import InvalidTokenError
 
 from app.services.autenticacion_service import obtener_usuario_por_id
 
-
 load_dotenv()
 
 ALGORITMO_JWT = "HS256"

@@ -9,12 +9,9 @@ from app.routes.recuperacion_contrasena import (
     MENSAJE_RECUPERACION,
     procesar_solicitud_recuperacion,
     router,
-    solicitar_recuperacion
+    solicitar_recuperacion,
 )
-from app.services.correo_recuperacion_service import (
-    ConfiguracionCorreo,
-    ConfiguracionCorreoError
-)
+from app.services.correo_recuperacion_service import ConfiguracionCorreo, ConfiguracionCorreoError
 from app.services.recuperacion_service import RecuperacionCreada
 from src.schemas.recuperacion import SolicitudRecuperacion
 
