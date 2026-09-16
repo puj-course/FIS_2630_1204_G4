@@ -34,7 +34,8 @@ class RutaRestablecimiento(APIRoute):
                         ("body", "confirmacion_contrasena")
                     ) for e in errores
                 ):
-                    mensaje = "La contraseña y su confirmación deben tener entre 12 y 200 caracteres."
+                    mensaje = "La contraseña y su confirmación deben tener"
+                    "entre 12 y 200 caracteres."
                 elif any(
                     e["loc"] == ("body",) and e["type"] == "value_error"
                     for e in errores

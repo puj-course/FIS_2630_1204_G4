@@ -211,7 +211,9 @@ class TestComprobacionMicrosoft(unittest.TestCase):
         from scripts import autorizar_correo_microsoft as script
 
         with patch.object(script, "obtener_configuracion_correo"), \
-                patch.object(script, "crear_persistencia_microsoft", side_effect=RuntimeError("secreto")), \
+                patch.object(
+                    script, "crear_persistencia_microsoft", side_effect=RuntimeError("secreto")
+                ), \
                 patch.object(script, "autorizar_cuenta_microsoft") as autorizar, \
                 patch("builtins.print") as imprimir:
             self.assertEqual(script.main(["--comprobar"]), 1)

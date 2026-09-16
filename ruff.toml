@@ -3,3 +3,6 @@ target-version = "py312"
 
 [lint]
 select = ["E", "F", "I"]
+
+[lint.per-file-ignores]
+"scripts/seed_letras.py" = ["E501"]
