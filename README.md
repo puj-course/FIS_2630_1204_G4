@@ -1,6 +1,9 @@
 # SignIA 💙
 **"Aprender para comunicar, comunicar para incluir."**
 
+![Backend CI](https://github.com/puj-course/FIS_2630_1204_G4/actions/workflows/backend-ci.yml/badge.svg)
+
+
 ## Descripción
 **SignIA** es una plataforma web multiusuario orientada al aprendizaje y reconocimiento del alfabeto de la **Lengua de Señas Colombiana (LSC)** mediante visión por computador, la plataforma facilita la práctica del alfabeto de la LSC utilizando la cámara del dispositivo, permitiendo identificar las señas realizadas por el usuario y mostrar la letra correspondiente en tiempo real.
 
