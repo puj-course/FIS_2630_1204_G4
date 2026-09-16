@@ -21,3 +21,6 @@ jobs:
 
             - name: Revisar estilo del codigo con ruff
               run: ruff check
+
+            - name: Ejecutar pruebas
+              run: pytest
