@@ -51,7 +51,9 @@ def obtener_configuracion_correo() -> ConfiguracionCorreo:
     if not all((usuario, client_id, remitente, url)) or (transporte == "smtp" and not host):
         raise ConfiguracionCorreoError("Falta configurar el correo de recuperación")
 
-    if transporte == "smtp" and (host.lower() != "smtp-mail.outlook.com" or seguridad != "starttls"):
+    if transporte == "smtp" and (
+        host.lower() != "smtp-mail.outlook.com" or seguridad != "starttls"
+    ):
         raise ConfiguracionCorreoError(
             "Para Hotmail utiliza smtp-mail.outlook.com y STARTTLS"
         )
