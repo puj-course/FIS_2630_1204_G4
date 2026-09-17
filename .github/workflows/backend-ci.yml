@@ -17,10 +17,11 @@ jobs:
                 python-version: "3.12"
 
             - name: Instalar dependencias del sistema
-              run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libgirepository1.0-dev pkg-config
+              run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libgirepository1.0-dev libgirepository-2.0-dev pkg-config
 
             - name: Instalar dependencias
               run: pip install -r requirements.txt
+
 
             - name: Revisar estilo del codigo con ruff
               run: ruff check
@@ -32,5 +33,6 @@ jobs:
 
             - name: Ejecutar pruebas
               run: pytest --cov=app
+
 
         
