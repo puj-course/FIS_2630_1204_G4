@@ -8,10 +8,12 @@ from app.services.progreso_service import (
     ProgresoNoEncontradoError,
     UsuarioNoEncontradoError,
     actualizar_estado_progreso,
+    consultar_progreso_usuario,
     registrar_progreso,
 )
 from src.schemas.progreso import (
     ActualizarProgresoEntrada,
+    ConsultaProgresoRespuesta,
     ProgresoRespuesta,
     RegistrarProgresoEntrada,
 )
@@ -132,4 +134,44 @@ def actualizar_progreso_letra(
     return {
         "mensaje": "Estado de aprendizaje actualizado correctamente",
         "progreso": progreso,
+    }
+
+@router.get(
+    "",
+    response_model=ConsultaProgresoRespuesta,
+    status_code=200,
+    summary="Consultar el progreso del usuario autenticado",
+    responses={
+        401: {"description": "El usuario no está autenticado"},
+        500: {"description": "No fue posible consultar el progreso"},
+    },
+)
+def consultar_mi_progreso(
+    usuario_actual: dict = Depends(obtener_usuario_actual),
+):
+    """
+    Devuelve las letras con progreso registrado para el usuario del token.
+
+    Incluye el estado de aprendizaje, los contadores y las fechas.
+    Si no tiene progreso registrado, devuelve una lista vacía.
+    """
+
+    try:
+        progresos = consultar_progreso_usuario(
+            id_usuario=usuario_actual["id_usuario"],
+        )
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al consultar el progreso"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="No fue posible consultar el progreso",
+        ) from error
+
+    return {
+        "total": len(progresos),
+        "progresos": progresos,
     }
