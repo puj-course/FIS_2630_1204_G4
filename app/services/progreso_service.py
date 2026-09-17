@@ -127,3 +127,33 @@ def actualizar_estado_progreso(
                 )
 
             return progreso
+
+def consultar_progreso_usuario(id_usuario: int):
+    """
+    Obtiene las letras con progreso registrado para un usuario.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    p.id_progreso,
+                    p.id_usuario,
+                    p.id_letra,
+                    l.letra,
+                    p.cantidad_intentos,
+                    p.cantidad_aciertos,
+                    p.dominada,
+                    p.fecha_ultima_practica,
+                    p.fecha_actualizacion
+                FROM progreso_usuario AS p
+                INNER JOIN letras AS l
+                    ON l.id_letra = p.id_letra
+                WHERE p.id_usuario = %s
+                ORDER BY l.letra, p.id_letra;
+                """,
+                (id_usuario,),
+            )
+
+            return cursor.fetchall()

@@ -36,3 +36,16 @@ class ProgresoRegistrado(BaseModel):
 class ProgresoRespuesta(BaseModel):
     mensaje: str
     progreso: ProgresoRegistrado
+
+class ProgresoLetraRespuesta(ProgresoRegistrado):
+    letra: str = Field(
+        description="Letra del alfabeto asociada al progreso",
+    )
+
+
+class ConsultaProgresoRespuesta(BaseModel):
+    total: int = Field(
+        ge=0,
+        description="Cantidad de letras con progreso registrado",
+    )
+    progresos: list[ProgresoLetraRespuesta]
