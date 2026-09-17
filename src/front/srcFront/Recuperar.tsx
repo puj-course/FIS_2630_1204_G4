@@ -64,7 +64,7 @@ function Recuperar({ cambiarPagina }: Props) {
 
 
   return (
-    <div className="pantalla">
+    <div className="pantalla recuperarPantalla">
 
       <h1 className="logo">
         SignIA

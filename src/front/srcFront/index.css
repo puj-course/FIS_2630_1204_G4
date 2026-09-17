@@ -409,8 +409,6 @@ nav{
 
 }
 
-/* --- Estilos de Login, Registro y Home (Juan) --- */
-
 .pantalla {
   min-height: 100vh;
   width: 100%;
@@ -897,17 +895,181 @@ nav{
   font-size: 13px;
 }
 
-/* Mantiene el video dentro del cuadro */
 .zonaPracti .camara {
   position: relative;
   overflow: hidden;
   min-width: 0;
 }
 
-/* Mantiene el estado por encima del video */
 .zonaPracti .camara .estadoCamara {
   position: absolute;
   top: 12px;
   left: 12px;
   z-index: 1;
+}
+
+/* login */
+.login {
+  background:
+    radial-gradient(
+      circle at 50% 15%,
+      rgba(37, 99, 235, 0.25),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      #0b1019,
+      #080c13
+    );
+}
+
+.login .logo {
+  font-size: 46px;
+  margin-bottom: 12px;
+  letter-spacing: -2px;
+}
+
+.login h2 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.login form {
+  max-width: 450px;
+  padding: 35px;
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(30,41,59,0.95),
+      rgba(15,23,42,0.95)
+    );
+  border:1px solid rgba(96,165,250,0.15);
+  box-shadow:
+    0 25px 70px rgba(0,0,0,0.45);
+}
+
+.login input {
+  height: 48px;
+  font-size: 15px;
+}
+
+
+.login button {
+  height: 48px;
+  font-size: 16px;
+}
+
+
+.login .recuperar {
+  margin-top: 8px;
+  color: var(--texto-secundario);
+  font-size: 13px;
+}
+
+
+.login .enlace:hover {
+  color:#bfdbfe;
+}
+/* Recuperar */
+.recuperarPantalla {
+  background:
+    radial-gradient(circle at 50% 15%, rgba(37,99,235,0.18), transparent 35%),
+    linear-gradient(180deg, #0b1019, #080c13);
+}
+
+.recuperarPantalla .logo {
+  font-size:46px;
+  margin-bottom:12px;
+}
+
+.recuperarPantalla h2 {
+  font-size:28px;
+  margin-bottom:12px;
+}
+
+.recuperarPantalla > p {
+  max-width:380px;
+  line-height:1.5;
+}
+
+.recuperarPantalla form {
+  max-width:450px;
+  padding:30px;
+  border-radius:22px;
+  background:
+    linear-gradient(145deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95));
+  border:1px solid rgba(96,165,250,0.15);
+  box-shadow:0 25px 70px rgba(0,0,0,0.45);
+}
+
+.recuperarPantalla input {
+  height:48px;
+}
+
+.recuperarPantalla button {
+  height:48px;
+}
+
+.recuperarPantalla .enlace {
+  color:var(--azul-claro);
+}
+
+.recuperarPantalla .enlace:hover {
+  color:#bfdbfe;
+}
+/* Registro */
+.registro {
+  background:
+    radial-gradient(
+      circle at 50% 15%,
+      rgba(37,99,235,0.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      #0b1019,
+      #080c13
+    );
+}
+
+.registro .logo {
+  font-size:46px;
+  margin-bottom:12px;
+}
+
+.registro h2 {
+  font-size:28px;
+  margin-bottom:12px;
+}
+
+.registro form {
+  max-width:420px;
+  padding:38px;
+  border-radius:22px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(30,41,59,0.95),
+      rgba(15,23,42,0.95)
+    );
+  border:1px solid rgba(96,165,250,0.15);
+  box-shadow:
+    0 25px 70px rgba(0,0,0,0.45);
+}
+
+.registro input {
+  height:48px;
+}
+
+.registro button {
+  height:48px;
+}
+
+.registro .enlace {
+  color:var(--azul-claro);
+}
+
+.registro .enlace:hover {
+  color:#bfdbfe;
 }
