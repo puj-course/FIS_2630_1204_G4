@@ -895,14 +895,12 @@ nav{
   font-size: 13px;
 }
 
-/* Mantiene el video dentro del cuadro */
 .zonaPracti .camara {
   position: relative;
   overflow: hidden;
   min-width: 0;
 }
 
-/* Mantiene el estado por encima del video */
 .zonaPracti .camara .estadoCamara {
   position: absolute;
   top: 12px;
