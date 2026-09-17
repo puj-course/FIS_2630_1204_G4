@@ -10,6 +10,8 @@ class UsuarioNoEncontradoError(Exception):
 class LetraNoEncontradaError(Exception):
     pass
 
+class ProgresoNoEncontradoError(Exception):
+    pass
 
 def registrar_progreso(id_usuario: int, id_letra: int):
     """
@@ -78,3 +80,50 @@ def registrar_progreso(id_usuario: int, id_letra: int):
             )
 
             return cursor.fetchone()
+
+def actualizar_estado_progreso(
+    id_usuario: int,
+    id_letra: int,
+    dominada: bool,
+):
+    """
+    Actualiza el estado de aprendizaje de una letra.
+    """
+
+    # Acepta únicamente los dos estados definidos
+    if not isinstance(dominada, bool):
+        raise ValueError(
+            "El estado dominada debe ser True o False"
+        )
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE progreso_usuario
+                SET
+                    dominada = %s,
+                    fecha_actualizacion = CURRENT_TIMESTAMP
+                WHERE id_usuario = %s
+                    AND id_letra = %s
+                RETURNING
+                    id_progreso,
+                    id_usuario,
+                    id_letra,
+                    cantidad_intentos,
+                    cantidad_aciertos,
+                    dominada,
+                    fecha_ultima_practica,
+                    fecha_actualizacion;
+                """,
+                (dominada, id_usuario, id_letra),
+            )
+
+            progreso = cursor.fetchone()
+
+            if progreso is None:
+                raise ProgresoNoEncontradoError(
+                    "No existe progreso para este usuario y esta letra"
+                )
+
+            return progreso
