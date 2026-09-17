@@ -1,0 +1,80 @@
+from psycopg.rows import dict_row
+
+from conf.database import obtener_conexion
+
+
+class UsuarioNoEncontradoError(Exception):
+    pass
+
+
+class LetraNoEncontradaError(Exception):
+    pass
+
+
+def registrar_progreso(id_usuario: int, id_letra: int):
+    """
+    Registra una letra como aprendida por el usuario.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+
+            # Verifica que el usuario exista
+            cursor.execute(
+                """
+                SELECT id_usuario
+                FROM usuarios
+                WHERE id_usuario = %s
+                FOR KEY SHARE;
+                """,
+                (id_usuario,),
+            )
+
+            if cursor.fetchone() is None:
+                raise UsuarioNoEncontradoError(
+                    "El usuario no existe"
+                )
+
+            # Verifica que la letra exista
+            cursor.execute(
+                """
+                SELECT id_letra
+                FROM letras
+                WHERE id_letra = %s
+                FOR KEY SHARE;
+                """,
+                (id_letra,),
+            )
+
+            if cursor.fetchone() is None:
+                raise LetraNoEncontradaError(
+                    "La letra no existe"
+                )
+
+            # Registra o actualiza la letra aprendida
+            cursor.execute(
+                """
+                INSERT INTO progreso_usuario (
+                    id_usuario,
+                    id_letra,
+                    dominada
+                )
+                VALUES (%s, %s, TRUE)
+                ON CONFLICT (id_usuario, id_letra)
+                DO UPDATE SET
+                    dominada = TRUE,
+                    fecha_actualizacion = CURRENT_TIMESTAMP
+                RETURNING
+                    id_progreso,
+                    id_usuario,
+                    id_letra,
+                    cantidad_intentos,
+                    cantidad_aciertos,
+                    dominada,
+                    fecha_ultima_practica,
+                    fecha_actualizacion;
+                """,
+                (id_usuario, id_letra),
+            )
+
+            return cursor.fetchone()
