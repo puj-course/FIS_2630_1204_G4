@@ -159,7 +159,7 @@ function Registro({ cambiarPagina }: Props) {
 
   if (mensajeExito) {
     return (
-      <div className="pantalla">
+      <div className="pantalla registro">
         <h1 className="logo">SignIA</h1>
         <h2>Cuenta creada</h2>
 
@@ -179,7 +179,7 @@ function Registro({ cambiarPagina }: Props) {
 
   return (
 
-    <div className="pantalla">
+    <div className="pantalla registro">
 
 
       <h1 className="logo">

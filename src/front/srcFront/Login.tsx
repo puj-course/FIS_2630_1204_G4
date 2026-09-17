@@ -63,7 +63,7 @@ function Login({
   }
 
   return (
-    <div className="pantalla">
+    <div className="pantalla login">
       <h1 className="logo">SignIA</h1>
       <h2>Iniciar sesión</h2>
 
