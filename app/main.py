@@ -13,7 +13,7 @@ from app.routes.resultados_reconocimiento import (
 from app.routes.usuarios import router as usuarios_router
 from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
-
+from app.routes.progreso import router as progreso_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,6 +58,7 @@ app.include_router(usuarios_router)
 app.include_router(perfil_router)
 app.include_router(vision_router)
 app.include_router(resultados_reconocimiento_router)
+app.include_router(progreso_router)
 
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
