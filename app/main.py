@@ -7,13 +7,14 @@ from fastapi.staticfiles import StaticFiles
 from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.perfil import router as perfil_router
+from app.routes.progreso import router as progreso_router
 from app.routes.resultados_reconocimiento import (
     router as resultados_reconocimiento_router,
 )
 from app.routes.usuarios import router as usuarios_router
 from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
-from app.routes.progreso import router as progreso_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

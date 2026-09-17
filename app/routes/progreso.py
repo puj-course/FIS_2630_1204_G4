@@ -16,7 +16,6 @@ from src.schemas.progreso import (
     RegistrarProgresoEntrada,
 )
 
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
