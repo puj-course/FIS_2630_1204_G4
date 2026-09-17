@@ -11,7 +11,6 @@ from app.vision.detector import DetectorMano
 # Traemos la funcion que revisa si la mano forma A, E, I, O o U
 from app.vision.vocales import reconocer_vocal
 
-
 # El numero 0 representa la camara principal del computador
 INDICE_CAMARA = 0
 

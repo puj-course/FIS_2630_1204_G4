@@ -3,7 +3,6 @@ from pathlib import Path
 import cv2
 import mediapipe as mp
 
-
 RUTA_MODELO = str(
     Path(__file__).resolve()
     .parent

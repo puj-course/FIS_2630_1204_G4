@@ -1,0 +1,38 @@
+name: Backend CI
+
+on: 
+    push:
+    pull_request:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Descargar el código del repo
+              uses: actions/checkout@v4
+
+            - name: Instalar Python
+              uses: actions/setup-python@v5
+              with:
+                python-version: "3.12"
+
+            - name: Instalar dependencias del sistema
+              run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libgirepository1.0-dev libgirepository-2.0-dev pkg-config
+
+            - name: Instalar dependencias
+              run: pip install -r requirements.txt
+
+
+            - name: Revisar estilo del codigo con ruff
+              run: ruff check
+
+            # Se pensó en probar la integración con base de datos, pero se
+            # decide saltar en el CI porque no hay una base de datos
+            # disponible en este entorno. Crearla solo para esta prueba y
+            # destruirla después parece innecesario por ahora.
+
+            - name: Ejecutar pruebas
+              run: pytest --cov=app
+
+
+        

@@ -2,7 +2,6 @@
 
 import math
 
-
 # Se guardan los puntos principales de cada dedo detectados por MediaPipe
 # Cada dedo contiene la base, dos articulaciones y la punta
 PUNTOS_DEDOS = {

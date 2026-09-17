@@ -2,10 +2,7 @@ import unittest
 
 from pydantic import ValidationError
 
-from src.schemas.recuperacion import (
-    RespuestaRecuperacion,
-    SolicitudRecuperacion
-)
+from src.schemas.recuperacion import RespuestaRecuperacion, SolicitudRecuperacion
 
 
 class TestSolicitudRecuperacion(unittest.TestCase):

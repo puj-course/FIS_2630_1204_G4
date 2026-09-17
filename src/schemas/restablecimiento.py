@@ -1,8 +1,6 @@
 import re
 
-from pydantic import (
-    BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
-)
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 
 
 class SolicitudRestablecimiento(BaseModel):

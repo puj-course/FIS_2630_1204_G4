@@ -1,11 +1,6 @@
 from typing import Literal
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    field_validator
-)
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.schemas.autenticacion import UsuarioAutenticadoRespuesta
 

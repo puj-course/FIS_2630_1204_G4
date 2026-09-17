@@ -3,7 +3,6 @@ from fastapi import APIRouter, HTTPException, status
 from app.services.vision_service import procesar_imagen_base64
 from src.schemas.vision import VisionEntrada, VisionRespuesta
 
-
 router = APIRouter(
     prefix="/vision",
     tags=["Visión"],
