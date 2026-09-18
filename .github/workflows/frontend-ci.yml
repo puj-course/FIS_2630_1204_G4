@@ -25,4 +25,8 @@ jobs:
             - name: Revisar estilo del código con ESLint
               working-directory: src/front
               run: npm run lint
+
+            - name: Compilar el proyecto
+              working-directory: src/front
+              run: npm run build
               
