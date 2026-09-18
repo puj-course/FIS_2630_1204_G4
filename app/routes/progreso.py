@@ -8,11 +8,13 @@ from app.services.progreso_service import (
     ProgresoNoEncontradoError,
     UsuarioNoEncontradoError,
     actualizar_estado_progreso,
+    consultar_estado_letras_usuario,
     consultar_progreso_usuario,
     registrar_progreso,
 )
 from src.schemas.progreso import (
     ActualizarProgresoEntrada,
+    ConsultaEstadoLetrasRespuesta,
     ConsultaProgresoRespuesta,
     ProgresoRespuesta,
     RegistrarProgresoEntrada,
@@ -79,6 +81,50 @@ def registrar_letra_aprendida(
         "progreso": progreso,
     }
 
+@router.get(
+    "/letras",
+    response_model=ConsultaEstadoLetrasRespuesta,
+    status_code=200,
+    summary="Consultar el estado de aprendizaje de las letras",
+    responses={
+        401: {"description": "El usuario no está autenticado"},
+        500: {
+            "description": (
+                "No fue posible consultar el estado de las letras"
+            ),
+        },
+    },
+)
+def consultar_estado_mis_letras(
+    usuario_actual: dict = Depends(obtener_usuario_actual),
+):
+    """
+    Devuelve todas las letras activas con el estado del usuario del token.
+
+    - Aprendida: tiene un registro con dominada=True.
+    - Pendiente: tiene dominada=False o no tiene progreso registrado.
+    - Si no hay letras activas, devuelve una lista vacía.
+    """
+
+    try:
+        letras = consultar_estado_letras_usuario(
+            id_usuario=usuario_actual["id_usuario"],
+        )
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al consultar el estado de las letras"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="No fue posible consultar el estado de las letras",
+        ) from error
+
+    return {
+        "total": len(letras),
+        "letras": letras,
+    }
 
 @router.patch(
     "/{id_letra}",
