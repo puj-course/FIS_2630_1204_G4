@@ -18,11 +18,11 @@ jobs:
                 cache: "npm"
                 cache-dependency-path: src/front/package-lock.json
                 
-
             - name: Instalar dependencias
               working-directory: src/front
               run: npm ci
 
-            - name: Instalar Node.js
-              uses: actions/setup-node@v4
+            - name: Revisar estilo del código con ESLint
+              working-directory: src/front
+              run: npm run lint
               
