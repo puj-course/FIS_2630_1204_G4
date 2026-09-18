@@ -178,16 +178,15 @@ cd SignIA
 ```
 
 ## Ejecución con Docker
-```text
-docker-compose up --build
+```text 
+docker compose up --build
 ```
+Esto levanta 3 servicios: backend (FastAPI, puerto 8000), frontend (puerto 5173) y postgres (puerto 5432). La DB se inicia automáticamente con el esquema y los datos de ejemplo de la primera vez que se levante.
 
 ## Ejecución de pruebas
 ```text
-docker-compose run backend mvn test
-docker-compose run ai-model pytest
+docker compose exec backend pytest
 ```
-
 ---
 
 ## Contexto Académico
