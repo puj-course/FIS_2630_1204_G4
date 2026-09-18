@@ -2,7 +2,11 @@ name: Frontend CI
 
 on: 
     push:
+        paths:
+            - "src/front/**"
     pull_request:
+        paths:
+            - "src/front/**"
 
 jobs: 
     build:
