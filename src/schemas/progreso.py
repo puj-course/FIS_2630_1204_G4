@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -49,3 +50,32 @@ class ConsultaProgresoRespuesta(BaseModel):
         description="Cantidad de letras con progreso registrado",
     )
     progresos: list[ProgresoLetraRespuesta]
+
+class EstadoAprendizajeLetraRespuesta(BaseModel):
+    id_letra: int = Field(
+        gt=0,
+        description="Identificador de la letra",
+    )
+    letra: str = Field(
+        description="Letra del alfabeto LSC",
+    )
+    descripcion: str | None = Field(
+        description="Instrucciones de aprendizaje de la letra",
+    )
+    ruta_imagen: str | None = Field(
+        description="Ruta de la imagen de la seña",
+    )
+    estado: Literal["aprendida", "pendiente"] = Field(
+        description=(
+            "Aprendida si el progreso tiene dominada=True; "
+            "pendiente si tiene dominada=False o no existe progreso"
+        ),
+    )
+
+
+class ConsultaEstadoLetrasRespuesta(BaseModel):
+    total: int = Field(
+        ge=0,
+        description="Cantidad de letras disponibles para aprendizaje",
+    )
+    letras: list[EstadoAprendizajeLetraRespuesta]

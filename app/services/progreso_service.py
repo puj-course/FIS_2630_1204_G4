@@ -157,3 +157,34 @@ def consultar_progreso_usuario(id_usuario: int):
             )
 
             return cursor.fetchall()
+
+def consultar_estado_letras_usuario(id_usuario: int):
+    """
+    Obtiene las letras activas y su estado de aprendizaje
+    para el usuario indicado.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    l.id_letra,
+                    l.letra,
+                    l.descripcion,
+                    l.ruta_imagen,
+                    CASE
+                        WHEN p.dominada = TRUE THEN 'aprendida'
+                        ELSE 'pendiente'
+                    END AS estado
+                FROM letras AS l
+                LEFT JOIN progreso_usuario AS p
+                    ON p.id_letra = l.id_letra
+                    AND p.id_usuario = %s
+                WHERE l.activa = TRUE
+                ORDER BY l.letra, l.id_letra;
+                """,
+                (id_usuario,),
+            )
+
+            return cursor.fetchall()
