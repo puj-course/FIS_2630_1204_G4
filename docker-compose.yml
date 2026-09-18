@@ -1,0 +1,36 @@
+services:
+    postgres:
+        image: postgres:16
+        environment:
+            POSTGRES_USER: signia
+            POSTGRES_PASSWORD: signia
+            POSTGRES_DB: signia
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+    
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        env_file:
+            - .env
+        environment:
+            DATABASE_URL: postgresql://signia:signia@postgres:5432/signia
+        ports:
+            - "8000:8000"
+        depends_on:
+            - postgres
+        
+    frontend:
+        build: 
+            context: ./src/front
+            dockerfile: Dockerfile
+        ports:
+            - "5173:80"
+        depends_on:
+            - backend
+
+volumes:
+    postgres_data:
