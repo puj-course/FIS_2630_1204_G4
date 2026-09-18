@@ -1,7 +1,9 @@
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.routes.autenticacion import router as autenticacion_router
@@ -14,6 +16,11 @@ from app.routes.resultados_reconocimiento import (
 from app.routes.usuarios import router as usuarios_router
 from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
+from conf.logging_config import configurar_logging
+
+configurar_logging()
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -31,6 +38,16 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+@app.exception_handler(Exception)
+async def manejador_errores_no_controlados(request: Request, exc: Exception):
+    logger.exception(
+        "Error no controlado en %s %s", request.method, request.url.path
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Ocurrió un error interno, Intenta más tarde."},
+    )
 
 app.mount(
     "/assets",
