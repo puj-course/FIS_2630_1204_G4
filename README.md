@@ -2,6 +2,7 @@
 **"Aprender para comunicar, comunicar para incluir."**
 
 ![Backend CI](https://github.com/puj-course/FIS_2630_1204_G4/actions/workflows/backend-ci.yml/badge.svg)
+![Frontend CI](https://github.com/puj-course/FIS_2630_1204_G4/actions/workflows/frontend-ci.yml/badge.svg)
 
 
 ## Descripción
