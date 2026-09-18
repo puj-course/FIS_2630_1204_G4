@@ -1,5 +1,5 @@
 import "./Navbar.css";
-import { FaGraduationCap, FaTools, FaUser, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
+import { FaHome,FaGraduationCap, FaTools, FaUser, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
 
 interface Props {
   cambiarPagina: (pagina: string) => void;
