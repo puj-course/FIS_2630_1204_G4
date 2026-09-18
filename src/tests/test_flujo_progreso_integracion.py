@@ -285,5 +285,132 @@ class TestFlujoProgresoIntegracion(unittest.TestCase):
                 self.comprobar_consulta(self.id_usuario)
 
 
+    def test_usuarios_consultan_y_modifican_solo_su_progreso(self):
+        otro_usuario = self.crear_usuario()
+
+        # Ambos usuarios registran la misma letra como aprendida.
+        for id_usuario in (self.id_usuario, otro_usuario):
+            with self.subTest(id_usuario=id_usuario):
+                respuesta = self.cliente.post(
+                    "/progreso",
+                    headers=self.cabeceras_usuario(id_usuario),
+                    json={"id_letra": self.id_letra},
+                )
+
+                self.assertEqual(
+                    respuesta.status_code,
+                    200,
+                    respuesta.text,
+                )
+                self.assertEqual(
+                    respuesta.json()["progreso"]["id_usuario"],
+                    id_usuario,
+                )
+
+        progreso_otro_antes = self.leer_progreso_sql(
+            otro_usuario
+        )
+        consulta_otro_antes = self.comprobar_consulta(
+            otro_usuario
+        )
+
+        # El primer usuario intenta indicar el ID del segundo.
+        respuesta = self.cliente.patch(
+            f"/progreso/{self.id_letra}",
+            params={"id_usuario": otro_usuario},
+            headers=self.cabeceras_usuario(self.id_usuario),
+            json={"dominada": False},
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+            respuesta.text,
+        )
+
+        actualizado = respuesta.json()["progreso"]
+
+        # La actualización debe pertenecer al usuario del token.
+        self.assertEqual(
+            actualizado["id_usuario"],
+            self.id_usuario,
+        )
+        self.assertIs(actualizado["dominada"], False)
+
+        progreso_propio = self.leer_progreso_sql(
+            self.id_usuario
+        )
+
+        self.assertEqual(len(progreso_propio), 1)
+        self.assertEqual(
+            progreso_propio[0]["id_letra"],
+            self.id_letra,
+        )
+        self.assertIs(
+            progreso_propio[0]["dominada"],
+            False,
+        )
+
+        # El progreso del segundo usuario permanece intacto.
+        self.assertEqual(
+            self.leer_progreso_sql(otro_usuario),
+            progreso_otro_antes,
+        )
+        self.assertEqual(len(progreso_otro_antes), 1)
+        self.assertIs(
+            progreso_otro_antes[0]["dominada"],
+            True,
+        )
+
+        consulta_propia = self.comprobar_consulta(
+            self.id_usuario
+        )
+        consulta_otro = self.comprobar_consulta(
+            otro_usuario
+        )
+
+        self.assertEqual(
+            consulta_otro,
+            consulta_otro_antes,
+        )
+
+        estados_propios = {
+            letra["id_letra"]: letra["estado"]
+            for letra in consulta_propia["letras"]
+        }
+        estados_otro = {
+            letra["id_letra"]: letra["estado"]
+            for letra in consulta_otro["letras"]
+        }
+
+        self.assertEqual(
+            estados_propios[self.id_letra],
+            "pendiente",
+        )
+        self.assertEqual(
+            estados_otro[self.id_letra],
+            "aprendida",
+        )
+
+        # Intenta consultar al otro usuario mediante la URL.
+        respuesta = self.cliente.get(
+            "/progreso/letras",
+            params={"id_usuario": otro_usuario},
+            headers=self.cabeceras_usuario(self.id_usuario),
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+            respuesta.text,
+        )
+
+        # La respuesta sigue siendo la del usuario autenticado.
+        self.assertEqual(
+            respuesta.json(),
+            consulta_propia,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
