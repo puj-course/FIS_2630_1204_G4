@@ -47,114 +47,6 @@ main {
   background:#111;
 }
 
-nav {
-  position:sticky;
-  top:0;
-  align-self:flex-start;
-  display:flex;
-  flex-direction:column;
-  height:100vh;
-  width:200px;
-  min-width:200px;
-  background:#1e1e1e;
-  color:#fff;
-  padding:20px;
-  overflow-y:auto;
-}
-
-.Opciones {
-  margin-top:20px;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-}
-
-.logoNav {
-  padding-bottom:20px;
-}
-
-.logoNav h2 {
-  margin:0;
-  font-size:24px;
-  font-weight:bold;
-  color:#fff;
-}
-
-.logoNav p {
-  margin:0;
-  font-size:14px;
-  color:#aaa;
-}
-
-.botonMenu {
-  background:transparent;
-  border:none;
-  color:#fff;
-  padding:15px 20px;
-  width:100%;
-  text-align:left;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  transition:background 0.3s ease,transform 0.3s ease,color 0.3s ease;
-}
-
-.botonMenu:hover {
-  background:#333;
-  transform:translateX(8px);
-  color:#60a5fa;
-}
-
-.botonActivo {
-  background:#333;
-  border:none;
-  border-left:4px solid #2563eb;
-  color:#60a5fa;
-  padding:15px 20px;
-  width:100%;
-  text-align:left;
-  border-radius:0;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  transition:transform 0.3s ease;
-}
-
-.botonMenu,
-.botonActivo {
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.botonMenu svg,
-.botonActivo svg {
-  transition:transform 0.3s ease;
-}
-
-.botonMenu:hover svg {
-  transform:scale(1.2);
-}
-
-.trofeoActivo {
-  animation:salto 0.6s ease;
-}
-
-.inferior {
-  margin-top:auto;
-}
-
-.fraseinf {
-  background:#303030;
-  border-radius:8px;
-  padding:12px;
-  font-size:11px;
-  color:#aaa;
-  text-align:center;
-  margin-bottom:15px;
-}
-
 .perfil {
   padding:40px;
   min-height:100vh;
@@ -473,18 +365,6 @@ nav {
   background:#2563eb;
   color:white;
   border:none;
-}
-
-@keyframes salto {
-  0% {
-    transform:translateY(0);
-  }
-  50% {
-    transform:translateY(-10px);
-  }
-  100% {
-    transform:translateY(0);
-  }
 }
 
 .pantalla {
