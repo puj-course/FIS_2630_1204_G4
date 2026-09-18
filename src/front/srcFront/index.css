@@ -48,13 +48,18 @@ main {
 }
 
 nav {
+  position:sticky;
+  top:0;
+  align-self:flex-start;
   display:flex;
   flex-direction:column;
   height:100vh;
   width:200px;
+  min-width:200px;
   background:#1e1e1e;
   color:#fff;
   padding:20px;
+  overflow-y:auto;
 }
 
 .Opciones {
