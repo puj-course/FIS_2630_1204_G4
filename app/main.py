@@ -14,6 +14,9 @@ from app.routes.resultados_reconocimiento import (
 from app.routes.usuarios import router as usuarios_router
 from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
+from conf.logging_config import configurar_logging
+
+configurar_logging()
 
 
 @asynccontextmanager
