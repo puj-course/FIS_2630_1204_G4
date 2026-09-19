@@ -2,7 +2,7 @@
   min-height:100vh;
   padding:36px;
   background:
-    radial-gradient(circle at top right,rgba(250,204,21,0.10),transparent 24%),
+    radial-gradient(circle at top right,rgba(96,165,250,0.10),transparent 24%),
     radial-gradient(circle at top left,rgba(96,165,250,0.10),transparent 28%),
     linear-gradient(180deg,#0b1019,#080c13);
   color:white;
@@ -55,12 +55,12 @@
   display:flex;
   justify-content:center;
   align-items:center;
-  border:3px solid var(--amarillo);
+  border:3px solid var(--azul-claro);
   border-radius:50%;
-  background:rgba(250,204,21,0.08);
-  color:var(--amarillo);
+  background:rgba(96,165,250,0.08);
+  color:var(--azul-claro);
   font-size:58px;
-  box-shadow:0 0 0 7px rgba(250,204,21,0.06);
+  box-shadow:0 0 0 7px rgba(96,165,250,0.06);
 }
 .perfilEstado{
   position:absolute;
@@ -111,7 +111,7 @@
   font-weight:600;
 }
 .perfilNivel svg{
-  color:var(--amarillo);
+  color:var(--azul-claro);
 }
 .perfilEstadisticas{
   width:100%;
@@ -138,7 +138,7 @@
 }
 .perfilDato strong{
   display:block;
-  color:var(--amarillo);
+  color:var(--azul-claro);
   font-size:25px;
   font-weight:800;
 }
@@ -160,7 +160,7 @@
   font-weight:700;
 }
 .perfilPanel h3 svg{
-  color:var(--amarillo);
+  color:var(--azul-claro);
 }
 .perfilOpcion{
   display:flex;
@@ -187,8 +187,8 @@
   justify-content:center;
   align-items:center;
   border-radius:11px;
-  background:rgba(250,204,21,0.1);
-  color:var(--amarillo);
+  background:rgba(96,165,250,0.10);
+  color:var(--azul-claro);
   font-size:17px;
 }
 .perfilOpcionInfo strong{
@@ -225,7 +225,7 @@
   transition:left 0.2s ease,background 0.2s ease;
 }
 .switchActivo{
-  background:var(--amarillo);
+  background:var(--azul-claro);
 }
 .switchActivo span{
   left:30px;
@@ -249,14 +249,14 @@
   font-size:14px;
 }
 .perfilSliderEncabezado span{
-  color:var(--amarillo);
+  color:var(--azul-claro);
   font-size:14px;
   font-weight:700;
 }
 .perfilSlider{
   width:100%;
   margin-bottom:9px;
-  accent-color:var(--amarillo);
+  accent-color:var(--azul-claro);
 }
 .perfilSliderBloque p{
   color:var(--texto-secundario);
@@ -292,13 +292,13 @@
 }
 .metaBoton:hover{
   transform:translateY(-2px);
-  border-color:rgba(250,204,21,0.4);
+  border-color:rgba(96,165,250,0.40);
 }
 .metaActiva{
-  border-color:var(--amarillo);
-  background:var(--amarillo);
+  border-color:var(--azul-claro);
+  background:var(--azul-claro);
   color:#111827;
-  box-shadow:0 8px 22px rgba(250,204,21,0.18);
+  box-shadow:0 8px 22px rgba(96,165,250,0.18);
 }
 .perfilProgreso{
   margin-top:24px;
@@ -321,7 +321,7 @@
   line-height:1.5;
 }
 .perfilProgresoEncabezado > strong{
-  color:var(--amarillo);
+  color:var(--azul-claro);
   font-size:32px;
   font-weight:800;
   white-space:nowrap;
@@ -338,8 +338,8 @@
 .perfilBarraRelleno{
   height:100%;
   border-radius:999px;
-  background:linear-gradient(90deg,#eab308,#fde047);
-  box-shadow:0 0 18px rgba(250,204,21,0.2);
+  background:linear-gradient(90deg,#2563eb,#60a5fa);
+  box-shadow:0 0 18px rgba(96,165,250,0.22);
   transition:width 0.4s ease;
 }
 .perfilResumenProgreso{
@@ -369,10 +369,10 @@
   font-weight:800;
 }
 .perfilResumenProgreso > div:nth-child(3) strong{
-  color:var(--amarillo);
+  color:var(--azul-claro);
 }
 .perfilResumenProgreso > div:nth-child(6) strong{
-  color:var(--verde);
+  color:var(--azul-claro);
 }
 .perfilSinProgreso{
   margin-top:18px;
