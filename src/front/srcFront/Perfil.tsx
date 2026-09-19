@@ -1,5 +1,5 @@
+import "./Perfil.css";
 import { useEffect, useState } from "react";
-
 import { ErrorApi } from "./services/api";
 import { obtenerSesion } from "./services/autenticacion";
 import {
