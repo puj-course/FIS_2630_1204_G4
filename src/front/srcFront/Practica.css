@@ -39,7 +39,7 @@
   font-weight:600;
   white-space:nowrap;
 }
-.tituloPractica > p{
+.tituloPractica>p{
   color:var(--texto-secundario);
   font-size:14px;
   line-height:1.5;
@@ -100,16 +100,14 @@
   overflow:hidden;
   border:1px solid rgba(96,165,250,0.16);
   border-radius:20px;
-  background:
-    radial-gradient(circle at center,rgba(37,99,235,0.06),transparent 45%),
-    #080d15;
+  background:#05080d;
   box-shadow:0 20px 45px rgba(0,0,0,0.28);
 }
 .barraSuperiorCamara{
   position:absolute;
   top:18px;
   left:18px;
-  z-index:5;
+  z-index:10;
   display:flex;
   align-items:center;
 }
@@ -151,25 +149,39 @@
   overflow:hidden;
   border:none;
   border-radius:20px;
-  background:
-    radial-gradient(circle at center,rgba(37,99,235,0.06),transparent 45%),
-    #080d15;
+  background:#05080d;
 }
 .contenedorCamaraPractica .camara::after{
   content:"";
   position:absolute;
   inset:14px;
-  z-index:1;
+  z-index:5;
   pointer-events:none;
   border:1px solid rgba(96,165,250,0.06);
   border-radius:14px;
 }
-.contenedorCamaraPractica .camara video,
-.contenedorCamaraPractica .camara canvas,
+.contenedorCamaraPractica .camara video{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  border-radius:20px;
+}
 .contenedorCamaraPractica .camara img{
   width:100%;
   height:100%;
-  object-fit:contain;
+  display:block;
+  object-fit:cover;
+  border-radius:20px;
+}
+.contenedorCamaraPractica .camara canvas{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
 }
 .contenedorCamaraPractica .estadoCamara{
   display:none;
@@ -179,7 +191,7 @@
   right:18px;
   bottom:18px;
   top:auto;
-  z-index:4;
+  z-index:8;
   padding:8px 13px;
   border:1px solid rgba(96,165,250,0.24);
   border-radius:10px;
@@ -229,7 +241,7 @@
   align-items:center;
   padding:20px 0;
 }
-.resultadoPractica > *{
+.resultadoPractica>*{
   width:100%;
 }
 .reconocimientoInactivo{
@@ -256,7 +268,6 @@
   font-size:13px;
   line-height:1.6;
 }
-
 .panelUltimasSenas{
   padding:20px 22px;
 }
@@ -268,7 +279,7 @@
   padding-bottom:15px;
   border-bottom:1px solid rgba(255,255,255,0.07);
 }
-.tituloUltimasSenas > div{
+.tituloUltimasSenas>div{
   display:flex;
   align-items:center;
   gap:9px;
@@ -285,7 +296,7 @@
   font-size:15px;
   font-weight:600;
 }
-.tituloUltimasSenas > span{
+.tituloUltimasSenas>span{
   padding:5px 9px;
   border:1px solid rgba(96,165,250,0.15);
   border-radius:999px;
@@ -369,9 +380,5 @@
   }
   .panelUltimasSenas{
     padding:18px;
-  }
-  .rachaReconocimiento{
-    align-items:flex-start;
-    flex-direction:column;
   }
 }
