@@ -5,13 +5,11 @@ import {
   FaBullseye,
   FaHistory,
 } from "react-icons/fa";
-
 import { ErrorApi } from "./services/api";
 import {
   obtenerLetras,
   type Letra,
 } from "./services/letras";
-
 import Camara from "./components/Camara";
 import { useCamara } from "./hooks/useCamara";
 import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
@@ -28,7 +26,6 @@ function Practica() {
   const camaraActiva = estadoCamara === "activa";
   const solicitandoCamara = estadoCamara === "solicitando";
 
-  const [letras, setLetras] = useState<Letra[]>([]);
   const [letraSeleccionada, setLetraSeleccionada] =
     useState<Letra | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -45,7 +42,6 @@ function Practica() {
           return;
         }
 
-        setLetras(datos);
         setLetraSeleccionada(datos[0] ?? null);
       } catch (error) {
         if (!componenteActivo) {
@@ -112,7 +108,6 @@ function Practica() {
           onClick={alternarCamara}
         >
           <FaVideo />
-
           {solicitandoCamara
             ? "Cancelar"
             : camaraActiva
@@ -201,7 +196,6 @@ function Practica() {
 
             <div className="historialReconocimientoVacio">
               <FaHistory />
-
               <p>
                 Las señas reconocidas durante la práctica
                 aparecerán aquí.
