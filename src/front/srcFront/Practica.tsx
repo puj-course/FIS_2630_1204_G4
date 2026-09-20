@@ -1,21 +1,23 @@
 import "./Practica.css";
 import { useEffect, useState } from "react";
+import {
+  FaVideo,
+  FaBullseye,
+  FaHistory,
+} from "react-icons/fa";
 
 import { ErrorApi } from "./services/api";
 import {
   obtenerLetras,
-  type Letra
+  type Letra,
 } from "./services/letras";
 
 import Camara from "./components/Camara";
 import { useCamara } from "./hooks/useCamara";
-
 import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
 
-
-
 function Practica() {
-    const {
+  const {
     videoRef,
     estado: estadoCamara,
     mensajeError: errorCamara,
@@ -45,7 +47,6 @@ function Practica() {
 
         setLetras(datos);
         setLetraSeleccionada(datos[0] ?? null);
-
       } catch (error) {
         if (!componenteActivo) {
           return;
@@ -56,7 +57,6 @@ function Practica() {
             ? error.message
             : "No fue posible cargar las letras."
         );
-
       } finally {
         if (componenteActivo) {
           setCargando(false);
@@ -71,118 +71,144 @@ function Practica() {
     };
   }, []);
 
-  const letraActual = letraSeleccionada?.letra ?? "-";
+  const textoEstadoCamara = solicitandoCamara
+    ? "Solicitando cámara"
+    : camaraActiva
+      ? "Cámara activa"
+      : "Cámara inactiva";
+
+  const alternarCamara = () => {
+    if (camaraActiva || solicitandoCamara) {
+      detenerCamara();
+    } else {
+      void iniciarCamara();
+    }
+  };
 
   return (
     <div className="practica">
-      <section className="practicaHeader">
-        <div>
-          <h1>Alfabeto: Letra {letraActual}</h1>
+      <header className="practicaHeader">
+        <div className="tituloPractica">
+          <div className="tituloPracticaPrincipal">
+            <h1>Práctica Libre</h1>
+            <span className="etiquetaVision">
+              LSC en vivo
+            </span>
+          </div>
+
           <p>
-            Posiciona tu mano frente a la cámara para practicar.
+            Practica el alfabeto de la Lengua de Señas Colombiana
+            con visión por computadora.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() => {
-            if (camaraActiva || solicitandoCamara) {
-              detenerCamara();
-            } else {
-              void iniciarCamara();
-            }
-          }}
+          className={
+            camaraActiva
+              ? "botonCamara botonCamaraActiva"
+              : "botonCamara"
+          }
+          onClick={alternarCamara}
         >
+          <FaVideo />
+
           {solicitandoCamara
             ? "Cancelar"
             : camaraActiva
               ? "Apagar cámara"
               : "Activar cámara"}
         </button>
-      </section>
+      </header>
 
+      {!cargando && mensajeError && (
+        <div
+          className="mensajeErrorPractica"
+          role="alert"
+        >
+          {mensajeError}
+        </div>
+      )}
 
-      <section className="zonaPracti">
-        <Camara
-          videoRef={videoRef}
-          activa={camaraActiva}
-          solicitando={solicitandoCamara}
-          mensajeError={errorCamara}
-        />
+      <section className="zonaPracticaNueva">
+        <div className="columnaCamara">
+          <div className="contenedorCamaraPractica">
+            <div className="barraSuperiorCamara">
+              <span
+                className={
+                  camaraActiva
+                    ? "estadoCamaraBadge estadoCamaraActivo"
+                    : "estadoCamaraBadge"
+                }
+              >
+                <span className="puntoEstado"></span>
+                {textoEstadoCamara}
+              </span>
+            </div>
 
-
-
-        <div className="panelPractica">
-          <div className="objetivo">
-            <h3>Objetivo</h3>
-            <strong>{letraActual}</strong>
-
-            {camaraActiva ? (
-              <ResultadoReconocimiento
-  key={letraSeleccionada?.id_letra ?? "sin-letra"}
-  videoRef={videoRef}
-  idLetraObjetivo={
-    letraSeleccionada?.id_letra ?? null
-  }
-/>
-            ) : (
-              <p>
-                Activa la cámara para iniciar el reconocimiento.
-              </p>
-            )}
-          </div>
-
-          <div className="instrucciones">
-            <h2>Información de la letra</h2>
-
-            {cargando ? (
-              <p>Cargando información...</p>
-            ) : letraSeleccionada ? (
-              <p>
-                {letraSeleccionada.descripcion
-                  ?? "Esta letra no tiene una descripción registrada."}
-              </p>
-            ) : (
-              <p>No hay una letra seleccionada.</p>
-            )}
+            <Camara
+              videoRef={videoRef}
+              activa={camaraActiva}
+              solicitando={solicitandoCamara}
+              mensajeError={errorCamara}
+            />
           </div>
         </div>
-      </section>
 
-      <section className="alfabeto">
-        <h3>Navegador alfabeto</h3>
+        <aside className="columnaAnalisis">
+          <section className="panelAnalisis">
+            <div className="tituloPanelAnalisis">
+              <FaBullseye />
+              <h2>Análisis en tiempo real</h2>
+            </div>
 
-        {cargando && (
-          <p role="status">Cargando letras...</p>
-        )}
+            <div className="resultadoPractica">
+              {camaraActiva ? (
+                <ResultadoReconocimiento
+                  key={
+                    letraSeleccionada?.id_letra ??
+                    "sin-letra"
+                  }
+                  videoRef={videoRef}
+                  idLetraObjetivo={
+                    letraSeleccionada?.id_letra ?? null
+                  }
+                />
+              ) : (
+                <div className="reconocimientoInactivo">
+                  <FaVideo />
+                  <p>
+                    Activa la cámara para iniciar el reconocimiento.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
 
-        {!cargando && mensajeError && (
-          <p role="alert">{mensajeError}</p>
-        )}
+          <section className="panelUltimasSenas">
+            <div className="tituloUltimasSenas">
+              <div>
+                <FaHistory />
+                <h2>
+                  Últimas señas reconocidas
+                </h2>
+              </div>
 
-        {!cargando
-          && !mensajeError
-          && letras.length === 0 && (
-            <p>No hay letras registradas.</p>
-          )}
+              <span>
+                Historial
+              </span>
+            </div>
 
-        {letras.map((letra) => (
-          <button
-            key={letra.id_letra}
-            type="button"
-            className={
-              letraSeleccionada?.id_letra === letra.id_letra
-                ? "letraActiva"
-                : undefined
-            }
-            aria-pressed={
-              letraSeleccionada?.id_letra === letra.id_letra
-            }
-            onClick={() => setLetraSeleccionada(letra)}
-          >
-            {letra.letra}
-          </button>
-        ))}
+            <div className="historialReconocimientoVacio">
+              <FaHistory />
+
+              <p>
+                Las señas reconocidas durante la práctica
+                aparecerán aquí.
+              </p>
+            </div>
+          </section>
+        </aside>
       </section>
     </div>
   );
