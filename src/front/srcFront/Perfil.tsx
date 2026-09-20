@@ -21,7 +21,6 @@ function Perfil() {
   const [mensajeError, setMensajeError] = useState("");
   const [sonido, setSonido] = useState(true);
   const [modoEspejo, setModoEspejo] = useState(true);
-  const [umbral, setUmbral] = useState(85);
   const [metaDiaria, setMetaDiaria] = useState("10");
 
   useEffect(() => {
@@ -215,31 +214,6 @@ function Perfil() {
               >
                 <span></span>
               </button>
-            </div>
-
-            <div className="perfilSliderBloque">
-              <div className="perfilSliderEncabezado">
-                <strong>
-                  Umbral de Confianza de Detección
-                </strong>
-                <span>{umbral}%</span>
-              </div>
-
-              <input
-                type="range"
-                min="50"
-                max="100"
-                value={umbral}
-                onChange={(evento) =>
-                  setUmbral(Number(evento.target.value))
-                }
-                className="perfilSlider"
-              />
-
-              <p>
-                Ajusta la exigencia de precisión requerida para
-                validar una seña
-              </p>
             </div>
           </div>
         </section>
