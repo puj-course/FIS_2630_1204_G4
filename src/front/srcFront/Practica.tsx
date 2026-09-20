@@ -1,3 +1,4 @@
+import "./Practica.css";
 import { useEffect, useState } from "react";
 
 import { ErrorApi } from "./services/api";
