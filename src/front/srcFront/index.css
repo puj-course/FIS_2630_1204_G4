@@ -341,3 +341,105 @@ main {
 .registro .enlace:hover {
   color:#bfdbfe;
 }
+
+.overlayBienvenida {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalBienvenida {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 32px 24px 24px;
+  text-align: center;
+}
+
+.modalBienvenida h2 {
+  color: #60a5fa;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.modalBienvenida p {
+  color: #aaa;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.modalBienvenida .botonSaltar {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  width: auto;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 13px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.modalBienvenida .botonSaltar:hover {
+  color: #facc15;
+  opacity: 1;
+}
+
+.pasosBienvenida {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.puntoPaso {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
+}
+
+.puntoPasoActivo {
+  background: #60a5fa;
+}
+
+.botonesBienvenida {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.botonesBienvenida button {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+  transition: opacity 0.2s ease;
+}
+
+.botonesBienvenida button:hover {
+  opacity: 0.85;
+}
+
+.botonesBienvenida button:disabled {
+  background: #333;
+  color: #777;
+  cursor: not-allowed;
+  opacity: 1;
+}
