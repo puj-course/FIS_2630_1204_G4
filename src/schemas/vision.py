@@ -1,11 +1,8 @@
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from uuid import UUID
-
-from typing import Literal
-from uuid import UUID
 
 # Define la imagen que recibe el endpoint
 class VisionEntrada(BaseModel):

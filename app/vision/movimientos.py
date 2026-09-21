@@ -1,8 +1,7 @@
-from collections import deque
-from typing import Literal
-from dataclasses import dataclass
 import math
-
+from collections import deque
+from dataclasses import dataclass
+from typing import Literal
 
 LETRAS_CON_MOVIMIENTO = (
     "G",

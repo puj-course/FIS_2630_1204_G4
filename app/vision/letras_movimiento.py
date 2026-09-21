@@ -11,7 +11,6 @@ from app.vision.vocales import (
     pulgar_estirado,
 )
 
-
 MINIMO_FOTOGRAMAS = 6
 
 PUNTO_MUNECA = 0
