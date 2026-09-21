@@ -66,6 +66,12 @@ function Home({ cambiarPagina }: Props) {
           <p>Revisa tu progreso de aprendizaje</p>
         </div>
       </div>
+      <button
+        className="botonComoFunciona"
+        onClick={() => setMostrarBienvenida(true)}
+      >
+        ¿Cómo funciona?
+      </button>
     </div>
   );
 }
