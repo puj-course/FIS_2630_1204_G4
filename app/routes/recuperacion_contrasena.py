@@ -1,22 +1,15 @@
 import logging
 
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    HTTPException,
-    Response,
-    status
-)
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Response, status
 
 from app.services.correo_recuperacion_service import (
     ConfiguracionCorreo,
     ConfiguracionCorreoError,
     enviar_correo_recuperacion,
-    obtener_configuracion_correo
+    obtener_configuracion_correo,
 )
 from app.services.recuperacion_service import crear_solicitud_recuperacion
 from src.schemas.recuperacion import RespuestaRecuperacion, SolicitudRecuperacion
-
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

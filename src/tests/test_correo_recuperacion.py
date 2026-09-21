@@ -2,18 +2,18 @@ import os
 import smtplib
 import ssl
 import unittest
-
-import httpx
 from dataclasses import replace
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlsplit
 
+import httpx
+
 from app.services.correo_recuperacion_service import (
     ConfiguracionCorreoError,
     EnvioMicrosoftGraphError,
     enviar_correo_recuperacion,
-    obtener_configuracion_correo
+    obtener_configuracion_correo,
 )
 
 

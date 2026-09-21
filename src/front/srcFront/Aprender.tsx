@@ -1,164 +1,179 @@
+import "./Aprender.css";
 import { useState, useEffect } from "react";
-
 import { obtenerSesion } from "./services/autenticacion";
-
 import {
   obtenerLetras,
   actualizarLetra,
   type Letra as LetraBackend,
 } from "./services/letras";
-
+import {
+  consultarEstadoLetras,
+  type EstadoAprendizaje,
+} from "./services/progreso";
 import { ErrorApi } from "./services/api";
-
 
 interface Props {
   cambiarPagina: (pagina: string) => void;
 }
 
-
 const API_URL = "http://localhost:8000";
 
-
 function Aprender({ cambiarPagina }: Props) {
-
-  const [letrasBackend, setLetrasBackend] =
-    useState<LetraBackend[]>([]);
-
+  const [letrasBackend, setLetrasBackend] = useState<LetraBackend[]>([]);
+  const [estadosAprendizaje, setEstadosAprendizaje] = useState<
+    Record<number, EstadoAprendizaje>
+  >({});
   const [letraSeleccionada, setLetraSeleccionada] =
     useState<LetraBackend | null>(null);
-
-  const [cargando, setCargando] =
-    useState(true);
-
-  const [errorCarga, setErrorCarga] =
-    useState("");
-
-  const [editando, setEditando] =
-    useState(false);
-
-  const [descripcionEditada, setDescripcionEditada] =
-    useState("");
-
-  const [guardando, setGuardando] =
-    useState(false);
-
-  const [mensajeError, setMensajeError] =
-    useState("");
-
-  const [mensajeExito, setMensajeExito] =
-    useState("");
-
+  const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
+  const [errorProgreso, setErrorProgreso] = useState("");
+  const [editando, setEditando] = useState(false);
+  const [descripcionEditada, setDescripcionEditada] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
+  const [mensajeExito, setMensajeExito] = useState("");
 
   const sesion = obtenerSesion();
-
-  const esAdministrador =
-    sesion?.usuario.rol === "administrador";
-
+  const esAdministrador = sesion?.usuario.rol === "administrador";
 
   useEffect(() => {
-
     let activo = true;
 
+    const actualizarProgreso = async () => {
+      const sesionActual = obtenerSesion();
 
-    const cargarLetras = async () => {
-
-      try {
-
-        const resultado = await obtenerLetras();
-
-
-        if (activo) {
-
-          setLetrasBackend(resultado);
-
-          setErrorCarga("");
-
-        }
-
-      } catch (error) {
-
-        if (activo) {
-
-          setErrorCarga(
-            error instanceof ErrorApi
-              ? error.message
-              : "No fue posible cargar el alfabeto en este momento"
-          );
-
-        }
-
-      } finally {
-
-        if (activo) {
-
-          setCargando(false);
-
-        }
-
+      if (!sesionActual) {
+        return;
       }
 
+      try {
+        const resultadoProgreso = await consultarEstadoLetras(
+          sesionActual.access_token
+        );
+
+        if (!activo) {
+          return;
+        }
+
+        const nuevosEstados: Record<number, EstadoAprendizaje> = {};
+
+        resultadoProgreso.letras.forEach((letra) => {
+          nuevosEstados[letra.id_letra] = letra.estado;
+        });
+
+        setEstadosAprendizaje(nuevosEstados);
+        setErrorProgreso("");
+      } catch (error) {
+        if (!activo) {
+          return;
+        }
+
+        setErrorProgreso(
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible actualizar el estado de aprendizaje."
+        );
+      }
     };
 
+    const cargarInformacion = async () => {
+      try {
+        const resultadoLetras = await obtenerLetras();
 
-    void cargarLetras();
+        if (!activo) {
+          return;
+        }
 
+        setLetrasBackend(resultadoLetras);
+        setErrorCarga("");
+
+        await actualizarProgreso();
+      } catch (error) {
+        if (!activo) {
+          return;
+        }
+
+        setErrorCarga(
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible cargar el alfabeto en este momento"
+        );
+      } finally {
+        if (activo) {
+          setCargando(false);
+        }
+      }
+    };
+
+    const actualizarAlVolver = () => {
+      void actualizarProgreso();
+    };
+
+    void cargarInformacion();
+
+    window.addEventListener("focus", actualizarAlVolver);
 
     return () => {
-
       activo = false;
-
+      window.removeEventListener("focus", actualizarAlVolver);
     };
-
   }, []);
 
-
-  const seleccionarLetra = (
-    letra: LetraBackend
-  ) => {
-
+  const seleccionarLetra = (letra: LetraBackend) => {
     setLetraSeleccionada(letra);
-
     setEditando(false);
-
     setMensajeError("");
-
     setMensajeExito("");
-
   };
 
+  const cerrarModal = () => {
+    setLetraSeleccionada(null);
+    setEditando(false);
+    setMensajeError("");
+    setMensajeExito("");
+  };
 
-  const iniciarEdicion = () => {
-
+  const cambiarLetra = (direccion: number) => {
     if (!letraSeleccionada) return;
 
-
-    setDescripcionEditada(
-      letraSeleccionada.descripcion ?? ""
+    const indiceActual = letrasBackend.findIndex(
+      (letra) => letra.id_letra === letraSeleccionada.id_letra
     );
 
-    setEditando(true);
+    const nuevoIndice = indiceActual + direccion;
 
+    if (nuevoIndice < 0 || nuevoIndice >= letrasBackend.length) return;
+
+    setLetraSeleccionada(letrasBackend[nuevoIndice]);
+    setEditando(false);
     setMensajeError("");
-
     setMensajeExito("");
-
   };
 
+  const indiceLetraSeleccionada = letraSeleccionada
+    ? letrasBackend.findIndex(
+        (letra) => letra.id_letra === letraSeleccionada.id_letra
+      )
+    : -1;
+
+  const iniciarEdicion = () => {
+    if (!letraSeleccionada) return;
+
+    setDescripcionEditada(letraSeleccionada.descripcion ?? "");
+    setEditando(true);
+    setMensajeError("");
+    setMensajeExito("");
+  };
 
   const guardarCambios = async () => {
-
     if (!letraSeleccionada || !sesion) return;
 
-
     setGuardando(true);
-
     setMensajeError("");
-
     setMensajeExito("");
 
-
     try {
-
       const resultado = await actualizarLetra(
         letraSeleccionada.id_letra,
         {
@@ -166,7 +181,6 @@ function Aprender({ cambiarPagina }: Props) {
         },
         sesion.access_token
       );
-
 
       setLetrasBackend((previas) =>
         previas.map((letra) =>
@@ -176,291 +190,294 @@ function Aprender({ cambiarPagina }: Props) {
         )
       );
 
-
-      setLetraSeleccionada(
-        resultado.letra
-      );
-
-
-      setMensajeExito(
-        "Cambios guardados correctamente"
-      );
-
+      setLetraSeleccionada(resultado.letra);
+      setMensajeExito("Cambios guardados correctamente");
       setEditando(false);
-
-
     } catch (error) {
-
       setMensajeError(
         error instanceof ErrorApi
           ? error.message
           : "No fue posible guardar los cambios"
       );
-
     } finally {
-
       setGuardando(false);
-
     }
-
   };
 
-
   return (
-
     <div className="aprender">
-
-      <h1>
-        Aprender LSC
-      </h1>
-
-
-      {!cargando &&
-        !errorCarga &&
-        letrasBackend.length > 0 && (
-
+      <div className="cabeceraModulo">
+        <div>
+          <h1>Módulo de aprendizaje</h1>
           <p>
-            Selecciona una letra para conocer su
-            representación en lengua de señas.
+            Explora las letras fundamentales de la Lengua de Señas Colombiana.
           </p>
+        </div>
+      </div>
 
-        )}
-
+      <div className="informacionModulo">
+        <div className="iconoInformacion">✋</div>
+        <div>
+          <h2>Alfabeto de la Lengua de Señas Colombiana</h2>
+          <p>
+            Selecciona una letra para conocer su representación, revisar sus
+            instrucciones y comenzar a practicar.
+          </p>
+        </div>
+      </div>
 
       {cargando && (
-
-        <p role="status">
-          Cargando alfabeto...
-        </p>
-
+        <div className="estadoAprender" role="status">
+          <p>Cargando alfabeto...</p>
+        </div>
       )}
-
 
       {!cargando && errorCarga && (
-
-        <div
-          className="mensajeError"
-          role="alert"
-        >
-
-          <p>
-            {errorCarga}
-          </p>
-
+        <div className="mensajeError" role="alert">
+          <p>{errorCarga}</p>
         </div>
-
       )}
 
+      {!cargando && !errorCarga && errorProgreso && (
+        <div className="mensajeErrorProgreso" role="alert">
+          <p>{errorProgreso}</p>
+        </div>
+      )}
 
-      {!cargando &&
-        !errorCarga &&
-        letrasBackend.length === 0 && (
+      {!cargando && !errorCarga && letrasBackend.length === 0 && (
+        <div className="mensajeSinLetras" role="status">
+          <h2>No hay letras disponibles por el momento</h2>
+          <p>
+            Cuando se agreguen letras al alfabeto, aparecerán en esta sección.
+          </p>
+        </div>
+      )}
 
-          <div
-            className="mensajeSinLetras"
-            role="status"
-          >
-
-            <h2>
-              No hay letras disponibles por el momento
-            </h2>
-
-            <p>
-              Cuando se agreguen letras al alfabeto,
-              aparecerán en esta sección.
-            </p>
-
+      {!cargando && !errorCarga && letrasBackend.length > 0 && (
+        <section className="contenidoAprendizaje">
+          <div className="encabezadoAlfabeto">
+            <div>
+              <h2>Alfabeto LSC</h2>
+              <p>Conoce cada seña y revisa tu progreso de aprendizaje.</p>
+            </div>
           </div>
 
-        )}
+          <div className="gridLetras">
+            {letrasBackend.map((letra) => {
+              const estado =
+                estadosAprendizaje[letra.id_letra] ?? "pendiente";
 
+              return (
+                <article
+                  className={`tarjetaLetra ${
+                    estado === "aprendida"
+                      ? "tarjetaLetraAprendida"
+                      : "tarjetaLetraPendiente"
+                  }`}
+                  key={letra.id_letra}
+                >
+                  <div className="cabeceraTarjetaLetra">
+                    <span className="identificadorLetra">
+                      {letra.letra}
+                    </span>
 
-      {!cargando &&
-        !errorCarga &&
-        letrasBackend.length > 0 && (
+                    <span
+                      className={`estadoAprendizaje ${
+                        estado === "aprendida"
+                          ? "estadoAprendido"
+                          : "estadoPendiente"
+                      }`}
+                    >
+                      {estado === "aprendida"
+                        ? "✓ Aprendida"
+                        : "Pendiente"}
+                    </span>
+                  </div>
 
-          <div className="contenedorLetras">
+                  <div
+                    className="vistaPreviaLetra"
+                    onClick={() => seleccionarLetra(letra)}
+                  >
+                    {letra.ruta_imagen ? (
+                      <img
+                        src={`${API_URL}${letra.ruta_imagen}`}
+                        alt={`Seña letra ${letra.letra}`}
+                      />
+                    ) : (
+                      <span className="letraSinImagen">
+                        {letra.letra}
+                      </span>
+                    )}
+                  </div>
 
-            {letrasBackend.map((letra) => (
+                  <div className="contenidoTarjetaLetra">
+                    <h3>Letra {letra.letra}</h3>
+                    <p>
+                      {letra.descripcion ||
+                        "Consulta cómo realizar esta seña correctamente."}
+                    </p>
+                  </div>
 
-              <button
-                key={letra.id_letra}
+                  <div className="accionesTarjetaLetra">
+                    <button
+                      type="button"
+                      className="botonGuia"
+                      onClick={() => seleccionarLetra(letra)}
+                    >
+                      Ver guía
+                    </button>
 
-                className={
-                  letraSeleccionada?.id_letra ===
-                  letra.id_letra
-                    ? "letraActiva"
-                    : "letraBox"
-                }
-
-                onClick={() =>
-                  seleccionarLetra(letra)
-                }
-              >
-
-                {letra.letra}
-
-              </button>
-
-            ))}
-
+                    <button
+                      type="button"
+                      className="botonPracticarTarjeta"
+                      onClick={() => cambiarPagina("practica")}
+                    >
+                      Practicar
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-
-        )}
-
+        </section>
+      )}
 
       {!cargando &&
         !errorCarga &&
         letrasBackend.length > 0 &&
         letraSeleccionada && (
+          <div className="fondoModal" onClick={cerrarModal}>
+            <div
+              className="contenidoModal"
+              onClick={(evento) => evento.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="flechaModal flechaAnterior"
+                onClick={() => cambiarLetra(-1)}
+                disabled={indiceLetraSeleccionada === 0}
+                aria-label="Letra anterior"
+              >
+                ‹
+              </button>
 
-          <section className="detalleLetra">
+              <section className="detalleLetra modalLetra">
+                <button
+                  className="cerrarModal"
+                  type="button"
+                  onClick={cerrarModal}
+                  aria-label="Cerrar"
+                >
+                  ×
+                </button>
 
-            <h2>
-              Letra {letraSeleccionada.letra}
-            </h2>
+                <h2>Letra {letraSeleccionada.letra}</h2>
 
+                <div className="imagenSena">
+                  {letraSeleccionada.ruta_imagen ? (
+                    <img
+                      src={`${API_URL}${letraSeleccionada.ruta_imagen}`}
+                      alt={`Seña letra ${letraSeleccionada.letra}`}
+                    />
+                  ) : (
+                    <p>Imagen no disponible</p>
+                  )}
+                </div>
 
-            <div className="imagenSena">
-
-              {letraSeleccionada.ruta_imagen ? (
-
-                <img
-                  src={`${API_URL}${letraSeleccionada.ruta_imagen}`}
-                  alt={`Seña letra ${letraSeleccionada.letra}`}
-                />
-
-              ) : (
-
-                <p>
-                  Imagen no disponible
-                </p>
-
-              )}
-
-            </div>
-
-
-            {!editando && (
-
-              <p>
-                {letraSeleccionada.descripcion}
-              </p>
-
-            )}
-
-
-            {esAdministrador && editando && (
-
-              <div className="editorDescripcion">
-
-                <textarea
-                  value={descripcionEditada}
-
-                  onChange={(e) =>
-                    setDescripcionEditada(
-                      e.target.value
-                    )
-                  }
-
-                  rows={4}
-                />
-
-
-                {mensajeError && (
-
-                  <p className="mensaje-error">
-                    {mensajeError}
+                {!editando && (
+                  <p className="descripcionLetra">
+                    {letraSeleccionada.descripcion}
                   </p>
-
                 )}
 
-
-                {mensajeExito && (
-
+                {mensajeExito && !editando && (
                   <p className="mensaje-exito">
                     {mensajeExito}
                   </p>
-
                 )}
 
+                {mensajeError && !editando && (
+                  <p className="mensaje-error">
+                    {mensajeError}
+                  </p>
+                )}
 
-                <div className="accionesEdicion">
+                {esAdministrador && editando && (
+                  <div className="editorDescripcion">
+                    <textarea
+                      value={descripcionEditada}
+                      onChange={(evento) =>
+                        setDescripcionEditada(evento.target.value)
+                      }
+                      rows={4}
+                    />
 
+                    {mensajeError && (
+                      <p className="mensaje-error">
+                        {mensajeError}
+                      </p>
+                    )}
+
+                    <div className="accionesEdicion">
+                      <button
+                        type="button"
+                        onClick={guardarCambios}
+                        disabled={guardando}
+                      >
+                        {guardando
+                          ? "Guardando..."
+                          : "Guardar cambios"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="botonCancelar"
+                        onClick={() => setEditando(false)}
+                        disabled={guardando}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="accionesLetra">
                   <button
-                    onClick={guardarCambios}
-                    disabled={guardando}
+                    className="botonPracticar"
+                    type="button"
+                    onClick={() => cambiarPagina("practica")}
                   >
-
-                    {guardando
-                      ? "Guardando..."
-                      : "Guardar cambios"}
-
+                    Practicar esta letra
                   </button>
 
-
-                  <button
-                    className="botonCancelar"
-
-                    onClick={() =>
-                      setEditando(false)
-                    }
-
-                    disabled={guardando}
-                  >
-
-                    Cancelar
-
-                  </button>
-
+                  {esAdministrador && !editando && (
+                    <button
+                      className="botonEditar"
+                      type="button"
+                      onClick={iniciarEdicion}
+                    >
+                      Editar instrucciones
+                    </button>
+                  )}
                 </div>
-
-              </div>
-
-            )}
-
-
-            <div className="accionesLetra">
+              </section>
 
               <button
-                className="botonPracticar"
-
-                onClick={() =>
-                  cambiarPagina("practica")
+                type="button"
+                className="flechaModal flechaSiguiente"
+                onClick={() => cambiarLetra(1)}
+                disabled={
+                  indiceLetraSeleccionada === letrasBackend.length - 1
                 }
+                aria-label="Siguiente letra"
               >
-
-                Practicar esta letra
-
+                ›
               </button>
-
-
-              {esAdministrador &&
-                !editando && (
-
-                  <button
-                    className="botonEditar"
-
-                    onClick={iniciarEdicion}
-                  >
-
-                    Editar instrucciones
-
-                  </button>
-
-                )}
-
             </div>
-
-          </section>
-
+          </div>
         )}
-
     </div>
-
   );
-
 }
-
 
 export default Aprender;

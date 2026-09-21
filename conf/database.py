@@ -3,7 +3,6 @@ import os
 import psycopg
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 
@@ -15,4 +14,7 @@ def obtener_conexion():
             "No se encontró DATABASE_URL en el archivo .env"
         )
 
-    return psycopg.connect(database_url)
+    return psycopg.connect(
+    database_url,
+    connect_timeout=10,
+)

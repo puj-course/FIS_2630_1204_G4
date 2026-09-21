@@ -4,7 +4,6 @@ from pwdlib.exceptions import UnknownHashError
 
 from conf.database import obtener_conexion
 
-
 password_hash = PasswordHash.recommended()
 
 

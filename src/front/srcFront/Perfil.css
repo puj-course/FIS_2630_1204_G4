@@ -1,0 +1,440 @@
+.perfilVista{
+  min-height:100vh;
+  padding:36px;
+  background:
+    radial-gradient(circle at top right,rgba(96,165,250,0.10),transparent 24%),
+    radial-gradient(circle at top left,rgba(96,165,250,0.10),transparent 28%),
+    linear-gradient(180deg,#0b1019,#080c13);
+  color:white;
+}
+.perfilTitulo{
+  margin-bottom:24px;
+}
+.perfilTitulo h1{
+  margin-bottom:6px;
+  color:white;
+  font-size:36px;
+  font-weight:800;
+}
+.perfilTitulo p{
+  color:var(--texto-secundario);
+  font-size:14px;
+  line-height:1.5;
+}
+.perfilGrid{
+  display:grid;
+  grid-template-columns:340px minmax(0,1fr);
+  gap:24px;
+  align-items:start;
+}
+.perfilResumen,
+.perfilPanel,
+.perfilProgreso{
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;
+  background:linear-gradient(145deg,rgba(28,37,53,0.96),rgba(15,23,42,0.96));
+  box-shadow:0 18px 40px rgba(0,0,0,0.28);
+}
+.perfilResumen{
+  width:100%;
+  min-width:0;
+}
+.perfilTarjetaUsuario{
+  width:100%;
+  padding:30px 22px;
+  text-align:center;
+}
+.perfilAvatarContenedor{
+  position:relative;
+  width:max-content;
+  margin:0 auto 20px;
+}
+.perfilAvatar{
+  width:108px;
+  height:108px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border:3px solid var(--azul-claro);
+  border-radius:50%;
+  background:rgba(96,165,250,0.08);
+  color:var(--azul-claro);
+  font-size:58px;
+  box-shadow:0 0 0 7px rgba(96,165,250,0.06);
+}
+.perfilEstado{
+  position:absolute;
+  right:6px;
+  bottom:8px;
+  width:17px;
+  height:17px;
+  border:3px solid #111827;
+  border-radius:50%;
+  background:var(--verde);
+}
+.perfilTarjetaUsuario h2{
+  max-width:100%;
+  margin:0 0 8px;
+  overflow-wrap:anywhere;
+  color:white;
+  font-size:25px;
+  font-weight:700;
+}
+.perfilCorreo{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  margin:0 0 16px;
+  padding:0 4px;
+  overflow-wrap:anywhere;
+  color:var(--texto-secundario);
+  font-size:13px;
+  line-height:1.4;
+}
+.perfilCorreo svg{
+  flex-shrink:0;
+}
+.perfilNivel{
+  max-width:100%;
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+  padding:8px 13px;
+  border:1px solid rgba(96,165,250,0.25);
+  border-radius:999px;
+  background:rgba(37,99,235,0.15);
+  color:#bfdbfe;
+  font-size:12px;
+  font-weight:600;
+}
+.perfilNivel svg{
+  color:var(--azul-claro);
+}
+.perfilEstadisticas{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:24px;
+}
+.perfilDato{
+  min-width:0;
+  padding:15px 12px;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  background:#111827;
+  text-align:left;
+}
+.perfilDato small{
+  display:block;
+  min-height:34px;
+  margin-bottom:6px;
+  color:var(--texto-secundario);
+  font-size:11px;
+  line-height:1.4;
+}
+.perfilDato strong{
+  display:block;
+  color:var(--azul-claro);
+  font-size:25px;
+  font-weight:800;
+}
+.perfilPaneles{
+  width:100%;
+  min-width:0;
+}
+.perfilPanel{
+  width:100%;
+  padding:24px;
+}
+.perfilPanel h3{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:20px;
+  color:white;
+  font-size:20px;
+  font-weight:700;
+}
+.perfilPanel h3 svg{
+  color:var(--azul-claro);
+}
+.perfilOpcion{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  margin-bottom:35px;
+  padding:16px 18px;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:15px;
+  background:#111827;
+}
+.perfilOpcionInfo{
+  min-width:0;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+}
+.perfilIcono{
+  width:42px;
+  height:42px;
+  min-width:42px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:11px;
+  background:rgba(96,165,250,0.10);
+  color:var(--azul-claro);
+  font-size:17px;
+}
+.perfilOpcionInfo strong{
+  display:block;
+  margin-bottom:4px;
+  color:white;
+  font-size:14px;
+}
+.perfilOpcionInfo p{
+  color:var(--texto-secundario);
+  font-size:12px;
+  line-height:1.5;
+}
+.switch{
+  position:relative;
+  width:56px;
+  height:30px;
+  min-width:56px;
+  padding:0;
+  border:none;
+  border-radius:999px;
+  background:#334155;
+  cursor:pointer;
+  transition:background 0.2s ease;
+}
+.switch span{
+  position:absolute;
+  top:4px;
+  left:4px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:white;
+  transition:left 0.2s ease,background 0.2s ease;
+}
+.switchActivo{
+  background:var(--azul-claro);
+}
+.switchActivo span{
+  left:30px;
+  background:#111827;
+}
+.perfilMetaPanel{
+  grid-column:1 / -1;
+  width:100%;
+}
+.perfilMetaTexto{
+  margin-bottom:16px;
+  color:var(--texto-secundario);
+  font-size:13px;
+}
+.perfilMetas{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.metaBoton{
+  min-height:46px;
+  padding:11px 12px;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;
+  background:#111827;
+  color:#e5e7eb;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform 0.2s ease,border-color 0.2s ease,background 0.2s ease,color 0.2s ease;
+}
+.metaBoton:hover{
+  transform:translateY(-2px);
+  border-color:rgba(96,165,250,0.40);
+}
+.metaActiva{
+  border-color:var(--azul-claro);
+  background:var(--azul-claro);
+  color:#111827;
+  box-shadow:0 8px 22px rgba(96,165,250,0.18);
+}
+.perfilProgreso{
+  margin-top:24px;
+  padding:24px;
+}
+.perfilProgresoEncabezado{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+}
+.perfilProgresoEncabezado h2{
+  margin-bottom:5px;
+  color:white;
+  font-size:21px;
+}
+.perfilProgresoEncabezado p{
+  color:var(--texto-secundario);
+  font-size:13px;
+  line-height:1.5;
+}
+.perfilProgresoEncabezado > strong{
+  color:var(--azul-claro);
+  font-size:32px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.perfilBarraProgreso{
+  width:100%;
+  height:14px;
+  margin:23px 0;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:999px;
+  background:#111827;
+}
+.perfilBarraRelleno{
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#2563eb,#60a5fa);
+  box-shadow:0 0 18px rgba(96,165,250,0.22);
+  transition:width 0.4s ease;
+}
+.perfilResumenProgreso{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:12px;
+}
+.perfilResumenProgreso > div{
+  min-width:0;
+  padding:16px;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  background:#111827;
+}
+.perfilResumenProgreso span{
+  display:block;
+  min-height:34px;
+  margin-bottom:8px;
+  color:var(--texto-secundario);
+  font-size:11px;
+  line-height:1.4;
+}
+.perfilResumenProgreso strong{
+  display:block;
+  color:white;
+  font-size:24px;
+  font-weight:800;
+}
+.perfilResumenProgreso > div:nth-child(3) strong{
+  color:var(--azul-claro);
+}
+.perfilResumenProgreso > div:nth-child(6) strong{
+  color:var(--azul-claro);
+}
+.perfilSinProgreso{
+  margin-top:18px;
+  padding:14px 16px;
+  border:1px solid rgba(96,165,250,0.15);
+  border-radius:12px;
+  background:rgba(37,99,235,0.08);
+  color:var(--texto-secundario);
+  font-size:13px;
+  text-align:center;
+}
+.estadoPerfil{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  text-align:center;
+}
+.estadoPerfil h2{
+  color:white;
+}
+.estadoPerfil p{
+  color:var(--texto-secundario);
+}
+@media (max-width:1200px){
+  .perfilResumenProgreso{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
+@media (max-width:1100px){
+  .perfilGrid{
+    grid-template-columns:1fr;
+  }
+  .perfilMetaPanel{
+    grid-column:auto;
+  }
+  .perfilResumen{
+    max-width:none;
+  }
+}
+@media (max-width:720px){
+  .perfilVista{
+    padding:24px 18px;
+  }
+  .perfilTitulo h1{
+    font-size:29px;
+  }
+  .perfilTarjetaUsuario{
+    padding:24px 18px;
+  }
+  .perfilEstadisticas{
+    grid-template-columns:1fr 1fr;
+  }
+  .perfilPanel{
+    padding:18px;
+  }
+  .perfilOpcion{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .perfilOpcion .switch{
+    align-self:flex-end;
+  }
+  .perfilMetas{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .perfilProgreso{
+    padding:18px;
+  }
+  .perfilProgresoEncabezado{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .perfilProgresoEncabezado > strong{
+    font-size:29px;
+  }
+  .perfilResumenProgreso{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+@media (max-width:480px){
+  .perfilEstadisticas{
+    grid-template-columns:1fr;
+  }
+  .perfilMetas{
+    grid-template-columns:1fr;
+  }
+  .perfilResumenProgreso{
+    grid-template-columns:1fr;
+  }
+  .perfilAvatar{
+    width:95px;
+    height:95px;
+    font-size:50px;
+  }
+}

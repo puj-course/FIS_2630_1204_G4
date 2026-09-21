@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -14,16 +15,36 @@ class VisionEntrada(BaseModel):
             "sin el prefijo data:image/...;base64,"
         ),
     )
+    id_secuencia: UUID | None = Field(
+        default=None,
+        description=(
+            "Identificador de la secuencia de fotogramas. "
+            "Permite analizar movimientos consecutivos."
+        ),
+    )
+    modo: Literal["estatica", "movimiento"] = "estatica"
 
 
 # Define el resultado del reconocimiento
 class VisionRespuesta(BaseModel):
-    letra: Literal["A", "E", "I", "O", "U"] | None = Field(
+    letra: Literal[
+    "A",
+    "E",
+    "G",
+    "H",
+    "I",
+    "J",
+    "Ñ",
+    "O",
+    "S",
+    "U",
+    "Z",
+] | None = Field(
         ...,
         description="Vocal reconocida o null si no se reconoce una vocal",
     )
 
     mensaje: str | None = Field(
         default=None,
-        description="Información adicional sobre el resultado",
+        description="Letra reconocida o null si no se reconoce una letra",
     )

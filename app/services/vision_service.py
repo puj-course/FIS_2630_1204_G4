@@ -7,13 +7,16 @@ import cv2
 import numpy as np
 
 from app.vision.detector import DetectorMano
+from app.vision.movimientos import HistorialMovimiento
 from app.vision.reconocimiento import reconocer_mano
-
 
 LIMITE_IMAGEN_BYTES = 5 * 1024 * 1024
 
 _detectores: dict[bool, DetectorMano] = {}
 _bloqueo_detector = Lock()
+_historiales_movimiento: dict[str, HistorialMovimiento] = {}
+_bloqueo_historiales = Lock()
+MAXIMO_SECUENCIAS = 100
 _logger = logging.getLogger(__name__)
 
 
@@ -65,12 +68,57 @@ def decodificar_imagen(imagen_base64: str):
 
     return imagen
 
+def guardar_fotograma_movimiento(
+    id_secuencia: str | None,
+    mano,
+):
+    """
+    Guarda los landmarks sin mezclar intentos diferentes.
+    """
+
+    if id_secuencia is None:
+        return ()
+
+    with _bloqueo_historiales:
+        historial = _historiales_movimiento.get(
+            id_secuencia
+        )
+
+        if historial is None:
+            if (
+                len(_historiales_movimiento)
+                >= MAXIMO_SECUENCIAS
+            ):
+                secuencia_antigua = next(
+                    iter(_historiales_movimiento)
+                )
+
+                del _historiales_movimiento[
+                    secuencia_antigua
+                ]
+
+            historial = HistorialMovimiento()
+
+            _historiales_movimiento[
+                id_secuencia
+            ] = historial
+
+        historial.agregar(mano)
+
+        return historial.fotogramas
 
 def procesar_reconocimiento(
     imagen,
     tiempo_actual: int | None = None,
+    id_secuencia: str | None = None,
+    modo: str = "estatica",
 ) -> dict:
-    """Procesa una imagen utilizando el módulo de visión."""
+    """Procesa una imagen según el modo de reconocimiento."""
+
+    if modo not in ("estatica", "movimiento"):
+        raise ValueError(
+            "El modo debe ser 'estatica' o 'movimiento'"
+        )
 
     # Conserva el modo video para llamadas que envían un tiempo
     modo_video = tiempo_actual is not None
@@ -92,16 +140,29 @@ def procesar_reconocimiento(
                 tiempo_actual,
             )
 
-        # Devuelve el resultado cuando no hay una mano
         if not resultado.hand_landmarks:
             return {
                 "letra": None,
                 "mensaje": "No se detectó una mano",
             }
 
-        # Reconoce la vocal de la primera mano
         mano = resultado.hand_landmarks[0]
-        reconocimiento = reconocer_mano(mano)
+
+        # El historial solo interviene en letras con movimiento
+        if modo == "movimiento":
+            fotogramas = guardar_fotograma_movimiento(
+                id_secuencia,
+                mano,
+            )
+        else:
+            fotogramas = ()
+
+        reconocimiento = reconocer_mano(
+            mano=mano,
+            fotogramas=fotogramas,
+            modo=modo,
+        )
+
         letra = reconocimiento["letra"]
 
         return {
@@ -109,9 +170,12 @@ def procesar_reconocimiento(
             "mensaje": (
                 None
                 if letra is not None
-                else "No se reconoció una vocal"
+                else "No se reconoció una letra"
             ),
         }
+
+    except ValueError:
+        raise
 
     except Exception as error:
         _logger.exception("Error en el reconocimiento visual")
@@ -121,12 +185,20 @@ def procesar_reconocimiento(
         ) from error
 
 
-def procesar_imagen_base64(imagen_base64: str) -> dict:
+def procesar_imagen_base64(
+    imagen_base64: str,
+    id_secuencia: str | None = None,
+    modo: str = "estatica",
+) -> dict:
     """Convierte y procesa la imagen recibida por el endpoint."""
 
     imagen = decodificar_imagen(imagen_base64)
 
-    return procesar_reconocimiento(imagen)
+    return procesar_reconocimiento(
+        imagen,
+        id_secuencia=id_secuencia,
+        modo=modo,
+    )
 
 
 def cerrar_detectores():
@@ -137,3 +209,5 @@ def cerrar_detectores():
             detector.cerrar()
 
         _detectores.clear()
+    with _bloqueo_historiales:
+        _historiales_movimiento.clear()

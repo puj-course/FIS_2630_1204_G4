@@ -1,20 +1,27 @@
-from fastapi import FastAPI
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
-from app.routes.usuarios import router as usuarios_router
 from app.routes.perfil import router as perfil_router
-from fastapi.staticfiles import StaticFiles
-
-from contextlib import asynccontextmanager
-
-from app.routes.vision import router as vision_router
-from app.services.vision_service import cerrar_detectores
-
+from app.routes.progreso import router as progreso_router
 from app.routes.resultados_reconocimiento import (
     router as resultados_reconocimiento_router,
 )
+from app.routes.usuarios import router as usuarios_router
+from app.routes.vision import router as vision_router
+from app.services.vision_service import cerrar_detectores
+from conf.logging_config import configurar_logging
+
+configurar_logging()
+
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +38,16 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+@app.exception_handler(Exception)
+async def manejador_errores_no_controlados(request: Request, exc: Exception):
+    logger.exception(
+        "Error no controlado en %s %s", request.method, request.url.path
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Ocurrió un error interno, Intenta más tarde."},
+    )
 
 app.mount(
     "/assets",
@@ -59,6 +76,7 @@ app.include_router(usuarios_router)
 app.include_router(perfil_router)
 app.include_router(vision_router)
 app.include_router(resultados_reconocimiento_router)
+app.include_router(progreso_router)
 
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():

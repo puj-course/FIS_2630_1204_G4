@@ -6,13 +6,9 @@ from fastapi.routing import APIRoute
 
 from app.services.restablecimiento_service import (
     SolicitudRecuperacionInvalidaError,
-    restablecer_contrasena
+    restablecer_contrasena,
 )
-from src.schemas.restablecimiento import (
-    RespuestaRestablecimiento,
-    SolicitudRestablecimiento
-)
-
+from src.schemas.restablecimiento import RespuestaRestablecimiento, SolicitudRestablecimiento
 
 logger = logging.getLogger(__name__)
 NO_CACHE = {"Cache-Control": "no-store"}
@@ -38,7 +34,8 @@ class RutaRestablecimiento(APIRoute):
                         ("body", "confirmacion_contrasena")
                     ) for e in errores
                 ):
-                    mensaje = "La contraseña y su confirmación deben tener entre 12 y 200 caracteres."
+                    mensaje = "La contraseña y su confirmación deben tener"
+                    "entre 12 y 200 caracteres."
                 elif any(
                     e["loc"] == ("body",) and e["type"] == "value_error"
                     for e in errores

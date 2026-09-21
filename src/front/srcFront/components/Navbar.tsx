@@ -1,15 +1,15 @@
-import { FaGraduationCap, FaTools, FaUser, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
+import "./Navbar.css";
+import {FaGraduationCap, FaTools, FaUser, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
 
 interface Props {
   cambiarPagina: (pagina: string) => void;
-  paginaActual:string;
+  paginaActual: string;
   cerrarSesion: () => void;
 }
-
-function Navbar({ cambiarPagina, paginaActual,cerrarSesion }: Props) {
+function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
 
   return (
-    <nav>
+    <nav className="navbar">
 
       <div className="logoNav">
 
@@ -42,16 +42,6 @@ function Navbar({ cambiarPagina, paginaActual,cerrarSesion }: Props) {
           <FaTools />
           Practicar
         </button>
-
-
-        {/*<button 
-          className={paginaActual === "logros" ? "botonActivo" : "botonMenu"}
-          onClick={() => cambiarPagina("logros")}
-        >
-          <FaTrophy className={paginaActual === "logros" ? "trofeoActivo" : ""}/>
-          Logros
-        </button>*/}
-
 
         <button 
           className={paginaActual === "perfil" ? "botonActivo" : "botonMenu"}

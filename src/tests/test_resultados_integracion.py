@@ -1,8 +1,8 @@
 import os
 import unittest
 from contextlib import contextmanager
-from uuid import uuid4
 from unittest.mock import patch
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 from psycopg.rows import dict_row

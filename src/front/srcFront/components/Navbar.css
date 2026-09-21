@@ -1,0 +1,156 @@
+.navbar {
+  position:sticky;
+  top:0;
+  align-self:flex-start;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  width:220px;
+  min-width:220px;
+  padding:24px 18px;
+  overflow-y:auto;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(37,99,235,0.18),transparent 35%),
+    linear-gradient(180deg,#0b1019,#080c13);
+  border-right:1px solid rgba(96,165,250,0.12);
+  color:white;
+  box-shadow:8px 0 30px rgba(0,0,0,0.2);
+}
+
+.logoNav {
+  padding:0 8px 24px;
+  border-bottom:1px solid rgba(96,165,250,0.1);
+}
+
+.logoNav h2 {
+  margin:0;
+  color:var(--azul-claro);
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:-1px;
+  text-shadow:0 0 22px rgba(96,165,250,0.18);
+}
+
+.logoNav p {
+  margin-top:2px;
+  color:var(--texto-secundario);
+  font-size:12px;
+}
+
+.Opciones {
+  margin-top:24px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.botonMenu,
+.botonActivo {
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 14px;
+  border-radius:10px;
+  font-family:inherit;
+  font-size:14px;
+  text-align:left;
+  cursor:pointer;
+}
+
+.botonMenu {
+  border:1px solid transparent;
+  background:transparent;
+  color:#cbd5e1;
+  transition:background 0.2s ease,color 0.2s ease,border-color 0.2s ease,transform 0.2s ease;
+}
+
+.botonMenu:hover {
+  background:rgba(37,99,235,0.1);
+  border-color:rgba(96,165,250,0.15);
+  color:var(--azul-claro);
+  transform:translateX(4px);
+}
+
+.botonActivo {
+  position:relative;
+  border:1px solid rgba(96,165,250,0.25);
+  background:linear-gradient(90deg,rgba(37,99,235,0.22),rgba(37,99,235,0.08));
+  color:var(--azul-claro);
+  font-weight:600;
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+}
+
+.botonActivo::before {
+  content:"";
+  position:absolute;
+  left:-1px;
+  top:9px;
+  bottom:9px;
+  width:3px;
+  border-radius:3px;
+  background:var(--azul-claro);
+}
+
+.botonMenu svg,
+.botonActivo svg {
+  min-width:18px;
+  font-size:17px;
+  transition:transform 0.2s ease,color 0.2s ease;
+}
+
+.botonMenu:hover svg {
+  transform:scale(1.12);
+}
+
+.botonActivo svg {
+  color:var(--azul-claro);
+}
+
+.inferior {
+  margin-top:auto;
+  padding-top:20px;
+}
+
+.fraseinf {
+  margin-bottom:15px;
+  padding:14px 12px;
+  border:1px solid rgba(96,165,250,0.12);
+  border-radius:10px;
+  background:linear-gradient(145deg,rgba(30,41,59,0.75),rgba(15,23,42,0.75));
+  color:var(--texto-secundario);
+  font-size:11px;
+  line-height:1.5;
+  text-align:center;
+}
+
+.inferior .botonMenu {
+  margin-top:4px;
+}
+
+.inferior .botonMenu:last-child:hover {
+  background:rgba(248,113,113,0.08);
+  border-color:rgba(248,113,113,0.18);
+  color:#f87171;
+}
+
+.inferior .botonMenu:last-child:hover svg {
+  color:#f87171;
+}
+
+.navbar::-webkit-scrollbar {
+  width:5px;
+}
+
+.navbar::-webkit-scrollbar-track {
+  background:transparent;
+}
+
+.navbar::-webkit-scrollbar-thumb {
+  border-radius:10px;
+  background:#273244;
+}
+
+.navbar::-webkit-scrollbar-thumb:hover {
+  background:#334155;
+}

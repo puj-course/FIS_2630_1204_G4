@@ -1,6 +1,10 @@
 # SignIA 💙
 **"Aprender para comunicar, comunicar para incluir."**
 
+![Backend CI](https://github.com/puj-course/FIS_2630_1204_G4/actions/workflows/backend-ci.yml/badge.svg)
+![Frontend CI](https://github.com/puj-course/FIS_2630_1204_G4/actions/workflows/frontend-ci.yml/badge.svg)
+
+
 ## Descripción
 **SignIA** es una plataforma web multiusuario orientada al aprendizaje y reconocimiento del alfabeto de la **Lengua de Señas Colombiana (LSC)** mediante visión por computador, la plataforma facilita la práctica del alfabeto de la LSC utilizando la cámara del dispositivo, permitiendo identificar las señas realizadas por el usuario y mostrar la letra correspondiente en tiempo real.
 
@@ -174,16 +178,15 @@ cd SignIA
 ```
 
 ## Ejecución con Docker
-```text
-docker-compose up --build
+```text 
+docker compose up --build
 ```
+Esto levanta 3 servicios: backend (FastAPI, puerto 8000), frontend (puerto 5173) y postgres (puerto 5432). La DB se inicia automáticamente con el esquema y los datos de ejemplo de la primera vez que se levante.
 
 ## Ejecución de pruebas
 ```text
-docker-compose run backend mvn test
-docker-compose run ai-model pytest
+docker compose exec backend pytest
 ```
-
 ---
 
 ## Contexto Académico

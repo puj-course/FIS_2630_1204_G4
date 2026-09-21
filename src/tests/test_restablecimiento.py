@@ -8,10 +8,10 @@ from fastapi.testclient import TestClient
 from app.routes.restablecimiento_contrasena import router
 from app.services.autenticacion_service import autenticar_usuario
 from app.services.restablecimiento_service import (
-    SolicitudRecuperacionInvalidaError, restablecer_contrasena
+    SolicitudRecuperacionInvalidaError,
+    restablecer_contrasena,
 )
 from src.schemas.restablecimiento import SolicitudRestablecimiento
-
 
 TOKEN = "A" * 43
 CONTRASENA = "Nueva clave de prueba 2077!"
