@@ -1,31 +1,34 @@
-import Bienvenida from "./components/Bienvenida";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
 import { obtenerSesion } from "./services/autenticacion";
+import Bienvenida from "./components/Bienvenida";
+
 interface Props {
   cambiarPagina: (pagina: string) => void;
 }
+
 function claveBienvenidaVista(idUsuario: number): string {
   return `signia_bienvenida_vista_${idUsuario}`;
 }
 
+function calcularMostrarBienvenidaInicial(): boolean {
+  const sesion = obtenerSesion();
+
+  if (!sesion) {
+    return false;
+  }
+
+  const yaVista = localStorage.getItem(
+    claveBienvenidaVista(sesion.usuario.id_usuario)
+  );
+
+  return !yaVista;
+}
+
 function Home({ cambiarPagina }: Props) {
-  const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
-
-  useEffect(() => {
-    const sesion = obtenerSesion();
-
-    if (!sesion) {
-      return;
-    }
-
-    const yaVista = localStorage.getItem(
-      claveBienvenidaVista(sesion.usuario.id_usuario)
-    );
-
-    if (!yaVista) {
-      setMostrarBienvenida(true);
-    }
-  }, []);
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(
+    calcularMostrarBienvenidaInicial
+  );
 
   function cerrarBienvenida() {
     const sesion = obtenerSesion();
