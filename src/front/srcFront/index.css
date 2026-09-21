@@ -341,3 +341,35 @@ main {
 .registro .enlace:hover {
   color:#bfdbfe;
 }
+
+.selectorModoReconocimiento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.selectorModoReconocimiento button {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 0.7rem;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.65);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.selectorModoReconocimiento button:hover {
+  border-color: #3b82f6;
+}
+
+.selectorModoReconocimiento .modoReconocimientoActivo {
+  border-color: #3b82f6;
+  color: #ffffff;
+  background: #2563eb;
+}

@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field
 
 from uuid import UUID
 
+from typing import Literal
+from uuid import UUID
+
 # Define la imagen que recibe el endpoint
 class VisionEntrada(BaseModel):
     imagen_base64: str = Field(
@@ -22,6 +25,7 @@ class VisionEntrada(BaseModel):
             "Permite analizar movimientos consecutivos."
         ),
     )
+    modo: Literal["estatica", "movimiento"] = "estatica"
 
 
 # Define el resultado del reconocimiento

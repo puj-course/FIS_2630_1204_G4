@@ -12,7 +12,7 @@ router = APIRouter(
 @router.post(
     "/reconocer",
     response_model=VisionRespuesta,
-    summary="Reconocer una vocal en una imagen",
+    summary="Reconocer una letra en una imagen",
     responses={
         400: {
             "description": "Base64 inválido o imagen no admitida",
@@ -29,30 +29,28 @@ def reconocer_imagen(datos: VisionEntrada):
     - Enviar únicamente el Base64, sin el prefijo data:image.
     - El archivo de imagen no puede superar 5 MiB.
     - El texto Base64 admite hasta 7.000.000 de caracteres.
-    - Devuelve la vocal reconocida y un mensaje opcional.
-    - Si no hay mano o no se reconoce una vocal, devuelve letra null.
+    - Devuelve la letra reconocida y un mensaje opcional.
+    - Si no hay mano o no se reconoce una letra, devuelve letra null.
     """
 
     try:
-        # Envía la imagen al servicio visual
         return procesar_imagen_base64(
-         datos.imagen_base64,
-        id_secuencia=(
-         str(datos.id_secuencia)
-         if datos.id_secuencia is not None
-        else None
-     ),
-)
+            imagen_base64=datos.imagen_base64,
+            id_secuencia=(
+                str(datos.id_secuencia)
+                if datos.id_secuencia is not None
+                else None
+            ),
+            modo=datos.modo,
+        )
 
     except ValueError as error:
-        # Informa que la imagen enviada no es válida
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(error),
         ) from error
 
     except RuntimeError as error:
-        # Informa que falló el procesamiento
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No fue posible procesar el reconocimiento visual",
