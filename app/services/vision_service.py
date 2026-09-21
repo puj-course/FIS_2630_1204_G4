@@ -143,12 +143,16 @@ def procesar_reconocimiento(
 
         # Reconoce la vocal de la primera mano
         mano = resultado.hand_landmarks[0]
-
-        guardar_fotograma_movimiento(
+        fotogramas = guardar_fotograma_movimiento(
             id_secuencia,
             mano,
         )
-        reconocimiento = reconocer_mano(mano)
+
+        reconocimiento = reconocer_mano(
+            mano,
+            fotogramas,
+        )
+
         letra = reconocimiento["letra"]
 
         return {
@@ -156,7 +160,7 @@ def procesar_reconocimiento(
             "mensaje": (
                 None
                 if letra is not None
-                else "No se reconoció una vocal"
+                else "No se reconoció una letra"
             ),
         }
 

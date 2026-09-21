@@ -1,14 +1,33 @@
+from app.vision.letras_movimiento import (
+    reconocer_letra_movimiento,
+)
+from app.vision.movimientos import FotogramaMovimiento
 from app.vision.vocales import reconocer_vocal
 
 
-def reconocer_mano(mano):
+def reconocer_mano(
+    mano,
+    fotogramas: tuple[FotogramaMovimiento, ...] = (),
+):
     """
-    Recibe los landmarks de una mano detectada
-    y devuelve la vocal reconocida.
+    Reconoce primero las letras con movimiento y después
+    las letras estáticas.
     """
 
-    vocal = reconocer_vocal(mano)
+    letra_movimiento = reconocer_letra_movimiento(
+        mano,
+        fotogramas,
+    )
+
+    if letra_movimiento is not None:
+        return {
+            "letra": letra_movimiento,
+            "requiere_movimiento": True,
+        }
+
+    letra_estatica = reconocer_vocal(mano)
 
     return {
-        "letra": vocal
+        "letra": letra_estatica,
+        "requiere_movimiento": False,
     }
