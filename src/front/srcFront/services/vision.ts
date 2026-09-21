@@ -1,9 +1,15 @@
 import { solicitarApi } from "./api";
 
 
+export type ModoReconocimiento =
+  | "estatica"
+  | "movimiento";
+
+
 export interface VisionEntrada {
   imagen_base64: string;
-  id_secuencia?: string;
+  id_secuencia: string;
+  modo: ModoReconocimiento;
 }
 
 
@@ -25,15 +31,16 @@ export interface VisionRespuesta {
 }
 
 
-// Envía un fotograma al servicio de reconocimiento
 export function reconocerImagen(
   imagenBase64: string,
   idSecuencia: string,
+  modo: ModoReconocimiento,
   signal?: AbortSignal,
 ): Promise<VisionRespuesta> {
   const datos: VisionEntrada = {
     imagen_base64: imagenBase64,
     id_secuencia: idSecuencia,
+    modo,
   };
 
   return solicitarApi<VisionRespuesta>(

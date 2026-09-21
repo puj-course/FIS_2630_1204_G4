@@ -6,6 +6,7 @@ import {
 
 import {
   reconocerImagen,
+  type ModoReconocimiento,
   type VisionRespuesta,
 } from "../services/vision";
 
@@ -17,6 +18,7 @@ const TAMANO_HISTORIAL = 5;
 
 export function useReconocimiento(
   videoRef: RefObject<HTMLVideoElement | null>,
+  modo: ModoReconocimiento,
 ) {
   const [resultado, setResultado] =
     useState<VisionRespuesta | null>(null);
@@ -83,8 +85,9 @@ export function useReconocimiento(
         const respuesta = await reconocerImagen(
           imagenBase64,
           idSecuencia,
+          modo,
           controlador.signal,
-        );
+      );
 
         if (!activo) {
           return;
@@ -161,7 +164,7 @@ export function useReconocimiento(
 
       peticion?.abort();
     };
-  }, [videoRef, intento]);
+}, [videoRef, intento, modo]);
 
 
   function reintentar() {

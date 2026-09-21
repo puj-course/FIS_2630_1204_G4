@@ -8,6 +8,9 @@ import { obtenerSesion } from "../services/autenticacion";
 import { registrarResultadoReconocimiento } from "../services/resultados";
 import { useReconocimiento } from "../hooks/useReconocimiento";
 
+import type {
+  ModoReconocimiento,
+} from "../services/vision";
 
 const CONFIANZA_MINIMA = 0.80;
 
@@ -15,12 +18,14 @@ const CONFIANZA_MINIMA = 0.80;
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
   idLetraObjetivo: number | null;
+  modo: ModoReconocimiento;
 }
 
 
 function ResultadoReconocimiento({
   videoRef,
   idLetraObjetivo,
+  modo,
 }: Props) {
   const {
     resultado,
@@ -28,7 +33,7 @@ function ResultadoReconocimiento({
     procesando,
     mensajeError,
     reintentar,
-  } = useReconocimiento(videoRef);
+  } = useReconocimiento(videoRef, modo);
 
   const [guardando, setGuardando] = useState(false);
   const [mensajeRegistro, setMensajeRegistro] = useState("");
@@ -128,7 +133,7 @@ function ResultadoReconocimiento({
             {resultado?.letra ? (
               <>
                 <p>
-                  Vocal detectada:{" "}
+                  Letra detectada:{" "}
                   <strong>{resultado.letra}</strong>
                 </p>
 
