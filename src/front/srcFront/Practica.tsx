@@ -13,6 +13,11 @@ import {
 import Camara from "./components/Camara";
 import { useCamara } from "./hooks/useCamara";
 import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
+import type {
+  ModoReconocimiento,
+} from "./services/vision";
+
+
 
 function Practica() {
   const {
@@ -28,8 +33,13 @@ function Practica() {
 
   const [letraSeleccionada, setLetraSeleccionada] =
     useState<Letra | null>(null);
+
   const [cargando, setCargando] = useState(true);
   const [mensajeError, setMensajeError] = useState("");
+
+  const [modo, setModo] =
+    useState<ModoReconocimiento>("estatica");
+
 
   useEffect(() => {
     let componenteActivo = true;
@@ -156,19 +166,50 @@ function Practica() {
               <FaBullseye />
               <h2>Análisis en tiempo real</h2>
             </div>
+            <div
+  className="selectorModoReconocimiento"
+  role="group"
+  aria-label="Tipo de reconocimiento"
+>
+  <button
+    type="button"
+    className={
+      modo === "estatica"
+        ? "modoReconocimientoActivo"
+        : undefined
+    }
+    aria-pressed={modo === "estatica"}
+    onClick={() => setModo("estatica")}
+  >
+    Letra estática
+  </button>
+
+  <button
+    type="button"
+    className={
+      modo === "movimiento"
+        ? "modoReconocimientoActivo"
+        : undefined
+    }
+    aria-pressed={modo === "movimiento"}
+    onClick={() => setModo("movimiento")}
+  >
+    Letra con movimiento
+  </button>
+</div>
+
 
             <div className="resultadoPractica">
               {camaraActiva ? (
-                <ResultadoReconocimiento
-                  key={
-                    letraSeleccionada?.id_letra ??
-                    "sin-letra"
-                  }
-                  videoRef={videoRef}
-                  idLetraObjetivo={
-                    letraSeleccionada?.id_letra ?? null
-                  }
-                />
+
+<ResultadoReconocimiento
+  key={`${letraSeleccionada?.id_letra ?? "sin-letra"}-${modo}`}
+  videoRef={videoRef}
+  idLetraObjetivo={
+    letraSeleccionada?.id_letra ?? null
+  }
+  modo={modo}
+/>
               ) : (
                 <div className="reconocimientoInactivo">
                   <FaVideo />
