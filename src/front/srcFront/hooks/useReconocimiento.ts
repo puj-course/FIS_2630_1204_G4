@@ -36,6 +36,7 @@ export function useReconocimiento(
     let peticion: AbortController | null = null;
 
     const historial: Array<VisionRespuesta["letra"]> = [];
+    const idSecuencia = crypto.randomUUID();
 
 
     async function procesarFotograma() {
@@ -81,6 +82,7 @@ export function useReconocimiento(
 
         const respuesta = await reconocerImagen(
           imagenBase64,
+          idSecuencia,
           controlador.signal,
         );
 

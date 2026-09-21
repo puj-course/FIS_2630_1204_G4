@@ -3,22 +3,37 @@ import { solicitarApi } from "./api";
 
 export interface VisionEntrada {
   imagen_base64: string;
+  id_secuencia?: string;
 }
 
 
 export interface VisionRespuesta {
-  letra: "A" | "E" | "I" | "O" | "U" | null;
+  letra:
+    | "A"
+    | "E"
+    | "G"
+    | "H"
+    | "I"
+    | "J"
+    | "Ñ"
+    | "O"
+    | "S"
+    | "U"
+    | "Z"
+    | null;
   mensaje: string | null;
 }
 
 
-// Envía una imagen al servicio de reconocimiento
+// Envía un fotograma al servicio de reconocimiento
 export function reconocerImagen(
   imagenBase64: string,
+  idSecuencia: string,
   signal?: AbortSignal,
 ): Promise<VisionRespuesta> {
   const datos: VisionEntrada = {
     imagen_base64: imagenBase64,
+    id_secuencia: idSecuencia,
   };
 
   return solicitarApi<VisionRespuesta>(
