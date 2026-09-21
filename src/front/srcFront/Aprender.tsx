@@ -6,6 +6,10 @@ import {
   actualizarLetra,
   type Letra as LetraBackend,
 } from "./services/letras";
+import {
+  consultarEstadoLetras,
+  type EstadoAprendizaje,
+} from "./services/progreso";
 import { ErrorApi } from "./services/api";
 
 interface Props {
@@ -16,43 +20,103 @@ const API_URL = "http://localhost:8000";
 
 function Aprender({ cambiarPagina }: Props) {
   const [letrasBackend, setLetrasBackend] = useState<LetraBackend[]>([]);
-  const [letraSeleccionada, setLetraSeleccionada] = useState<LetraBackend | null>(null);
+  const [estadosAprendizaje, setEstadosAprendizaje] = useState<
+    Record<number, EstadoAprendizaje>
+  >({});
+  const [letraSeleccionada, setLetraSeleccionada] =
+    useState<LetraBackend | null>(null);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState("");
+  const [errorProgreso, setErrorProgreso] = useState("");
   const [editando, setEditando] = useState(false);
   const [descripcionEditada, setDescripcionEditada] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
+
   const sesion = obtenerSesion();
   const esAdministrador = sesion?.usuario.rol === "administrador";
 
   useEffect(() => {
     let activo = true;
-    const cargarLetras = async () => {
+
+    const actualizarProgreso = async () => {
+      const sesionActual = obtenerSesion();
+
+      if (!sesionActual) {
+        return;
+      }
+
       try {
-        const resultado = await obtenerLetras();
-        if (activo) {
-          setLetrasBackend(resultado);
-          setErrorCarga("");
+        const resultadoProgreso = await consultarEstadoLetras(
+          sesionActual.access_token
+        );
+
+        if (!activo) {
+          return;
         }
+
+        const nuevosEstados: Record<number, EstadoAprendizaje> = {};
+
+        resultadoProgreso.letras.forEach((letra) => {
+          nuevosEstados[letra.id_letra] = letra.estado;
+        });
+
+        setEstadosAprendizaje(nuevosEstados);
+        setErrorProgreso("");
       } catch (error) {
-        if (activo) {
-          setErrorCarga(
-            error instanceof ErrorApi
-              ? error.message
-              : "No fue posible cargar el alfabeto en este momento"
-          );
+        if (!activo) {
+          return;
         }
+
+        setErrorProgreso(
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible actualizar el estado de aprendizaje."
+        );
+      }
+    };
+
+    const cargarInformacion = async () => {
+      try {
+        const resultadoLetras = await obtenerLetras();
+
+        if (!activo) {
+          return;
+        }
+
+        setLetrasBackend(resultadoLetras);
+        setErrorCarga("");
+
+        await actualizarProgreso();
+      } catch (error) {
+        if (!activo) {
+          return;
+        }
+
+        setErrorCarga(
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible cargar el alfabeto en este momento"
+        );
       } finally {
         if (activo) {
           setCargando(false);
         }
       }
     };
-    void cargarLetras();
+
+    const actualizarAlVolver = () => {
+      void actualizarProgreso();
+    };
+
+    void cargarInformacion();
+
+    window.addEventListener("focus", actualizarAlVolver);
+
     return () => {
       activo = false;
+      window.removeEventListener("focus", actualizarAlVolver);
     };
   }, []);
 
@@ -72,11 +136,15 @@ function Aprender({ cambiarPagina }: Props) {
 
   const cambiarLetra = (direccion: number) => {
     if (!letraSeleccionada) return;
+
     const indiceActual = letrasBackend.findIndex(
       (letra) => letra.id_letra === letraSeleccionada.id_letra
     );
+
     const nuevoIndice = indiceActual + direccion;
+
     if (nuevoIndice < 0 || nuevoIndice >= letrasBackend.length) return;
+
     setLetraSeleccionada(letrasBackend[nuevoIndice]);
     setEditando(false);
     setMensajeError("");
@@ -91,6 +159,7 @@ function Aprender({ cambiarPagina }: Props) {
 
   const iniciarEdicion = () => {
     if (!letraSeleccionada) return;
+
     setDescripcionEditada(letraSeleccionada.descripcion ?? "");
     setEditando(true);
     setMensajeError("");
@@ -99,9 +168,11 @@ function Aprender({ cambiarPagina }: Props) {
 
   const guardarCambios = async () => {
     if (!letraSeleccionada || !sesion) return;
+
     setGuardando(true);
     setMensajeError("");
     setMensajeExito("");
+
     try {
       const resultado = await actualizarLetra(
         letraSeleccionada.id_letra,
@@ -110,6 +181,7 @@ function Aprender({ cambiarPagina }: Props) {
         },
         sesion.access_token
       );
+
       setLetrasBackend((previas) =>
         previas.map((letra) =>
           letra.id_letra === resultado.letra.id_letra
@@ -117,6 +189,7 @@ function Aprender({ cambiarPagina }: Props) {
             : letra
         )
       );
+
       setLetraSeleccionada(resultado.letra);
       setMensajeExito("Cambios guardados correctamente");
       setEditando(false);
@@ -143,13 +216,12 @@ function Aprender({ cambiarPagina }: Props) {
       </div>
 
       <div className="informacionModulo">
-        <div className="iconoInformacion">
-          🖕  
-        </div>
+        <div className="iconoInformacion">✋</div>
         <div>
           <h2>Alfabeto de la Lengua de Señas Colombiana</h2>
           <p>
-            Selecciona una letra para conocer su representación, revisar sus instrucciones y comenzar a practicar.
+            Selecciona una letra para conocer su representación, revisar sus
+            instrucciones y comenzar a practicar.
           </p>
         </div>
       </div>
@@ -163,6 +235,12 @@ function Aprender({ cambiarPagina }: Props) {
       {!cargando && errorCarga && (
         <div className="mensajeError" role="alert">
           <p>{errorCarga}</p>
+        </div>
+      )}
+
+      {!cargando && !errorCarga && errorProgreso && (
+        <div className="mensajeErrorProgreso" role="alert">
+          <p>{errorProgreso}</p>
         </div>
       )}
 
@@ -180,69 +258,86 @@ function Aprender({ cambiarPagina }: Props) {
           <div className="encabezadoAlfabeto">
             <div>
               <h2>Alfabeto LSC</h2>
-              <p>
-                Conoce cada seña y practica cuando estés listo.
-              </p>
+              <p>Conoce cada seña y revisa tu progreso de aprendizaje.</p>
             </div>
           </div>
 
           <div className="gridLetras">
-            {letrasBackend.map((letra) => (
-              <article
-                className="tarjetaLetra"
-                key={letra.id_letra}
-              >
-                <div className="cabeceraTarjetaLetra">
-                  <span className="identificadorLetra">
-                    {letra.letra}
-                  </span>
-                </div>
+            {letrasBackend.map((letra) => {
+              const estado =
+                estadosAprendizaje[letra.id_letra] ?? "pendiente";
 
-                <div
-                  className="vistaPreviaLetra"
-                  onClick={() => seleccionarLetra(letra)}
+              return (
+                <article
+                  className={`tarjetaLetra ${
+                    estado === "aprendida"
+                      ? "tarjetaLetraAprendida"
+                      : "tarjetaLetraPendiente"
+                  }`}
+                  key={letra.id_letra}
                 >
-                  {letra.ruta_imagen ? (
-                    <img
-                      src={`${API_URL}${letra.ruta_imagen}`}
-                      alt={`Seña letra ${letra.letra}`}
-                    />
-                  ) : (
-                    <span className="letraSinImagen">
+                  <div className="cabeceraTarjetaLetra">
+                    <span className="identificadorLetra">
                       {letra.letra}
                     </span>
-                  )}
-                </div>
 
-                <div className="contenidoTarjetaLetra">
-                  <h3>
-                    Letra {letra.letra}
-                  </h3>
+                    <span
+                      className={`estadoAprendizaje ${
+                        estado === "aprendida"
+                          ? "estadoAprendido"
+                          : "estadoPendiente"
+                      }`}
+                    >
+                      {estado === "aprendida"
+                        ? "✓ Aprendida"
+                        : "Pendiente"}
+                    </span>
+                  </div>
 
-                  <p>
-                    {letra.descripcion || "Consulta cómo realizar esta seña correctamente."}
-                  </p>
-                </div>
-
-                <div className="accionesTarjetaLetra">
-                  <button
-                    type="button"
-                    className="botonGuia"
+                  <div
+                    className="vistaPreviaLetra"
                     onClick={() => seleccionarLetra(letra)}
                   >
-                    Ver guía
-                  </button>
+                    {letra.ruta_imagen ? (
+                      <img
+                        src={`${API_URL}${letra.ruta_imagen}`}
+                        alt={`Seña letra ${letra.letra}`}
+                      />
+                    ) : (
+                      <span className="letraSinImagen">
+                        {letra.letra}
+                      </span>
+                    )}
+                  </div>
 
-                  <button
-                    type="button"
-                    className="botonPracticarTarjeta"
-                    onClick={() => cambiarPagina("practica")}
-                  >
-                    Practicar
-                  </button>
-                </div>
-              </article>
-            ))}
+                  <div className="contenidoTarjetaLetra">
+                    <h3>Letra {letra.letra}</h3>
+                    <p>
+                      {letra.descripcion ||
+                        "Consulta cómo realizar esta seña correctamente."}
+                    </p>
+                  </div>
+
+                  <div className="accionesTarjetaLetra">
+                    <button
+                      type="button"
+                      className="botonGuia"
+                      onClick={() => seleccionarLetra(letra)}
+                    >
+                      Ver guía
+                    </button>
+
+                    <button
+                      type="button"
+                      className="botonPracticarTarjeta"
+                      onClick={() => cambiarPagina("practica")}
+                    >
+                      Practicar
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
@@ -276,9 +371,7 @@ function Aprender({ cambiarPagina }: Props) {
                   ×
                 </button>
 
-                <h2>
-                  Letra {letraSeleccionada.letra}
-                </h2>
+                <h2>Letra {letraSeleccionada.letra}</h2>
 
                 <div className="imagenSena">
                   {letraSeleccionada.ruta_imagen ? (
@@ -331,7 +424,9 @@ function Aprender({ cambiarPagina }: Props) {
                         onClick={guardarCambios}
                         disabled={guardando}
                       >
-                        {guardando ? "Guardando..." : "Guardar cambios"}
+                        {guardando
+                          ? "Guardando..."
+                          : "Guardar cambios"}
                       </button>
 
                       <button
