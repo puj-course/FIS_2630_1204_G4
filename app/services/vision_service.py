@@ -111,8 +111,14 @@ def procesar_reconocimiento(
     imagen,
     tiempo_actual: int | None = None,
     id_secuencia: str | None = None,
+    modo: str = "estatica",
 ) -> dict:
-    """Procesa una imagen utilizando el módulo de visión."""
+    """Procesa una imagen según el modo de reconocimiento."""
+
+    if modo not in ("estatica", "movimiento"):
+        raise ValueError(
+            "El modo debe ser 'estatica' o 'movimiento'"
+        )
 
     # Conserva el modo video para llamadas que envían un tiempo
     modo_video = tiempo_actual is not None
@@ -134,23 +140,27 @@ def procesar_reconocimiento(
                 tiempo_actual,
             )
 
-        # Devuelve el resultado cuando no hay una mano
         if not resultado.hand_landmarks:
             return {
                 "letra": None,
                 "mensaje": "No se detectó una mano",
             }
 
-        # Reconoce la vocal de la primera mano
         mano = resultado.hand_landmarks[0]
-        fotogramas = guardar_fotograma_movimiento(
-            id_secuencia,
-            mano,
-        )
+
+        # El historial solo interviene en letras con movimiento
+        if modo == "movimiento":
+            fotogramas = guardar_fotograma_movimiento(
+                id_secuencia,
+                mano,
+            )
+        else:
+            fotogramas = ()
 
         reconocimiento = reconocer_mano(
-            mano,
-            fotogramas,
+            mano=mano,
+            fotogramas=fotogramas,
+            modo=modo,
         )
 
         letra = reconocimiento["letra"]
@@ -164,6 +174,9 @@ def procesar_reconocimiento(
             ),
         }
 
+    except ValueError:
+        raise
+
     except Exception as error:
         _logger.exception("Error en el reconocimiento visual")
 
@@ -175,6 +188,7 @@ def procesar_reconocimiento(
 def procesar_imagen_base64(
     imagen_base64: str,
     id_secuencia: str | None = None,
+    modo: str = "estatica",
 ) -> dict:
     """Convierte y procesa la imagen recibida por el endpoint."""
 
@@ -183,6 +197,7 @@ def procesar_imagen_base64(
     return procesar_reconocimiento(
         imagen,
         id_secuencia=id_secuencia,
+        modo=modo,
     )
 
 
