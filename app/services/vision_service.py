@@ -7,12 +7,16 @@ import cv2
 import numpy as np
 
 from app.vision.detector import DetectorMano
+from app.vision.movimientos import HistorialMovimiento
 from app.vision.reconocimiento import reconocer_mano
 
 LIMITE_IMAGEN_BYTES = 5 * 1024 * 1024
 
 _detectores: dict[bool, DetectorMano] = {}
 _bloqueo_detector = Lock()
+_historiales_movimiento: dict[str, HistorialMovimiento] = {}
+_bloqueo_historiales = Lock()
+MAXIMO_SECUENCIAS = 100
 _logger = logging.getLogger(__name__)
 
 
@@ -64,10 +68,49 @@ def decodificar_imagen(imagen_base64: str):
 
     return imagen
 
+def guardar_fotograma_movimiento(
+    id_secuencia: str | None,
+    mano,
+):
+    """
+    Guarda los landmarks sin mezclar intentos diferentes.
+    """
+
+    if id_secuencia is None:
+        return ()
+
+    with _bloqueo_historiales:
+        historial = _historiales_movimiento.get(
+            id_secuencia
+        )
+
+        if historial is None:
+            if (
+                len(_historiales_movimiento)
+                >= MAXIMO_SECUENCIAS
+            ):
+                secuencia_antigua = next(
+                    iter(_historiales_movimiento)
+                )
+
+                del _historiales_movimiento[
+                    secuencia_antigua
+                ]
+
+            historial = HistorialMovimiento()
+
+            _historiales_movimiento[
+                id_secuencia
+            ] = historial
+
+        historial.agregar(mano)
+
+        return historial.fotogramas
 
 def procesar_reconocimiento(
     imagen,
     tiempo_actual: int | None = None,
+    id_secuencia: str | None = None,
 ) -> dict:
     """Procesa una imagen utilizando el módulo de visión."""
 
@@ -100,6 +143,11 @@ def procesar_reconocimiento(
 
         # Reconoce la vocal de la primera mano
         mano = resultado.hand_landmarks[0]
+
+        guardar_fotograma_movimiento(
+            id_secuencia,
+            mano,
+        )
         reconocimiento = reconocer_mano(mano)
         letra = reconocimiento["letra"]
 
@@ -120,12 +168,18 @@ def procesar_reconocimiento(
         ) from error
 
 
-def procesar_imagen_base64(imagen_base64: str) -> dict:
+def procesar_imagen_base64(
+    imagen_base64: str,
+    id_secuencia: str | None = None,
+) -> dict:
     """Convierte y procesa la imagen recibida por el endpoint."""
 
     imagen = decodificar_imagen(imagen_base64)
 
-    return procesar_reconocimiento(imagen)
+    return procesar_reconocimiento(
+        imagen,
+        id_secuencia=id_secuencia,
+    )
 
 
 def cerrar_detectores():
@@ -136,3 +190,5 @@ def cerrar_detectores():
             detector.cerrar()
 
         _detectores.clear()
+    with _bloqueo_historiales:
+        _historiales_movimiento.clear()

@@ -35,7 +35,14 @@ def reconocer_imagen(datos: VisionEntrada):
 
     try:
         # Envía la imagen al servicio visual
-        return procesar_imagen_base64(datos.imagen_base64)
+        return procesar_imagen_base64(
+         datos.imagen_base64,
+        id_secuencia=(
+         str(datos.id_secuencia)
+         if datos.id_secuencia is not None
+        else None
+     ),
+)
 
     except ValueError as error:
         # Informa que la imagen enviada no es válida
