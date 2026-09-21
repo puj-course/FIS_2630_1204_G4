@@ -40,6 +40,43 @@ function Aprender({ cambiarPagina }: Props) {
   useEffect(() => {
     let activo = true;
 
+    const actualizarProgreso = async () => {
+      const sesionActual = obtenerSesion();
+
+      if (!sesionActual) {
+        return;
+      }
+
+      try {
+        const resultadoProgreso = await consultarEstadoLetras(
+          sesionActual.access_token
+        );
+
+        if (!activo) {
+          return;
+        }
+
+        const nuevosEstados: Record<number, EstadoAprendizaje> = {};
+
+        resultadoProgreso.letras.forEach((letra) => {
+          nuevosEstados[letra.id_letra] = letra.estado;
+        });
+
+        setEstadosAprendizaje(nuevosEstados);
+        setErrorProgreso("");
+      } catch (error) {
+        if (!activo) {
+          return;
+        }
+
+        setErrorProgreso(
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible actualizar el estado de aprendizaje."
+        );
+      }
+    };
+
     const cargarInformacion = async () => {
       try {
         const resultadoLetras = await obtenerLetras();
@@ -51,38 +88,7 @@ function Aprender({ cambiarPagina }: Props) {
         setLetrasBackend(resultadoLetras);
         setErrorCarga("");
 
-        const sesionActual = obtenerSesion();
-
-        if (sesionActual) {
-          try {
-            const resultadoProgreso = await consultarEstadoLetras(
-              sesionActual.access_token
-            );
-
-            if (!activo) {
-              return;
-            }
-
-            const nuevosEstados: Record<number, EstadoAprendizaje> = {};
-
-            resultadoProgreso.letras.forEach((letra) => {
-              nuevosEstados[letra.id_letra] = letra.estado;
-            });
-
-            setEstadosAprendizaje(nuevosEstados);
-            setErrorProgreso("");
-          } catch (error) {
-            if (!activo) {
-              return;
-            }
-
-            setErrorProgreso(
-              error instanceof ErrorApi
-                ? error.message
-                : "No fue posible consultar el estado de aprendizaje."
-            );
-          }
-        }
+        await actualizarProgreso();
       } catch (error) {
         if (!activo) {
           return;
@@ -100,10 +106,17 @@ function Aprender({ cambiarPagina }: Props) {
       }
     };
 
+    const actualizarAlVolver = () => {
+      void actualizarProgreso();
+    };
+
     void cargarInformacion();
+
+    window.addEventListener("focus", actualizarAlVolver);
 
     return () => {
       activo = false;
+      window.removeEventListener("focus", actualizarAlVolver);
     };
   }, []);
 
@@ -203,10 +216,7 @@ function Aprender({ cambiarPagina }: Props) {
       </div>
 
       <div className="informacionModulo">
-        <div className="iconoInformacion">
-          ✋
-        </div>
-
+        <div className="iconoInformacion">✋</div>
         <div>
           <h2>Alfabeto de la Lengua de Señas Colombiana</h2>
           <p>
@@ -248,9 +258,7 @@ function Aprender({ cambiarPagina }: Props) {
           <div className="encabezadoAlfabeto">
             <div>
               <h2>Alfabeto LSC</h2>
-              <p>
-                Conoce cada seña y revisa tu progreso de aprendizaje.
-              </p>
+              <p>Conoce cada seña y revisa tu progreso de aprendizaje.</p>
             </div>
           </div>
 
@@ -303,10 +311,7 @@ function Aprender({ cambiarPagina }: Props) {
                   </div>
 
                   <div className="contenidoTarjetaLetra">
-                    <h3>
-                      Letra {letra.letra}
-                    </h3>
-
+                    <h3>Letra {letra.letra}</h3>
                     <p>
                       {letra.descripcion ||
                         "Consulta cómo realizar esta seña correctamente."}
@@ -366,9 +371,7 @@ function Aprender({ cambiarPagina }: Props) {
                   ×
                 </button>
 
-                <h2>
-                  Letra {letraSeleccionada.letra}
-                </h2>
+                <h2>Letra {letraSeleccionada.letra}</h2>
 
                 <div className="imagenSena">
                   {letraSeleccionada.ruta_imagen ? (
