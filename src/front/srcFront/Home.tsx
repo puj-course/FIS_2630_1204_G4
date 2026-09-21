@@ -1,10 +1,49 @@
+import Bienvenida from "./components/Bienvenida";
+import { useEffect, useState } from "react";
+import { obtenerSesion } from "./services/autenticacion";
 interface Props {
   cambiarPagina: (pagina: string) => void;
 }
+function claveBienvenidaVista(idUsuario: number): string {
+  return `signia_bienvenida_vista_${idUsuario}`;
+}
 
 function Home({ cambiarPagina }: Props) {
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
+
+  useEffect(() => {
+    const sesion = obtenerSesion();
+
+    if (!sesion) {
+      return;
+    }
+
+    const yaVista = localStorage.getItem(
+      claveBienvenidaVista(sesion.usuario.id_usuario)
+    );
+
+    if (!yaVista) {
+      setMostrarBienvenida(true);
+    }
+  }, []);
+
+  function cerrarBienvenida() {
+    const sesion = obtenerSesion();
+
+    if (sesion) {
+      localStorage.setItem(
+        claveBienvenidaVista(sesion.usuario.id_usuario),
+        "true"
+      );
+    }
+
+    setMostrarBienvenida(false);
+  }
   return (
     <div className="pantalla">
+      {mostrarBienvenida && (
+        <Bienvenida onCerrar={cerrarBienvenida} />
+      )}
       <h1 className="logo">SignIA</h1>
       <h2>Bienvenido a SignIA</h2>
       <p className="lema">"Aprender para comunicar, comunicar para incluir."</p>
