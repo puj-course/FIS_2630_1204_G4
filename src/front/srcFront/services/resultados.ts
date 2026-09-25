@@ -57,3 +57,21 @@ export function consultarResultadosReconocimiento(
     }
   );
 }
+export interface EliminarResultadosRespuesta {
+  mensaje: string;
+  eliminados: number;
+}
+
+export function eliminarResultadosReconocimiento(
+  token: string
+): Promise<EliminarResultadosRespuesta> {
+  return solicitarApi<EliminarResultadosRespuesta>(
+    "/resultados-reconocimiento",
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
