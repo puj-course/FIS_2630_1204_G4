@@ -12,13 +12,12 @@ from src.schemas.sesiones import SesionRespuesta
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/sesiones",
     tags=["Sesiones de reconocimiento"],
 )
 
 
 @router.post(
-    "",
+    "/sesiones",
     response_model=SesionRespuesta,
     status_code=status.HTTP_201_CREATED,
     summary="Iniciar una sesión de reconocimiento",

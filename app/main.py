@@ -72,7 +72,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(sesiones_router)
+
 app.include_router(letras_router)
 app.include_router(autenticacion_router)
 app.include_router(usuarios_router)
@@ -81,6 +81,7 @@ app.include_router(vision_router)
 app.include_router(resultados_reconocimiento_router)
 app.include_router(progreso_router)
 app.include_router(resultados_router)
+app.include_router(sesiones_router)
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
     return {
