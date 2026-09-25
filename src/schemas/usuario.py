@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -37,3 +38,10 @@ class UsuarioRegistro(DatosRegistroUsuario):
 class UsuarioRegistroRespuesta(BaseModel):
     mensaje: str
     usuario: UsuarioAutenticadoRespuesta
+
+class UsuarioListado(BaseModel):
+    id_usuario: int
+    nombre: str
+    correo: str
+    rol: str
+    fecha_creacion: datetime
