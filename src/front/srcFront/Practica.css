@@ -406,6 +406,106 @@
   box-shadow:none;
   opacity:0.75;
 }
+.listaHistorialReconocimiento{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:14px;
+}
+
+.itemHistorialReconocimiento{
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border:1px solid var(--borde);
+  border-radius:12px;
+  background:var(--tarjeta-clara);
+  transition:transform 0.2s ease,border-color 0.2s ease,background 0.2s ease;
+}
+
+.itemHistorialReconocimiento:hover{
+  transform:translateY(-2px);
+  border-color:var(--borde-hover);
+}
+
+.letraHistorial{
+  width:48px;
+  height:48px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:12px;
+  background:var(--fondo-secundario);
+  color:var(--texto);
+  font-size:22px;
+  font-weight:700;
+}
+
+.detalleHistorial{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.detalleHistorial strong{
+  font-size:13px;
+  font-weight:600;
+  color:var(--texto);
+}
+
+.detalleHistorial span{
+  font-size:11px;
+  color:var(--texto-secundario);
+}
+
+.confianzaHistorial{
+  min-width:52px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:var(--fondo-secundario);
+  color:var(--azul-claro);
+  font-size:12px;
+  font-weight:700;
+  text-align:center;
+}
+
+.historialCorrecto{
+  border-color:rgba(74,222,128,0.22);
+  background:linear-gradient(
+    90deg,
+    rgba(74,222,128,0.05),
+    var(--tarjeta-clara)
+  );
+}
+
+.historialCorrecto .letraHistorial{
+  background:rgba(74,222,128,0.10);
+  color:var(--verde);
+}
+
+.historialCorrecto .detalleHistorial strong{
+  color:var(--verde);
+}
+
+.historialIncorrecto{
+  border-color:rgba(248,113,113,0.22);
+  background:linear-gradient(
+    90deg,
+    rgba(248,113,113,0.05),
+    var(--tarjeta-clara)
+  );
+}
+
+.historialIncorrecto .letraHistorial{
+  background:rgba(248,113,113,0.10);
+  color:var(--rojo);
+}
+
+.historialIncorrecto .detalleHistorial strong{
+  color:var(--rojo);
+}
 @media(max-width:1150px){
   .zonaPracticaNueva{
     grid-template-columns:1fr;

@@ -1,15 +1,24 @@
 import "./Practica.css";
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   FaVideo,
   FaBullseye,
   FaHistory,
 } from "react-icons/fa";
 import { ErrorApi } from "./services/api";
+import { obtenerSesion } from "./services/autenticacion";
 import {
   obtenerLetras,
   type Letra,
 } from "./services/letras";
+import {
+  consultarResultadosReconocimiento,
+  type ResultadoRegistrado,
+} from "./services/resultados";
 import Camara from "./components/Camara";
 import { useCamara } from "./hooks/useCamara";
 import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
@@ -32,14 +41,51 @@ function Practica() {
   const [letraSeleccionada, setLetraSeleccionada] =
     useState<Letra | null>(null);
 
-  const [ultimaLetraReconocida, setUltimaLetraReconocida] =
-    useState<Letra | null>(null);
+  const [historial, setHistorial] =
+    useState<ResultadoRegistrado[]>([]);
 
   const [cargando, setCargando] = useState(true);
+  const [cargandoHistorial, setCargandoHistorial] =
+    useState(true);
+
   const [mensajeError, setMensajeError] = useState("");
+  const [errorHistorial, setErrorHistorial] = useState("");
 
   const [modo, setModo] =
     useState<ModoReconocimiento>("estatica");
+
+  const cargarHistorial = useCallback(async () => {
+    const sesion = obtenerSesion();
+
+    if (!sesion) {
+      setHistorial([]);
+      setCargandoHistorial(false);
+      return;
+    }
+
+    setCargandoHistorial(true);
+
+    try {
+      const respuesta =
+        await consultarResultadosReconocimiento(
+          sesion.access_token
+        );
+
+      setHistorial(
+        respuesta.resultados.slice(0, 5)
+      );
+
+      setErrorHistorial("");
+    } catch (error) {
+      setErrorHistorial(
+        error instanceof ErrorApi
+          ? error.message
+          : "No fue posible cargar el historial."
+      );
+    } finally {
+      setCargandoHistorial(false);
+    }
+  }, []);
 
   useEffect(() => {
     let componenteActivo = true;
@@ -71,11 +117,12 @@ function Practica() {
     }
 
     void cargarLetras();
+    void cargarHistorial();
 
     return () => {
       componenteActivo = false;
     };
-  }, []);
+  }, [cargarHistorial]);
 
   const textoEstadoCamara = solicitandoCamara
     ? "Solicitando cámara"
@@ -91,12 +138,17 @@ function Practica() {
     }
   };
 
-  const manejarReconocimientoCorrecto = (idLetra: number) => {
+  const manejarReconocimientoCorrecto = (
+    idLetra: number
+  ) => {
     if (
       letraSeleccionada
       && letraSeleccionada.id_letra === idLetra
     ) {
-      setUltimaLetraReconocida(letraSeleccionada);
+      console.log(
+        "Letra reconocida correctamente:",
+        idLetra
+      );
     }
   };
 
@@ -106,6 +158,7 @@ function Practica() {
         <div className="tituloPractica">
           <div className="tituloPracticaPrincipal">
             <h1>Práctica Libre</h1>
+
             <span className="etiquetaVision">
               LSC en vivo
             </span>
@@ -127,6 +180,7 @@ function Practica() {
           onClick={alternarCamara}
         >
           <FaVideo />
+
           {solicitandoCamara
             ? "Cancelar"
             : camaraActiva
@@ -156,6 +210,7 @@ function Practica() {
                 }
               >
                 <span className="puntoEstado"></span>
+
                 {textoEstadoCamara}
               </span>
             </div>
@@ -173,7 +228,10 @@ function Practica() {
           <section className="panelAnalisis">
             <div className="tituloPanelAnalisis">
               <FaBullseye />
-              <h2>Análisis en tiempo real</h2>
+
+              <h2>
+                Análisis en tiempo real
+              </h2>
             </div>
 
             <div
@@ -220,10 +278,14 @@ function Practica() {
                   onReconocimientoCorrecto={
                     manejarReconocimientoCorrecto
                   }
+                  onResultadoRegistrado={() => {
+                    void cargarHistorial();
+                  }}
                 />
               ) : (
                 <div className="reconocimientoInactivo">
                   <FaVideo />
+
                   <p>
                     Activa la cámara para iniciar el reconocimiento.
                   </p>
@@ -236,6 +298,7 @@ function Practica() {
             <div className="tituloUltimasSenas">
               <div>
                 <FaHistory />
+
                 <h2>
                   Últimas señas reconocidas
                 </h2>
@@ -246,30 +309,62 @@ function Practica() {
               </span>
             </div>
 
-            <div className="historialReconocimientoVacio">
-              <FaHistory />
-
-              {ultimaLetraReconocida ? (
-                <div className="ultimaSenaReconocida">
-                <span className="ultimaSenaEtiqueta">
-                  Seña reconocida correctamente
-                </span>
-
-                <strong className="ultimaSenaLetra">
-                  {ultimaLetraReconocida.letra}
-                </strong>
-
-                <span className="ultimaSenaEstado">
-                  Reconocimiento exitoso
-                </span>
-              </div>
-              ) : (
+            {cargandoHistorial ? (
+              <div className="historialReconocimientoVacio">
                 <p>
-                  Las señas reconocidas durante la práctica
-                  aparecerán aquí.
+                  Cargando historial...
                 </p>
-              )}
-            </div>
+              </div>
+            ) : errorHistorial ? (
+              <div className="historialReconocimientoVacio">
+                <p role="alert">
+                  {errorHistorial}
+                </p>
+              </div>
+            ) : historial.length === 0 ? (
+              <div className="historialReconocimientoVacio">
+                <FaHistory />
+
+                <p>
+                  Aún no tienes intentos registrados.
+                </p>
+              </div>
+            ) : (
+              <div className="listaHistorialReconocimiento">
+                {historial.map((resultado) => (
+                  <div
+                    className={
+                      resultado.es_correcto
+                        ? "itemHistorialReconocimiento historialCorrecto"
+                        : "itemHistorialReconocimiento historialIncorrecto"
+                    }
+                    key={resultado.id_resultado}
+                  >
+                    <div className="letraHistorial">
+                      {resultado.letra_detectada}
+                    </div>
+
+                    <div className="detalleHistorial">
+                      <strong>
+                        {resultado.es_correcto
+                          ? "Seña correcta"
+                          : "Seña incorrecta"}
+                      </strong>
+
+                      <span>
+                        Detectada: {resultado.letra_detectada}
+                      </span>
+                    </div>
+
+                    <div className="confianzaHistorial">
+                      {Math.round(
+                        resultado.confianza * 100
+                      )}%
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </aside>
       </section>

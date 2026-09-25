@@ -19,6 +19,7 @@ interface Props {
   idLetraObjetivo: number | null;
   modo: ModoReconocimiento;
   onReconocimientoCorrecto?: (idLetra: number) => void;
+  onResultadoRegistrado?: () => void;
 }
 
 function ResultadoReconocimiento({
@@ -26,6 +27,7 @@ function ResultadoReconocimiento({
   idLetraObjetivo,
   modo,
   onReconocimientoCorrecto,
+  onResultadoRegistrado,
 }: Props) {
   const {
     resultado,
@@ -87,6 +89,8 @@ function ResultadoReconocimiento({
         sesion.access_token,
       );
 
+      onResultadoRegistrado?.();
+
       if (respuesta.resultado.es_correcto) {
         setMensajeRegistro(
           "Resultado guardado: la seña es correcta."
@@ -117,7 +121,9 @@ function ResultadoReconocimiento({
 
       {mensajeError ? (
         <>
-          <p role="alert">{mensajeError}</p>
+          <p role="alert">
+            {mensajeError}
+          </p>
 
           <button
             type="button"
@@ -133,7 +139,9 @@ function ResultadoReconocimiento({
               <>
                 <p>
                   Letra detectada:{" "}
-                  <strong>{resultado.letra}</strong>
+                  <strong>
+                    {resultado.letra}
+                  </strong>
                 </p>
 
                 <p>
