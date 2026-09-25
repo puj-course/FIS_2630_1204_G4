@@ -10,7 +10,6 @@ from app.services.sesiones_service import (
     crear_sesion,
     finalizar_sesion,
 )
-from src.schemas.sesiones import SesionRespuesta
 from src.schemas.sesiones import (
     FinalizarSesionRespuesta,
     SesionRespuesta,
