@@ -70,7 +70,17 @@ def registrar_resultado(
 
             letras = cursor.fetchall()
 
-            if len(letras) != 2:
+            ids_encontrados = {
+                letra["id_letra"]
+                for letra in letras
+            }
+
+            ids_solicitados = {
+                id_letra_objetivo,
+                id_letra_detectada,
+            }
+
+            if not ids_solicitados.issubset(ids_encontrados):
                 raise LetraNoEncontradaError(
                     "Alguna letra no existe"
                 )
