@@ -49,3 +49,40 @@ def crear_usuario(
         raise CorreoYaRegistradoError(
             "El correo ya se encuentra registrado"
         ) from error
+
+
+def listar_usuarios(buscar: str | None = None):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            if buscar:
+                cursor.execute(
+                    """
+                    SELECT
+                        id_usuario,
+                        nombre,
+                        correo,
+                        rol,
+                        fecha_creacion
+                    FROM usuarios
+                    WHERE nombre ILIKE %s OR correo ILIKE %s
+                    ORDER BY nombre;
+    
+                    """,
+                    (f"%{buscar}%", f"%{buscar}%")
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT
+                        id_usuario,
+                        nombre,
+                        correo,
+                        rol,
+                        fecha_creacion
+                    FROM usuarios
+                    ORDER BY nombre;
+                    """
+                )
+
+            return cursor.fetchall()
+        

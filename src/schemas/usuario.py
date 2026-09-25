@@ -45,3 +45,4 @@ class UsuarioListado(BaseModel):
     correo: str
     rol: str
     fecha_creacion: datetime
+
