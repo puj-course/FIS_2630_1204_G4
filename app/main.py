@@ -10,6 +10,7 @@ from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.perfil import router as perfil_router
 from app.routes.progreso import router as progreso_router
+from app.routes.resultados import router as resultados_router
 from app.routes.resultados_reconocimiento import (
     router as resultados_reconocimiento_router,
 )
@@ -77,7 +78,7 @@ app.include_router(perfil_router)
 app.include_router(vision_router)
 app.include_router(resultados_reconocimiento_router)
 app.include_router(progreso_router)
-
+app.include_router(resultados_router)
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
     return {
