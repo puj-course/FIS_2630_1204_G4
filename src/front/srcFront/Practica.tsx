@@ -156,13 +156,56 @@ function Practica() {
       }
     }
 
+    async function cargarHistorialInicial() {
+      const sesion = obtenerSesion();
+
+      if (!sesion) {
+        await Promise.resolve();
+
+        if (componenteActivo) {
+          setHistorial([]);
+          setCargandoHistorial(false);
+        }
+
+        return;
+      }
+
+      try {
+        const respuesta =
+          await consultarResultadosReconocimiento(
+            sesion.access_token
+          );
+
+        if (!componenteActivo) {
+          return;
+        }
+
+        setHistorial(respuesta.resultados);
+        setErrorHistorial("");
+      } catch (error) {
+        if (!componenteActivo) {
+          return;
+        }
+
+        setErrorHistorial(
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible cargar el historial."
+        );
+      } finally {
+        if (componenteActivo) {
+          setCargandoHistorial(false);
+        }
+      }
+    }
+
     void cargarLetras();
-    void cargarHistorial();
+    void cargarHistorialInicial();
 
     return () => {
       componenteActivo = false;
     };
-  }, [cargarHistorial]);
+  }, []);
 
   const textoEstadoCamara = solicitandoCamara
     ? "Solicitando cámara"
