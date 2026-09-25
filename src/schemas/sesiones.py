@@ -15,3 +15,8 @@ class SesionRegistrada(BaseModel):
 class SesionRespuesta(BaseModel):
     mensaje: str = Field(min_length=1)
     sesion: SesionRegistrada
+
+
+class FinalizarSesionRespuesta(BaseModel):
+    mensaje: str = Field(min_length=1)
+    sesion: SesionRegistrada
