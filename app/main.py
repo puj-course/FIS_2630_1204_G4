@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-
+from app.routes.sesiones import router as sesiones_router
 from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.perfil import router as perfil_router
@@ -71,6 +71,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.include_router(sesiones_router)
 app.include_router(letras_router)
 app.include_router(autenticacion_router)
 app.include_router(usuarios_router)
