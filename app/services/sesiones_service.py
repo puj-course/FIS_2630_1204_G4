@@ -84,6 +84,31 @@ def consultar_sesion(id_usuario: int, id_sesion: int):
 
             return sesion
 
+def consultar_sesiones_usuario(id_usuario: int):
+    """
+    Consulta todas las sesiones pertenecientes a un usuario.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+
+            cursor.execute(
+                """
+                SELECT
+                    id_sesion,
+                    id_usuario,
+                    fecha_inicio,
+                    fecha_fin,
+                    estado
+                FROM sesiones_reconocimiento
+                WHERE id_usuario = %s
+                ORDER BY fecha_inicio DESC;
+                """,
+                (id_usuario,),
+            )
+
+            return cursor.fetchall()
+
 
 def finalizar_sesion(id_usuario: int, id_sesion: int):
     """Finaliza una sesión activa perteneciente al usuario."""

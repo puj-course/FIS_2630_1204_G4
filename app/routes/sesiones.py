@@ -7,23 +7,59 @@ from app.services.sesiones_service import (
     EstadoSesionError,
     SesionNoEncontradaError,
     UsuarioNoEncontradoError,
+    consultar_sesiones_usuario,
     crear_sesion,
     finalizar_sesion,
 )
 from src.schemas.sesiones import (
     FinalizarSesionRespuesta,
+    SesionesConsultaRespuesta,
     SesionRespuesta,
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
+    prefix="/sesiones",
     tags=["Sesiones de reconocimiento"],
 )
 
+@router.get(
+    "",
+    response_model=SesionesConsultaRespuesta,
+    status_code=status.HTTP_200_OK,
+    summary="Consultar sesiones de reconocimiento del usuario",
+)
+def consultar_sesiones(
+    usuario_actual: dict = Depends(obtener_usuario_actual),
+):
+    """
+    Consulta las sesiones de reconocimiento del usuario autenticado.
+    """
+
+    try:
+        sesiones = consultar_sesiones_usuario(
+            id_usuario=usuario_actual["id_usuario"],
+        )
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al consultar sesiones"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No fue posible consultar las sesiones",
+        ) from error
+
+    return {
+        "total": len(sesiones),
+        "sesiones": sesiones,
+    }
+
 
 @router.post(
-    "/sesiones",
+    "",
     response_model=SesionRespuesta,
     status_code=status.HTTP_201_CREATED,
     summary="Iniciar una sesión de reconocimiento",
@@ -75,7 +111,7 @@ def iniciar_sesion(
     }
 
 @router.patch(
-    "/sesiones/{id_sesion}/finalizar",
+     "/{id_sesion}/finalizar",
     response_model=FinalizarSesionRespuesta,
     status_code=status.HTTP_200_OK,
     summary="Finalizar una sesión de reconocimiento",

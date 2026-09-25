@@ -20,3 +20,11 @@ class SesionRespuesta(BaseModel):
 class FinalizarSesionRespuesta(BaseModel):
     mensaje: str = Field(min_length=1)
     sesion: SesionRegistrada
+
+class SesionesConsultaRespuesta(BaseModel):
+    total: int = Field(
+        ge=0,
+        description="Cantidad de sesiones encontradas",
+    )
+
+    sesiones: list[SesionRegistrada]
