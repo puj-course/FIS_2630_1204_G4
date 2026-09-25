@@ -17,8 +17,6 @@ import type {
   ModoReconocimiento,
 } from "./services/vision";
 
-
-
 function Practica() {
   const {
     videoRef,
@@ -34,12 +32,14 @@ function Practica() {
   const [letraSeleccionada, setLetraSeleccionada] =
     useState<Letra | null>(null);
 
+  const [ultimaLetraReconocida, setUltimaLetraReconocida] =
+    useState<Letra | null>(null);
+
   const [cargando, setCargando] = useState(true);
   const [mensajeError, setMensajeError] = useState("");
 
   const [modo, setModo] =
     useState<ModoReconocimiento>("estatica");
-
 
   useEffect(() => {
     let componenteActivo = true;
@@ -88,6 +88,15 @@ function Practica() {
       detenerCamara();
     } else {
       void iniciarCamara();
+    }
+  };
+
+  const manejarReconocimientoCorrecto = (idLetra: number) => {
+    if (
+      letraSeleccionada
+      && letraSeleccionada.id_letra === idLetra
+    ) {
+      setUltimaLetraReconocida(letraSeleccionada);
     }
   };
 
@@ -166,50 +175,52 @@ function Practica() {
               <FaBullseye />
               <h2>Análisis en tiempo real</h2>
             </div>
+
             <div
-  className="selectorModoReconocimiento"
-  role="group"
-  aria-label="Tipo de reconocimiento"
->
-  <button
-    type="button"
-    className={
-      modo === "estatica"
-        ? "modoReconocimientoActivo"
-        : undefined
-    }
-    aria-pressed={modo === "estatica"}
-    onClick={() => setModo("estatica")}
-  >
-    Letra estática
-  </button>
+              className="selectorModoReconocimiento"
+              role="group"
+              aria-label="Tipo de reconocimiento"
+            >
+              <button
+                type="button"
+                className={
+                  modo === "estatica"
+                    ? "modoReconocimientoActivo"
+                    : undefined
+                }
+                aria-pressed={modo === "estatica"}
+                onClick={() => setModo("estatica")}
+              >
+                Letra estática
+              </button>
 
-  <button
-    type="button"
-    className={
-      modo === "movimiento"
-        ? "modoReconocimientoActivo"
-        : undefined
-    }
-    aria-pressed={modo === "movimiento"}
-    onClick={() => setModo("movimiento")}
-  >
-    Letra con movimiento
-  </button>
-</div>
-
+              <button
+                type="button"
+                className={
+                  modo === "movimiento"
+                    ? "modoReconocimientoActivo"
+                    : undefined
+                }
+                aria-pressed={modo === "movimiento"}
+                onClick={() => setModo("movimiento")}
+              >
+                Letra con movimiento
+              </button>
+            </div>
 
             <div className="resultadoPractica">
               {camaraActiva ? (
-
-<ResultadoReconocimiento
-  key={`${letraSeleccionada?.id_letra ?? "sin-letra"}-${modo}`}
-  videoRef={videoRef}
-  idLetraObjetivo={
-    letraSeleccionada?.id_letra ?? null
-  }
-  modo={modo}
-/>
+                <ResultadoReconocimiento
+                  key={`${letraSeleccionada?.id_letra ?? "sin-letra"}-${modo}`}
+                  videoRef={videoRef}
+                  idLetraObjetivo={
+                    letraSeleccionada?.id_letra ?? null
+                  }
+                  modo={modo}
+                  onReconocimientoCorrecto={
+                    manejarReconocimientoCorrecto
+                  }
+                />
               ) : (
                 <div className="reconocimientoInactivo">
                   <FaVideo />
@@ -237,10 +248,27 @@ function Practica() {
 
             <div className="historialReconocimientoVacio">
               <FaHistory />
-              <p>
-                Las señas reconocidas durante la práctica
-                aparecerán aquí.
-              </p>
+
+              {ultimaLetraReconocida ? (
+                <div className="ultimaSenaReconocida">
+                <span className="ultimaSenaEtiqueta">
+                  Seña reconocida correctamente
+                </span>
+
+                <strong className="ultimaSenaLetra">
+                  {ultimaLetraReconocida.letra}
+                </strong>
+
+                <span className="ultimaSenaEstado">
+                  Reconocimiento exitoso
+                </span>
+              </div>
+              ) : (
+                <p>
+                  Las señas reconocidas durante la práctica
+                  aparecerán aquí.
+                </p>
+              )}
             </div>
           </section>
         </aside>

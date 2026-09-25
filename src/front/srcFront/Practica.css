@@ -325,6 +325,87 @@
   font-size:12px;
   line-height:1.6;
 }
+.ultimaSenaReconocida{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding:20px;
+  border:1px solid rgba(74,222,128,0.22);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at center,rgba(74,222,128,0.08),transparent 65%),
+    rgba(15,23,42,0.55);
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+.ultimaSenaEtiqueta{
+  color:var(--texto-secundario);
+  font-size:12px;
+  font-weight:500;
+}
+
+.ultimaSenaLetra{
+  width:58px;
+  height:58px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border:1px solid rgba(74,222,128,0.3);
+  border-radius:14px;
+  background:rgba(74,222,128,0.1);
+  color:var(--verde);
+  font-size:30px;
+  font-weight:700;
+  box-shadow:0 0 20px rgba(74,222,128,0.12);
+}
+
+.ultimaSenaEstado{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 10px;
+  border-radius:999px;
+  background:rgba(74,222,128,0.1);
+  color:var(--verde);
+  font-size:11px;
+  font-weight:600;
+}
+.botonRegistrarIntento{
+  width:100%;
+  margin-top:16px;
+  padding:12px 18px;
+  border:1px solid rgba(96,165,250,0.35);
+  border-radius:10px;
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:white;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(37,99,235,0.2);
+  transition:transform 0.2s ease,box-shadow 0.2s ease,opacity 0.2s ease;
+}
+
+.botonRegistrarIntento:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px rgba(37,99,235,0.28);
+}
+
+.botonRegistrarIntento:active:not(:disabled){
+  transform:translateY(0);
+}
+
+.botonRegistrarIntento:disabled{
+  background:#1e293b;
+  border-color:#334155;
+  color:#64748b;
+  cursor:not-allowed;
+  box-shadow:none;
+  opacity:0.75;
+}
 @media(max-width:1150px){
   .zonaPracticaNueva{
     grid-template-columns:1fr;

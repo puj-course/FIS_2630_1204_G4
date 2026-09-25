@@ -161,6 +161,7 @@ function ResultadoReconocimiento({
 
           <button
             type="button"
+            className="botonRegistrarIntento"
             onClick={() => void guardarResultado()}
             disabled={
               !resultadoEstable
