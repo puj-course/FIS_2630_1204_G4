@@ -554,7 +554,7 @@ main {
   overflow: hidden;
 }
 
-.preguntaAcordeon {
+.modalAyuda .preguntaAcordeon {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -570,7 +570,7 @@ main {
   margin: 0;
 }
 
-.preguntaAcordeon:hover {
+.modalAyuda .preguntaAcordeon:hover {
   background: #1a1a1a;
 }
 
