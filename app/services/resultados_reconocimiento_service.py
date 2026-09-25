@@ -177,3 +177,26 @@ def obtener_resultados_usuario(id_usuario: int):
         }
         for resultado in resultados
     ]
+def eliminar_resultados_usuario(id_usuario: int):
+    """
+    Elimina el historial de resultados de reconocimiento de un usuario.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                DELETE FROM resultados_reconocimiento
+                WHERE id_sesion IN (
+                    SELECT id_sesion
+                    FROM sesiones_reconocimiento
+                    WHERE id_usuario = %s
+                )
+                RETURNING id_resultado;
+                """,
+                (id_usuario,)
+            )
+
+            resultados_eliminados = cursor.fetchall()
+
+    return len(resultados_eliminados)

@@ -14,18 +14,20 @@ import type {
 
 const CONFIANZA_MINIMA = 0.80;
 
-
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
   idLetraObjetivo: number | null;
   modo: ModoReconocimiento;
+  onReconocimientoCorrecto?: (idLetra: number) => void;
+  onResultadoRegistrado?: () => void;
 }
-
 
 function ResultadoReconocimiento({
   videoRef,
   idLetraObjetivo,
   modo,
+  onReconocimientoCorrecto,
+  onResultadoRegistrado,
 }: Props) {
   const {
     resultado,
@@ -39,13 +41,11 @@ function ResultadoReconocimiento({
   const [mensajeRegistro, setMensajeRegistro] = useState("");
   const [errorRegistro, setErrorRegistro] = useState("");
 
-
   const resultadoEstable = (
     resultado?.letra
     && confianza !== null
     && confianza >= CONFIANZA_MINIMA
   );
-
 
   async function guardarResultado() {
     const sesion = obtenerSesion();
@@ -89,28 +89,31 @@ function ResultadoReconocimiento({
         sesion.access_token,
       );
 
-      setMensajeRegistro(
-        respuesta.resultado.es_correcto
-          ? "Resultado guardado: la seña es correcta."
-          : (
-              "Resultado guardado: se detectó "
-              + respuesta.resultado.letra_detectada
-              + "."
-            )
-      );
+      onResultadoRegistrado?.();
 
+      if (respuesta.resultado.es_correcto) {
+        setMensajeRegistro(
+          "Resultado guardado: la seña es correcta."
+        );
+
+        onReconocimientoCorrecto?.(idLetraObjetivo);
+      } else {
+        setMensajeRegistro(
+          "Resultado guardado: se detectó "
+          + respuesta.resultado.letra_detectada
+          + "."
+        );
+      }
     } catch (error) {
       setErrorRegistro(
         error instanceof ErrorApi
           ? error.message
           : "No fue posible guardar el resultado."
       );
-
     } finally {
       setGuardando(false);
     }
   }
-
 
   return (
     <div className="resultadoReconocimiento">
@@ -118,7 +121,9 @@ function ResultadoReconocimiento({
 
       {mensajeError ? (
         <>
-          <p role="alert">{mensajeError}</p>
+          <p role="alert">
+            {mensajeError}
+          </p>
 
           <button
             type="button"
@@ -134,7 +139,9 @@ function ResultadoReconocimiento({
               <>
                 <p>
                   Letra detectada:{" "}
-                  <strong>{resultado.letra}</strong>
+                  <strong>
+                    {resultado.letra}
+                  </strong>
                 </p>
 
                 <p>
@@ -162,11 +169,11 @@ function ResultadoReconocimiento({
 
           <button
             type="button"
+            className="botonRegistrarIntento"
             onClick={() => void guardarResultado()}
             disabled={
               !resultadoEstable
               || guardando
-              
             }
           >
             {guardando
@@ -190,6 +197,5 @@ function ResultadoReconocimiento({
     </div>
   );
 }
-
 
 export default ResultadoReconocimiento;
