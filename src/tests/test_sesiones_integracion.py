@@ -8,6 +8,7 @@ from app.services.sesiones_service import (
     SesionNoEncontradaError,
     UsuarioNoEncontradoError,
     consultar_sesion,
+    consultar_sesiones_usuario,
     crear_sesion,
     finalizar_sesion,
 )
@@ -197,6 +198,58 @@ class TestSesionesIntegracion(unittest.TestCase):
                 )
                 self.assertEqual(cursor.fetchone()[0], 0)
 
+    def test_consulta_sesiones_usuario_retorna_solo_sus_sesiones(self):
+        propia_1 = crear_sesion(self.id_usuario)
+        propia_2 = crear_sesion(self.id_usuario)
 
+        ajena = crear_sesion(self.id_otro_usuario)
+
+        sesiones = consultar_sesiones_usuario(
+            self.id_usuario
+        )
+
+        ids = [
+            sesion["id_sesion"]
+            for sesion in sesiones
+        ]
+
+        self.assertIn(
+            propia_1["id_sesion"],
+            ids,
+        )
+
+        self.assertIn(
+            propia_2["id_sesion"],
+            ids,
+        )
+
+        self.assertNotIn(
+            ajena["id_sesion"],
+            ids,
+        )
+
+
+    def test_sesion_mantiene_integridad_con_resultados(self):
+        sesion = crear_sesion(
+            self.id_usuario
+        )
+
+        with obtener_conexion() as conexion:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM resultados_reconocimiento
+                    WHERE id_sesion = %s;
+                    """,
+                    (sesion["id_sesion"],),
+                )
+
+                cantidad = cursor.fetchone()[0]
+
+        self.assertEqual(
+            cantidad,
+            0,
+        )
 if __name__ == "__main__":
     unittest.main()
