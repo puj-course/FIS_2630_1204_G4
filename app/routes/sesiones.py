@@ -4,17 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import crear_error_credenciales, obtener_usuario_actual
 from app.services.sesiones_service import (
-    UsuarioNoEncontradoError,
     EstadoSesionError,
     SesionNoEncontradaError,
-    crear_sesion,
+    UsuarioNoEncontradoError,
     consultar_sesiones_usuario,
+    crear_sesion,
     finalizar_sesion,
 )
 from src.schemas.sesiones import (
     FinalizarSesionRespuesta,
-    SesionRespuesta,
     SesionesConsultaRespuesta,
+    SesionRespuesta,
 )
 
 logger = logging.getLogger(__name__)
