@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import { obtenerSesion } from "./services/autenticacion";
 import Bienvenida from "./components/Bienvenida";
-import Ayuda from "./components/Ayuda";
 
 interface Props {
   cambiarPagina: (pagina: string) => void;
@@ -43,9 +42,9 @@ function Home({ cambiarPagina }: Props) {
 
     setMostrarBienvenida(false);
   }
+
   return (
     <div className="pantalla">
-      <Ayuda onCerrar={() => {}} />
       {mostrarBienvenida && (
         <Bienvenida onCerrar={cerrarBienvenida} />
       )}
@@ -62,7 +61,6 @@ function Home({ cambiarPagina }: Props) {
           <h3>Practicar señas</h3>
           <p>Empieza a reconocer letras con tu cámara</p>
         </div>
-    
 
         <div className="tarjeta" onClick={() => cambiarPagina('perfil')}>
           <h3>Mi perfil</h3>
