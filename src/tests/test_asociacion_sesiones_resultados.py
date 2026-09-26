@@ -44,7 +44,8 @@ class TestAsociacionSesionesResultados(unittest.TestCase):
                 id_letra_detectada=1,
                 confianza=0.95,
             )
-
+        self.assertEqual(self.cursor.execute.call_count, 1)
+        self.cursor.fetchall.assert_not_called()
 
     def test_no_permite_resultado_en_sesion_de_otro_usuario(self):
 
@@ -62,7 +63,8 @@ class TestAsociacionSesionesResultados(unittest.TestCase):
                 id_letra_detectada=1,
                 confianza=0.95,
             )
-
+        self.assertEqual(self.cursor.execute.call_count, 1)
+        self.cursor.fetchall.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()
