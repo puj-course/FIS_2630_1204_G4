@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from psycopg.rows import dict_row
 from pwdlib import PasswordHash
 from pwdlib.exceptions import UnknownHashError
@@ -48,13 +50,21 @@ def obtener_usuario_por_id(id_usuario: int):
 
             return cursor.fetchone()
 
+class CuentaBloqueadaError(Exception):
+    pass
 
 def autenticar_usuario(correo: str, contrasena: str):
     usuario = obtener_usuario_por_correo(correo)
 
     if usuario is None:
         return None
-
+    
+    if usuario["bloqueado_hasta"] is not None:
+        if usuario["bloqueado_hasta"] > datetime.now(timezone.utc):
+            raise CuentaBloqueadaError(
+                "La cuenta está bloqueada temporalmente"
+            )
+        
     try:
         contrasena_correcta = password_hash.verify(
             contrasena,
