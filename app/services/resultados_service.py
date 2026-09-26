@@ -124,3 +124,56 @@ def registrar_resultado(
             )
 
             return cursor.fetchone()
+
+def consultar_resultados_sesion(
+    id_usuario: int,
+    id_sesion: int,
+):
+    """Consulta los resultados de una sesión del usuario."""
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT id_usuario
+                FROM sesiones_reconocimiento
+                WHERE id_sesion = %s;
+                """,
+                (id_sesion,),
+            )
+
+            sesion = cursor.fetchone()
+
+            if sesion is None:
+                raise SesionNoEncontradaError(
+                    "La sesión no existe"
+                )
+
+            if sesion["id_usuario"] != id_usuario:
+                raise UsuarioSesionError(
+                    "La sesión no pertenece al usuario"
+                )
+
+            cursor.execute(
+                """
+                SELECT
+                    r.id_resultado,
+                    r.id_sesion,
+                    r.id_letra_objetivo,
+                    r.id_letra_detectada,
+                    r.confianza,
+                    r.es_correcto,
+                    r.fecha_resultado
+                FROM resultados_reconocimiento AS r
+                INNER JOIN sesiones_reconocimiento AS s
+                    ON s.id_sesion = r.id_sesion
+                WHERE r.id_sesion = %s
+                    AND s.id_usuario = %s
+                ORDER BY
+                    r.fecha_resultado ASC,
+                    r.id_resultado ASC;
+                """,
+                (id_sesion, id_usuario),
+            )
+
+            return cursor.fetchall()

@@ -13,7 +13,10 @@ import {
 import { ErrorApi } from "./services/api";
 
 interface Props {
-  cambiarPagina: (pagina: string) => void;
+  cambiarPagina: (
+    pagina: string,
+    idLetra?: number
+  ) => void;
 }
 
 const API_URL = "http://localhost:8000";
@@ -330,7 +333,12 @@ function Aprender({ cambiarPagina }: Props) {
                     <button
                       type="button"
                       className="botonPracticarTarjeta"
-                      onClick={() => cambiarPagina("practica")}
+                      onClick={() =>
+                        cambiarPagina(
+                          "practica",
+                          letra.id_letra
+                        )
+                      }
                     >
                       Practicar
                     </button>
@@ -445,7 +453,12 @@ function Aprender({ cambiarPagina }: Props) {
                   <button
                     className="botonPracticar"
                     type="button"
-                    onClick={() => cambiarPagina("practica")}
+                    onClick={() =>
+                      cambiarPagina(
+                        "practica",
+                        letraSeleccionada.id_letra
+                      )
+                    }
                   >
                     Practicar esta letra
                   </button>
