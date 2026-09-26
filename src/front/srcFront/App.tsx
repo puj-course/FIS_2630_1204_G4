@@ -27,6 +27,16 @@ function App() {
     correo: ""
   });
 
+  const cambiarPaginaGeneral = (
+    nuevaPagina: string
+  ) => {
+    if (nuevaPagina === "practica") {
+      setIdLetraPractica(null);
+    }
+
+    setPagina(nuevaPagina);
+  };
+
   const cambiarPaginaDesdeAprender = (
     nuevaPagina: string,
     idLetra?: number
@@ -64,7 +74,7 @@ function App() {
       ) : (
         <div className="app">
           <Navbar
-            cambiarPagina={setPagina}
+            cambiarPagina={cambiarPaginaGeneral}
             paginaActual={pagina}
             cerrarSesion={() => {
               eliminarSesion();
@@ -93,7 +103,7 @@ function App() {
           <main>
             {pagina === "home" ? (
               <Home
-                cambiarPagina={setPagina}
+                cambiarPagina={cambiarPaginaGeneral}
               />
             ) : pagina === "aprender" ? (
               <Aprender
