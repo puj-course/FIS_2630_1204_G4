@@ -129,6 +129,31 @@ class TestServicioAutenticacion(unittest.TestCase):
                 "admin.prueba@signia.local",
                 self.contrasena
             )
+    @patch(
+        "app.services.autenticacion_service."
+        "reiniciar_intentos_fallidos"
+    )
+    @patch(
+        "app.services.autenticacion_service."
+        "obtener_usuario_por_correo"
+    )
+    def test_permite_login_si_bloqueo_ya_expiro(
+        self,
+        obtener_usuario_simulado,
+        reiniciar_simulado
+    ):
+        usuario = dict(self.usuario_con_hash)
+        usuario["bloqueado_hasta"] = datetime.now(timezone.utc) - timedelta(
+            minutes=5
+        )
+        obtener_usuario_simulado.return_value = usuario
+
+        resultado = autenticar_usuario(
+            "admin.prueba@signia.local",
+            self.contrasena
+        )
+
+        self.assertIsNotNone(resultado)
 
 class TestRutasAutenticacion(unittest.TestCase):
 
