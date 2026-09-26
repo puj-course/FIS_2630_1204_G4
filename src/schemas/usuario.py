@@ -46,3 +46,7 @@ class UsuarioListado(BaseModel):
     rol: str
     fecha_creacion: datetime
 
+class CambioRolUsuario(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nuevo_rol: Literal["usuario", "administrador"]
