@@ -1,13 +1,17 @@
 import os
 import unittest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import crear_token_acceso
-from app.services.autenticacion_service import autenticar_usuario, generar_hash_contrasena
-
+from app.services.autenticacion_service import (
+    CuentaBloqueadaError,
+    autenticar_usuario, 
+    generar_hash_contrasena
+)
 
 class TestServicioAutenticacion(unittest.TestCase):
 
@@ -15,7 +19,7 @@ class TestServicioAutenticacion(unittest.TestCase):
     def setUpClass(cls):
         cls.contrasena = "ClaveSeguraDePrueba123!"
         cls.hash_valido = generar_hash_contrasena(
-            cls.contrasena
+            cls.contrasena,
         )
 
         cls.usuario_con_hash = {
