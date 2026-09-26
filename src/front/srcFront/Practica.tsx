@@ -39,6 +39,26 @@ interface Props {
   idLetraPractica?: number | null;
 }
 
+type ModalidadPractica =
+  | "libre"
+  | "especifica";
+
+type LetraConNombre = Letra & {
+  letra?: string;
+  nombre?: string;
+};
+
+function obtenerNombreLetra(letra: Letra) {
+  const letraConNombre =
+    letra as LetraConNombre;
+
+  return (
+    letraConNombre.letra
+    ?? letraConNombre.nombre
+    ?? `Letra ${letra.id_letra}`
+  );
+}
+
 function Practica({
   idLetraPractica = null,
 }: Props) {
@@ -55,6 +75,20 @@ function Practica({
 
   const solicitandoCamara =
     estadoCamara === "solicitando";
+
+  const [
+    modalidadPractica,
+    setModalidadPractica,
+  ] = useState<ModalidadPractica | null>(
+    idLetraPractica !== null
+      ? "especifica"
+      : null
+  );
+
+  const [
+    letrasDisponibles,
+    setLetrasDisponibles,
+  ] = useState<Letra[]>([]);
 
   const [
     letraSeleccionada,
@@ -169,6 +203,8 @@ function Practica({
           return;
         }
 
+        setLetrasDisponibles(datos);
+
         if (idLetraPractica !== null) {
           const letraObjetivo =
             datos.find(
@@ -176,6 +212,10 @@ function Practica({
                 letra.id_letra
                 === idLetraPractica
             ) ?? null;
+
+          setModalidadPractica(
+            "especifica"
+          );
 
           setLetraSeleccionada(
             letraObjetivo
@@ -189,6 +229,8 @@ function Practica({
             setMensajeError("");
           }
         } else {
+          setModalidadPractica(null);
+
           setLetraSeleccionada(
             datos[0] ?? null
           );
@@ -284,17 +326,202 @@ function Practica({
     }
   };
 
+  const seleccionarPracticaLibre = () => {
+    setLetraSeleccionada(null);
+    setModalidadPractica("libre");
+  };
+
+  const seleccionarPracticaEspecifica =
+    () => {
+      if (!letraSeleccionada) {
+        return;
+      }
+
+      setModalidadPractica("especifica");
+    };
+
+  const cambiarModalidad = () => {
+    detenerCamara();
+
+    setLetraSeleccionada(
+      letrasDisponibles[0] ?? null
+    );
+
+    setModalidadPractica(null);
+  };
+
   const manejarReconocimientoCorrecto = (
     idLetra: number
   ) => {
     if (
-      !letraSeleccionada
-      || letraSeleccionada.id_letra
-      !== idLetra
+      modalidadPractica === "especifica"
+      && (
+        !letraSeleccionada
+        || letraSeleccionada.id_letra
+        !== idLetra
+      )
     ) {
       return;
     }
   };
+
+  if (
+    idLetraPractica === null
+    && modalidadPractica === null
+  ) {
+    return (
+      <div className="practica">
+        <section className="seleccionModalidadPractica">
+          <div className="encabezadoSeleccionModalidad">
+            <h1>
+              ¿Cómo quieres practicar?
+            </h1>
+
+            <p>
+              Elige una modalidad para comenzar
+              tu práctica de Lengua de Señas
+              Colombiana.
+            </p>
+          </div>
+
+          {!cargando
+            && mensajeError && (
+              <div
+                className="mensajeErrorPractica"
+                role="alert"
+              >
+                {mensajeError}
+              </div>
+            )}
+
+          <div className="opcionesModalidadPractica">
+            <article className="opcionModalidadPractica">
+              <FaVideo />
+
+              <h2>
+                Práctica libre
+              </h2>
+
+              <p>
+                Activa la cámara y practica
+                libremente cualquier letra del
+                alfabeto.
+              </p>
+
+              <button
+                type="button"
+                onClick={
+                  seleccionarPracticaLibre
+                }
+              >
+                Iniciar práctica libre
+              </button>
+            </article>
+
+            <article className="opcionModalidadPractica">
+              <FaBullseye />
+
+              <h2>
+                Práctica específica
+              </h2>
+
+              <p>
+                Selecciona una letra para
+                concentrar el reconocimiento
+                en ella.
+              </p>
+
+              <label
+                htmlFor="letraPracticaEspecifica"
+              >
+                Letra para practicar
+              </label>
+
+              <select
+                id="letraPracticaEspecifica"
+                value={
+                  letraSeleccionada?.id_letra
+                  ?? ""
+                }
+                onChange={(evento) => {
+                  const idLetra =
+                    Number(
+                      evento.target.value
+                    );
+
+                  const nuevaLetra =
+                    letrasDisponibles.find(
+                      (letra) =>
+                        letra.id_letra
+                        === idLetra
+                    ) ?? null;
+
+                  setLetraSeleccionada(
+                    nuevaLetra
+                  );
+                }}
+                disabled={
+                  cargando
+                  || letrasDisponibles.length
+                    === 0
+                }
+              >
+                {cargando ? (
+                  <option value="">
+                    Cargando letras...
+                  </option>
+                ) : letrasDisponibles.length
+                  === 0 ? (
+                    <option value="">
+                      No hay letras disponibles
+                    </option>
+                  ) : (
+                    letrasDisponibles.map(
+                      (letra) => (
+                        <option
+                          key={letra.id_letra}
+                          value={letra.id_letra}
+                        >
+                          {obtenerNombreLetra(
+                            letra
+                          )}
+                        </option>
+                      )
+                    )
+                  )}
+              </select>
+
+              <button
+                type="button"
+                onClick={
+                  seleccionarPracticaEspecifica
+                }
+                disabled={
+                  cargando
+                  || !letraSeleccionada
+                }
+              >
+                Iniciar práctica específica
+              </button>
+            </article>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  const tituloPractica =
+    modalidadPractica === "especifica"
+      && letraSeleccionada
+      ? `Práctica Específica: ${obtenerNombreLetra(
+          letraSeleccionada
+        )}`
+      : "Práctica Libre";
+
+  const descripcionPractica =
+    modalidadPractica === "especifica"
+      ? "Practica una letra específica de la Lengua de Señas Colombiana con visión por computadora."
+      : "Practica libremente el alfabeto de la Lengua de Señas Colombiana con visión por computadora.";
 
   return (
     <div className="practica">
@@ -302,7 +529,7 @@ function Practica({
         <div className="tituloPractica">
           <div className="tituloPracticaPrincipal">
             <h1>
-              Práctica Libre
+              {tituloPractica}
             </h1>
 
             <span className="etiquetaVision">
@@ -311,10 +538,18 @@ function Practica({
           </div>
 
           <p>
-            Practica el alfabeto de la
-            Lengua de Señas Colombiana con
-            visión por computadora.
+            {descripcionPractica}
           </p>
+
+          {idLetraPractica === null && (
+            <button
+              type="button"
+              className="botonCambiarModalidad"
+              onClick={cambiarModalidad}
+            >
+              Cambiar modalidad
+            </button>
+          )}
         </div>
 
         <button
@@ -429,11 +664,15 @@ function Practica({
             <div className="resultadoPractica">
               {camaraActiva ? (
                 <ResultadoReconocimiento
-                  key={`${letraSeleccionada?.id_letra ?? "sin-letra"}-${modo}`}
+                  key={`${modalidadPractica}-${letraSeleccionada?.id_letra ?? "sin-letra"}-${modo}`}
                   videoRef={videoRef}
                   idLetraObjetivo={
-                    letraSeleccionada?.id_letra
-                    ?? null
+                    modalidadPractica
+                      === "especifica"
+                      ? letraSeleccionada
+                          ?.id_letra
+                        ?? null
+                      : null
                   }
                   modo={modo}
                   onReconocimientoCorrecto={
