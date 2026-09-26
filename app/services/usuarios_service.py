@@ -85,4 +85,22 @@ def listar_usuarios(buscar: str | None = None):
                 )
 
             return cursor.fetchall()
-        
+
+def cambiar_rol(id_usuario: int, nuevo_rol: str):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET rol = %s
+                WHERE id_usuario = %s
+                RETURNING
+                    id_usuario,
+                    nombre,
+                    correo,
+                    rol;
+                """,
+                (nuevo_rol, id_usuario)
+            )
+
+            return cursor.fetchone()
