@@ -6,6 +6,11 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import obtener_usuario_actual
+from app.services.resultados_service import (
+    LetraNoEncontradaError,
+    SesionNoEncontradaError,
+    UsuarioSesionError,
+)
 
 
 class TestRutaResultados(unittest.TestCase):
@@ -124,7 +129,85 @@ class TestRutaResultados(unittest.TestCase):
                     respuesta.text,
                 )
                 servicio.assert_not_called()
+    @patch("app.routes.resultados.registrar_resultado")
+    def test_devuelve_errores_de_sesion_y_letras(self, servicio):
+        self.autenticar()
 
+        casos = [
+            (
+                SesionNoEncontradaError("La sesión no existe"),
+                404,
+                "La sesión no existe",
+            ),
+            (
+                UsuarioSesionError(
+                    "La sesión no pertenece al usuario"
+                ),
+                403,
+                "La sesión no pertenece al usuario",
+            ),
+            (
+                LetraNoEncontradaError("Alguna letra no existe"),
+                404,
+                "Alguna letra no existe",
+            ),
+        ]
+
+        for error, codigo, detalle in casos:
+            with self.subTest(error=type(error).__name__):
+                servicio.reset_mock()
+                servicio.side_effect = error
+
+                respuesta = self.cliente.post(
+                    "/resultados",
+                    json=self.datos,
+                )
+
+                self.assertEqual(
+                    respuesta.status_code,
+                    codigo,
+                    respuesta.text,
+                )
+                self.assertEqual(
+                    respuesta.json(),
+                    {"detail": detalle},
+                )
+                servicio.assert_called_once_with(
+                    id_usuario=self.usuario["id_usuario"],
+                    **self.datos,
+                )
+
+    @patch("app.routes.resultados.logger")
+    @patch("app.routes.resultados.registrar_resultado")
+    def test_error_interno_devuelve_mensaje_generico(
+        self,
+        servicio,
+        logger,
+    ):
+        self.autenticar()
+        servicio.side_effect = RuntimeError(
+            "Detalle interno de conexión a PostgreSQL"
+        )
+
+        respuesta = self.cliente.post(
+            "/resultados",
+            json=self.datos,
+        )
+
+        self.assertEqual(respuesta.status_code, 500)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "No fue posible registrar el resultado"},
+        )
+        self.assertNotIn(
+            "Detalle interno",
+            respuesta.text,
+        )
+        servicio.assert_called_once_with(
+            id_usuario=self.usuario["id_usuario"],
+            **self.datos,
+        )
+        logger.exception.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()
