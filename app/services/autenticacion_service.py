@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from psycopg.rows import dict_row
 from pwdlib import PasswordHash
@@ -52,6 +52,39 @@ def obtener_usuario_por_id(id_usuario: int):
 
 class CuentaBloqueadaError(Exception):
     pass
+
+
+LIMITE_INTENTOS_FALLIDOS = 5
+MINUTOS_BLOQUEO = 15
+
+def registrar_intento_fallido(id_usuario: int):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET intentos_fallidos = intentos_fallidos + 1
+                WHERE id_usuario = %s
+                RETURNING intentos_fallidos;
+                """,
+                (id_usuario,)
+            )
+            intentos = cursor.fetchone()["intentos_fallidos"]
+
+            if intentos >= LIMITE_INTENTOS_FALLIDOS:
+                bloqueo_hasta = datetime.now(timezone.utc) + timedelta(
+                    minutes = MINUTOS_BLOQUEO
+                )
+
+                cursor.execute(
+                    """
+                    UPDATE usuarios
+                    SET bloqueado_hasta = %s
+                    WHERE id_usuario = %s;
+                    """,
+                    (bloqueo_hasta, id_usuario)
+                )
+
 
 def autenticar_usuario(correo: str, contrasena: str):
     usuario = obtener_usuario_por_correo(correo)
