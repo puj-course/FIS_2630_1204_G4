@@ -5,8 +5,9 @@ interface Props {
   cambiarPagina: (pagina: string) => void;
   paginaActual: string;
   cerrarSesion: () => void;
+  abrirAyuda: () => void;
 }
-function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
+function Navbar({ cambiarPagina, paginaActual, cerrarSesion, abrirAyuda }: Props) {
 
   return (
     <nav className="navbar">
@@ -58,7 +59,7 @@ function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
           <br/>
           comunicar para incluir
         </div>
-        <button className="botonMenu">
+        <button className="botonMenu" onClick={abrirAyuda}>
           <FaQuestionCircle />
           Ayuda
         </button>
