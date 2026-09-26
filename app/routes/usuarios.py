@@ -57,10 +57,12 @@ def registrar_usuario(
     response_model=list[UsuarioListado]
 )
 def obtener_usuarios(
+    buscar: str | None = None,
     _administrador: dict = Depends(requerir_administrador)
 ):
     try:
-        return listar_usuarios()
+        return listar_usuarios(buscar)
+    
     except Exception as error:
         logger.exception(
             "Ocurrió un error al listar usuarios"
