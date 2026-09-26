@@ -50,3 +50,10 @@ class CambioRolUsuario(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     nuevo_rol: Literal["usuario", "administrador"]
+
+class UsuarioDesactivadoRespuesta(BaseModel):
+    id_usuario: int
+    nombre: str
+    correo: str
+    rol: str
+    activo: bool
