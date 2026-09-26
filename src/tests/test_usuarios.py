@@ -367,6 +367,24 @@ class TestRegistroUsuarios(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 200)
         servicio_simulado.assert_called_once_with("ana")
 
+    @patch("app.routes.usuarios.listar_usuarios")
+    def test_listar_usuarios_no_expone_datos_sensibles(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.return_value = [
+            {
+                "id_usuario": 1,
+                "nombre": "Usuario Uno",
+                "correo": "uno@signia.local",
+                "rol": "usuario",
+                "fecha_creacion": "2026-01-01T00:00:00"
+            }
+        ]
+
+        respuesta = self.cliente.get("/usuarios")
+
+        self.assertNotIn("contrasena_hash", respuesta.json()[0])
 
 if __name__ == "__main__":
     unittest.main()
