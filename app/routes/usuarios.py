@@ -3,8 +3,18 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import requerir_administrador
-from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario, listar_usuarios
-from src.schemas.usuario import UsuarioListado, UsuarioRegistro, UsuarioRegistroRespuesta
+from app.services.usuarios_service import (
+    CorreoYaRegistradoError,
+    cambiar_rol,
+    crear_usuario,
+    listar_usuarios,
+)
+from src.schemas.usuario import (
+    CambioRolUsuario,
+    UsuarioListado,
+    UsuarioRegistro,
+    UsuarioRegistroRespuesta,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,3 +82,28 @@ def obtener_usuarios(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No fue posible obtener la lista de los usuarios"
         ) from error
+
+
+@router.patch(
+    "/{id_usuario}/rol",
+    response_model=UsuarioListado
+)
+def actualizar_rol(
+    id_usuario: int,
+    datos: CambioRolUsuario,
+    administrador: dict = Depends(requerir_administrador)
+):
+    if id_usuario == administrador["id_usuario"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede cambiar su propio rol"
+        )
+    usuario = cambiar_rol(id_usuario, datos.nuevo_rol)
+
+    if usuario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El usuario no existe"
+        )
+
+    return usuario
