@@ -607,7 +607,7 @@ function Practica({
               )}
             </div>
           </section>
-
+          {modalidadPractica === "especifica" && (
           <section className="panelUltimasSenas">
             <div className="tituloUltimasSenas">
               <div>
@@ -708,6 +708,7 @@ function Practica({
               )}
             </div>
           </section>
+          )}
         </aside>
       </section>
     </div>

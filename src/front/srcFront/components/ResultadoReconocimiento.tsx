@@ -167,30 +167,34 @@ function ResultadoReconocimiento({
               : "Reconocimiento activo"}
           </p>
 
-          <button
-            type="button"
-            className="botonRegistrarIntento"
-            onClick={() => void guardarResultado()}
-            disabled={
-              !resultadoEstable
-              || guardando
-            }
-          >
-            {guardando
-              ? "Guardando resultado..."
-              : "Registrar intento"}
-          </button>
+          {idLetraObjetivo !== null && (
+            <>
+              <button
+                type="button"
+                className="botonRegistrarIntento"
+                onClick={() => void guardarResultado()}
+                disabled={
+                  !resultadoEstable
+                  || guardando
+                }
+              >
+                {guardando
+                  ? "Guardando resultado..."
+                  : "Registrar intento"}
+              </button>
 
-          {mensajeRegistro && (
-            <p role="status">
-              {mensajeRegistro}
-            </p>
-          )}
+              {mensajeRegistro && (
+                <p role="status">
+                  {mensajeRegistro}
+                </p>
+              )}
 
-          {errorRegistro && (
-            <p role="alert">
-              {errorRegistro}
-            </p>
+              {errorRegistro && (
+                <p role="alert">
+                  {errorRegistro}
+                </p>
+              )}
+            </>
           )}
         </>
       )}
