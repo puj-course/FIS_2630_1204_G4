@@ -85,6 +85,18 @@ def registrar_intento_fallido(id_usuario: int):
                     (bloqueo_hasta, id_usuario)
                 )
 
+def reiniciar_intentos_fallidos(id_usuario: int):
+    with obtener_conexion() as conexion:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET intentos_fallidos = 0,
+                    bloqueado_hasta = NULL
+                WHERE id_usuario = %s;
+                """,
+                (id_usuario,)
+            )
 
 def autenticar_usuario(correo: str, contrasena: str):
     usuario = obtener_usuario_por_correo(correo)
@@ -110,6 +122,8 @@ def autenticar_usuario(correo: str, contrasena: str):
     if not contrasena_correcta:
         registrar_intento_fallido(usuario["id_usuario"])
         return None
+
+    reiniciar_intentos_fallidos(usuario["id_usuario"])
 
     return {
         "id_usuario": usuario["id_usuario"],
