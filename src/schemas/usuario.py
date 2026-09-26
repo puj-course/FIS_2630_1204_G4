@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.schemas.autenticacion import UsuarioAutenticadoRespuesta
 
 
-
 class DatosRegistroUsuario(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

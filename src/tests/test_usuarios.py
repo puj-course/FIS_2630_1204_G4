@@ -399,5 +399,22 @@ class TestRegistroUsuarios(unittest.TestCase):
 
         self.assertEqual(respuesta.status_code, 403)
 
+    @patch("app.routes.usuarios.listar_usuarios")
+    def test_listar_usuarios_controla_error_inesperado(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.side_effect = Exception(
+            "Error simulado de DB"
+        )
+
+        respuesta = self.cliente.get("/usuarios")
+
+        self.assertEqual(respuesta.status_code, 500)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "No fue posible obtener la lista de los usuarios"}
+        )
+
 if __name__ == "__main__":
     unittest.main()
