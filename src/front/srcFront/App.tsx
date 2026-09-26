@@ -122,6 +122,9 @@ function App() {
                 idLetraPractica={
                   idLetraPractica
                 }
+                cambiarPagina={
+                  cambiarPaginaGeneral
+                }
               />
             )}
           </main>
