@@ -18,6 +18,7 @@ function App() {
   const [logueado, setLogueado] = useState(false);
   const [pagina, setPagina] = useState("login");
   const [mostrarAyuda, setMostrarAyuda] = useState(false);
+
   const [idLetraPractica, setIdLetraPractica] =
     useState<number | null>(null);
 
@@ -70,17 +71,22 @@ function App() {
               setLogueado(false);
               setPagina("login");
               setIdLetraPractica(null);
+
               setUsuario({
                 nombre: "",
                 correo: ""
               });
             }}
-            abrirAyuda={() => setMostrarAyuda(true)}
+            abrirAyuda={() =>
+              setMostrarAyuda(true)
+            }
           />
 
           {mostrarAyuda && (
             <Ayuda
-              onCerrar={() => setMostrarAyuda(false)}
+              onCerrar={() =>
+                setMostrarAyuda(false)
+              }
             />
           )}
 
@@ -91,13 +97,21 @@ function App() {
               />
             ) : pagina === "aprender" ? (
               <Aprender
-                cambiarPagina={cambiarPaginaDesdeAprender}
+                cambiarPagina={
+                  cambiarPaginaDesdeAprender
+                }
               />
             ) : pagina === "perfil" ? (
               <Perfil />
             ) : (
               <Practica
-                key={idLetraPractica ?? "sin-letra"}
+                key={
+                  idLetraPractica
+                  ?? "sin-letra"
+                }
+                idLetraPractica={
+                  idLetraPractica
+                }
               />
             )}
           </main>
