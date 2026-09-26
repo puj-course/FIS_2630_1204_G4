@@ -110,6 +110,25 @@ class TestServicioAutenticacion(unittest.TestCase):
 
         self.assertIsNone(resultado)
 
+    @patch(
+        "app.services.autenticacion_service."
+        "obtener_usuario_por_correo"
+    )
+    def test_rechaza_login_si_cuenta_bloqueada(
+        self,
+        obtener_usuario_simulado
+    ):
+        usuario = dict(self.usuario_con_hash)
+        usuario["bloqueado_hasta"] = datetime.now(timezone.utc) + timedelta(
+            minutes=5
+        )
+        obtener_usuario_simulado.return_value = usuario
+
+        with self.assertRaises(CuentaBloqueadaError):
+            autenticar_usuario(
+                "admin.prueba@signia.local",
+                self.contrasena
+            )
 
 class TestRutasAutenticacion(unittest.TestCase):
 
