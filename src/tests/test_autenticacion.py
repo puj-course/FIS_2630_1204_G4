@@ -57,11 +57,16 @@ class TestServicioAutenticacion(unittest.TestCase):
 
     @patch(
         "app.services.autenticacion_service."
+        "registrar_intento_fallido"
+    )
+    @patch(
+        "app.services.autenticacion_service."
         "obtener_usuario_por_correo"
     )
     def test_rechaza_contrasena_incorrecta(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        registrar_simulado
     ):
         obtener_usuario_simulado.return_value = (
             self.usuario_con_hash
