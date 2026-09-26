@@ -81,11 +81,16 @@ class TestServicioAutenticacion(unittest.TestCase):
 
     @patch(
         "app.services.autenticacion_service."
+        "registrar_intento_fallido"
+    )
+    @patch(
+        "app.services.autenticacion_service."
         "obtener_usuario_por_correo"
     )
     def test_controla_hash_no_utilizable(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        registrar_simulado
     ):
         usuario = dict(self.usuario_con_hash)
         usuario["contrasena_hash"] = (
