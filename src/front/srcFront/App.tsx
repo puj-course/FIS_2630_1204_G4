@@ -72,7 +72,6 @@ function App() {
 
         <div className="app">
 
-
           <Navbar
 
             cambiarPagina={setPagina}
@@ -94,8 +93,13 @@ function App() {
 
             }}
 
+            abrirAyuda={() => setMostrarAyuda(true)}
+
           />
 
+          {mostrarAyuda && (
+            <Ayuda onCerrar={() => setMostrarAyuda(false)} />
+          )}
 
           <main>
 
