@@ -14,46 +14,44 @@ import Home from "./Home";
 import Aprender from "./Aprender";
 import Recuperar from "./Recuperar";
 
-
 function App() {
-
   const [logueado, setLogueado] = useState(false);
-
   const [pagina, setPagina] = useState("login");
-
   const [mostrarAyuda, setMostrarAyuda] = useState(false);
+  const [idLetraPractica, setIdLetraPractica] =
+    useState<number | null>(null);
 
   const [, setUsuario] = useState({
     nombre: "",
     correo: ""
   });
 
+  const cambiarPaginaDesdeAprender = (
+    nuevaPagina: string,
+    idLetra?: number
+  ) => {
+    if (nuevaPagina === "practica") {
+      setIdLetraPractica(idLetra ?? null);
+    }
+
+    setPagina(nuevaPagina);
+  };
 
   return (
     <>
-
       <EstadoBackend />
 
-
       {!logueado ? (
-
-        pagina === "registro" ?
-
+        pagina === "registro" ? (
           <Registro
             cambiarPagina={setPagina}
             guardarUsuario={setUsuario}
           />
-
-        :
-
-        pagina === "recuperar" ?
-
+        ) : pagina === "recuperar" ? (
           <Recuperar
             cambiarPagina={setPagina}
           />
-
-        :
-
+        ) : (
           <Login
             cambiarPagina={setPagina}
             alIniciarSesion={() => {
@@ -61,95 +59,52 @@ function App() {
               setPagina("home");
             }}
           />
-
-
-      )
-
-      :
-
-
-      (
-
+        )
+      ) : (
         <div className="app">
-
           <Navbar
-
             cambiarPagina={setPagina}
-
             paginaActual={pagina}
-
             cerrarSesion={() => {
-
               eliminarSesion();
-
               setLogueado(false);
-
               setPagina("login");
-
+              setIdLetraPractica(null);
               setUsuario({
                 nombre: "",
                 correo: ""
               });
-
             }}
-
             abrirAyuda={() => setMostrarAyuda(true)}
-
           />
 
           {mostrarAyuda && (
-            <Ayuda onCerrar={() => setMostrarAyuda(false)} />
+            <Ayuda
+              onCerrar={() => setMostrarAyuda(false)}
+            />
           )}
 
           <main>
-
-            {
-              pagina === "home"
-
-              ?
-
+            {pagina === "home" ? (
               <Home
                 cambiarPagina={setPagina}
               />
-
-
-              :
-
-              pagina === "aprender"
-
-              ?
-
+            ) : pagina === "aprender" ? (
               <Aprender
-                cambiarPagina={setPagina}
+                cambiarPagina={cambiarPaginaDesdeAprender}
               />
-
-
-              :
-
-              pagina === "perfil"
-
-              ?
-
+            ) : pagina === "perfil" ? (
               <Perfil />
-
-
-              :
-
-              <Practica />
-
-            }
-
+            ) : (
+              <Practica
+                key={idLetraPractica ?? "sin-letra"}
+              />
+            )}
           </main>
-
-
         </div>
-
       )}
-
     </>
   );
-
 }
-
 
 export default App;
