@@ -21,6 +21,8 @@ function App() {
 
   const [pagina, setPagina] = useState("login");
 
+  const [mostrarAyuda, setMostrarAyuda] = useState(false);
+
   const [, setUsuario] = useState({
     nombre: "",
     correo: ""
