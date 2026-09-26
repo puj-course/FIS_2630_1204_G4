@@ -49,3 +49,78 @@ def crear_usuario(
         raise CorreoYaRegistradoError(
             "El correo ya se encuentra registrado"
         ) from error
+
+
+def listar_usuarios(buscar: str | None = None):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            if buscar:
+                cursor.execute(
+                    """
+                    SELECT
+                        id_usuario,
+                        nombre,
+                        correo,
+                        rol,
+                        fecha_creacion
+                    FROM usuarios
+                    WHERE nombre ILIKE %s OR correo ILIKE %s
+                    ORDER BY nombre;
+    
+                    """,
+                    (f"%{buscar}%", f"%{buscar}%")
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT
+                        id_usuario,
+                        nombre,
+                        correo,
+                        rol,
+                        fecha_creacion
+                    FROM usuarios
+                    ORDER BY nombre;
+                    """
+                )
+
+            return cursor.fetchall()
+
+def cambiar_rol(id_usuario: int, nuevo_rol: str):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET rol = %s
+                WHERE id_usuario = %s
+                RETURNING
+                    id_usuario,
+                    nombre,
+                    correo,
+                    rol;
+                """,
+                (nuevo_rol, id_usuario)
+            )
+
+            return cursor.fetchone()
+
+def desactivar_usuario(id_usuario: int):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET activo = FALSE
+                WHERE id_usuario = %s
+                RETURNING
+                    id_usuario,
+                    nombre,
+                    correo,
+                    rol,
+                    activo;
+                """,
+                (id_usuario,)
+            )
+
+            return cursor.fetchone()
