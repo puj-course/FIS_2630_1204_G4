@@ -4,6 +4,7 @@ import { eliminarSesion } from "./services/autenticacion";
 
 import Navbar from "./components/Navbar";
 import EstadoBackend from "./components/EstadoBackend";
+import Ayuda from "./components/Ayuda";
 
 import Login from "./Login";
 import Registro from "./Registro";
@@ -19,7 +20,6 @@ function App() {
   const [logueado, setLogueado] = useState(false);
 
   const [pagina, setPagina] = useState("login");
-
 
   const [, setUsuario] = useState({
     nombre: "",
