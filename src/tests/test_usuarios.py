@@ -355,6 +355,18 @@ class TestRegistroUsuarios(unittest.TestCase):
         self.assertEqual(len(respuesta.json()), 1)
         servicio_simulado.assert_called_once_with(None)
 
+    @patch("app.routes.usuarios.listar_usuarios")
+    def test_lista_usuarios_con_filtro(self, servicio_simulado):
+        servicio_simulado.return_value = []
+
+        respuesta = self.cliente.get(
+            "/usuarios",
+            params={"buscar": "ana"}
+        )
+
+        self.assertEqual(respuesta.status_code, 200)
+        servicio_simulado.assert_called_once_with("ana")
+
 
 if __name__ == "__main__":
     unittest.main()
