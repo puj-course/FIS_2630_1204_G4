@@ -23,16 +23,23 @@ class TestServicioAutenticacion(unittest.TestCase):
             "nombre": "Administrador de prueba",
             "correo": "admin.prueba@signia.local",
             "contrasena_hash": cls.hash_valido,
-            "rol": "administrador"
+            "rol": "administrador",
+            "bloqueado_hasta": None
         }
 
+    @patch(
+            "app.services.autenticacion_service."
+            "reiniciar_intentos_fallidos"
+    )
     @patch(
         "app.services.autenticacion_service."
         "obtener_usuario_por_correo"
     )
+    
     def test_autentica_credenciales_correctas(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        reiniciar_simulado
     ):
         obtener_usuario_simulado.return_value = (
             self.usuario_con_hash
