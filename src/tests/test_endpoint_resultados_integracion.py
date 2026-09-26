@@ -284,6 +284,190 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             [],
         )
 
+    def test_consulta_separa_resultados_por_sesion_y_usuario(self):
+        otra_propia = crear_sesion(self.id_usuario)
+
+        otro_usuario = self.crear_usuario_prueba()
+        ajena = crear_sesion(otro_usuario)
+        token_ajeno = crear_token_acceso(otro_usuario)
+
+        cabeceras_ajenas = {
+            "Authorization": f"Bearer {token_ajeno}",
+        }
+
+        # Registra dos resultados en la sesión consultada,
+        # uno en otra sesión propia y uno en una sesión ajena.
+        casos = [
+            (
+                self.sesion["id_sesion"],
+                self.cabeceras,
+                self.id_letra_a,
+            ),
+            (
+                self.sesion["id_sesion"],
+                self.cabeceras,
+                self.id_letra_b,
+            ),
+            (
+                otra_propia["id_sesion"],
+                self.cabeceras,
+                self.id_letra_a,
+            ),
+            (
+                ajena["id_sesion"],
+                cabeceras_ajenas,
+                self.id_letra_a,
+            ),
+        ]
+
+        ids_por_sesion = {
+            self.sesion["id_sesion"]: [],
+            otra_propia["id_sesion"]: [],
+            ajena["id_sesion"]: [],
+        }
+
+        for id_sesion, cabeceras, detectada in casos:
+            respuesta = self.cliente.post(
+                "/resultados",
+                headers=cabeceras,
+                json={
+                    **self.datos,
+                    "id_sesion": id_sesion,
+                    "id_letra_detectada": detectada,
+                },
+            )
+
+            self.assertEqual(
+                respuesta.status_code,
+                201,
+                respuesta.text,
+            )
+
+            ids_por_sesion[id_sesion].append(
+                respuesta.json()["resultado"]["id_resultado"]
+            )
+
+        # Cada consulta debe devolver únicamente los resultados
+        # de la sesión solicitada.
+        consultas = [
+            (self.sesion["id_sesion"], self.cabeceras),
+            (otra_propia["id_sesion"], self.cabeceras),
+            (ajena["id_sesion"], cabeceras_ajenas),
+        ]
+
+        for id_sesion, cabeceras in consultas:
+            with self.subTest(id_sesion=id_sesion):
+                respuesta = self.cliente.get(
+                    f"/resultados/sesion/{id_sesion}",
+                    headers=cabeceras,
+                )
+
+                self.assertEqual(
+                    respuesta.status_code,
+                    200,
+                    respuesta.text,
+                )
+
+                contenido = respuesta.json()
+                resultados = contenido["resultados"]
+                ids_esperados = ids_por_sesion[id_sesion]
+
+                self.assertEqual(
+                    contenido["total"],
+                    len(ids_esperados),
+                )
+                self.assertEqual(
+                    [r["id_resultado"] for r in resultados],
+                    ids_esperados,
+                )
+                self.assertTrue(
+                    all(
+                        r["id_sesion"] == id_sesion
+                        for r in resultados
+                    )
+                )
+
+                # Compara todos los campos con PostgreSQL
+                # mediante una conexión independiente.
+                almacenados = self.leer_resultados(id_sesion)
+
+                self.assertEqual(
+                    [
+                        ResultadoRegistrado.model_validate(r)
+                        for r in resultados
+                    ],
+                    [
+                        ResultadoRegistrado.model_validate(r)
+                        for r in almacenados
+                    ],
+                )
+
+        # El primer usuario no puede consultar la sesión ajena,
+        # aunque intente enviar otro usuario por query string.
+        respuesta = self.cliente.get(
+            f"/resultados/sesion/{ajena['id_sesion']}"
+            f"?id_usuario={otro_usuario}",
+            headers=self.cabeceras,
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            403,
+            respuesta.text,
+        )
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "La sesión no pertenece al usuario"},
+        )
+
+    def test_consulta_sesion_vacia_devuelve_respuesta_valida(self):
+        respuesta = self.cliente.get(
+            f"/resultados/sesion/{self.sesion['id_sesion']}",
+            headers=self.cabeceras,
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200,
+            respuesta.text,
+        )
+        self.assertEqual(
+            respuesta.json(),
+            {"total": 0, "resultados": []},
+        )
+        self.assertEqual(
+            self.leer_resultados(self.sesion["id_sesion"]),
+            [],
+        )
+
+    def test_consulta_sesion_inexistente_devuelve_404(self):
+        # Elimina únicamente la sesión creada para esta prueba.
+        id_sesion = self.sesion["id_sesion"]
+
+        with obtener_conexion() as conexion:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    """
+                    DELETE FROM sesiones_reconocimiento
+                    WHERE id_sesion = %s AND id_usuario = %s;
+                    """,
+                    (id_sesion, self.id_usuario),
+                )
+
+        respuesta = self.cliente.get(
+            f"/resultados/sesion/{id_sesion}",
+            headers=self.cabeceras,
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            404,
+            respuesta.text,
+        )
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "La sesión no existe"},
+        )
 
 if __name__ == "__main__":
     unittest.main()
