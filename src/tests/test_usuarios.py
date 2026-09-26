@@ -386,5 +386,18 @@ class TestRegistroUsuarios(unittest.TestCase):
 
         self.assertNotIn("contrasena_hash", respuesta.json()[0])
 
+    def test_listar_usuarios_rechaza_usuario_sin_permisos(self):
+        app.dependency_overrides.pop(requerir_administrador, None)
+        app.dependency_overrides[obtener_usuario_actual] = lambda: {
+            "id_usuario": 4,
+            "nombre": "Usuario",
+            "correo": "usuario@signia.local",
+            "rol": "usuario"
+        }
+
+        respuesta = self.cliente.get("/usuarios")
+
+        self.assertEqual(respuesta.status_code, 403)
+
 if __name__ == "__main__":
     unittest.main()
