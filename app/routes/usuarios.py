@@ -3,8 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import requerir_administrador
-from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario
-from src.schemas.usuario import UsuarioRegistro, UsuarioRegistroRespuesta
+from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario, listar_usuarios
+from src.schemas.usuario import UsuarioListado, UsuarioRegistro, UsuarioRegistroRespuesta
 
 logger = logging.getLogger(__name__)
 
@@ -51,3 +51,22 @@ def registrar_usuario(
         "mensaje": "Usuario registrado correctamente",
         "usuario": usuario
     }
+
+@router.get(
+    "",
+    response_model=list[UsuarioListado]
+)
+def obtener_usuarios(
+    _administrador: dict = Depends(requerir_administrador)
+):
+    try:
+        return listar_usuarios()
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al listar usuarios"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No fue posible obtener la lista de los usuarios"
+        ) from error
