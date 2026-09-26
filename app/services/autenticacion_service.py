@@ -17,7 +17,9 @@ def obtener_usuario_por_correo(correo: str):
                     nombre,
                     correo,
                     contrasena_hash,
-                    rol
+                    rol,
+                    intentos_fallidos,
+                    bloqueado_hasta
                 FROM usuarios
                 WHERE LOWER(correo) = LOWER(%s)
                 LIMIT 1;
