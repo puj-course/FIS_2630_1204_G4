@@ -4,6 +4,7 @@ import { eliminarSesion } from "./services/autenticacion";
 
 import Navbar from "./components/Navbar";
 import EstadoBackend from "./components/EstadoBackend";
+import Ayuda from "./components/Ayuda";
 
 import Login from "./Login";
 import Registro from "./Registro";
@@ -20,6 +21,7 @@ function App() {
 
   const [pagina, setPagina] = useState("login");
 
+  const [mostrarAyuda, setMostrarAyuda] = useState(false);
 
   const [, setUsuario] = useState({
     nombre: "",
@@ -70,7 +72,6 @@ function App() {
 
         <div className="app">
 
-
           <Navbar
 
             cambiarPagina={setPagina}
@@ -92,8 +93,13 @@ function App() {
 
             }}
 
+            abrirAyuda={() => setMostrarAyuda(true)}
+
           />
 
+          {mostrarAyuda && (
+            <Ayuda onCerrar={() => setMostrarAyuda(false)} />
+          )}
 
           <main>
 
