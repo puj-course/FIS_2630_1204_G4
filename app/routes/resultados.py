@@ -27,14 +27,50 @@ router = APIRouter(
     "",
     response_model=ResultadoRespuesta,
     status_code=status.HTTP_201_CREATED,
+    summary="Registrar un resultado de reconocimiento en una sesión",
+    responses={
+        201: {
+            "description": "Resultado registrado correctamente",
+        },
+        401: {
+            "description": "Credenciales ausentes o inválidas",
+        },
+        403: {
+            "description": "La sesión pertenece a otro usuario",
+        },
+        404: {
+            "description": "La sesión o alguna de las letras no existe",
+        },
+        422: {
+            "description": "Los datos enviados no cumplen el esquema",
+        },
+        500: {
+            "description": "No fue posible registrar el resultado",
+        },
+    },
 )
 def crear_resultado(
     datos: RegistrarResultadoEntrada,
     usuario_actual: dict = Depends(obtener_usuario_actual),
 ):
     """
-    Registra un resultado generado durante una sesión
-    de reconocimiento visual.
+    Registra un resultado dentro de una sesión del usuario autenticado.
+
+    Requiere un token de acceso Bearer.
+
+    El cuerpo debe incluir:
+    - id_sesion: identificador de una sesión propia.
+    - id_letra_objetivo: identificador de la letra practicada.
+    - id_letra_detectada: identificador de la letra reconocida.
+    - confianza: número entre 0 y 1.
+
+    Los identificadores deben ser enteros positivos.
+    No se admiten campos adicionales.
+
+    El usuario se obtiene del token. El servicio calcula es_correcto
+    comparando las letras y PostgreSQL asigna la fecha del resultado.
+
+    Devuelve el resultado almacenado y su identificador.
     """
 
     try:
