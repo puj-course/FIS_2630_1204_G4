@@ -37,6 +37,7 @@ import type {
 
 interface Props {
   idLetraPractica?: number | null;
+  cambiarPagina: (pagina: string) => void;
 }
 
 type ModalidadPractica =
@@ -61,6 +62,7 @@ function obtenerNombreLetra(letra: Letra) {
 
 function Practica({
   idLetraPractica = null,
+  cambiarPagina,
 }: Props) {
   const {
     videoRef,
@@ -84,11 +86,6 @@ function Practica({
       ? "especifica"
       : null
   );
-
-  const [
-    letrasDisponibles,
-    setLetrasDisponibles,
-  ] = useState<Letra[]>([]);
 
   const [
     letraSeleccionada,
@@ -203,8 +200,6 @@ function Practica({
           return;
         }
 
-        setLetrasDisponibles(datos);
-
         if (idLetraPractica !== null) {
           const letraObjetivo =
             datos.find(
@@ -230,11 +225,7 @@ function Practica({
           }
         } else {
           setModalidadPractica(null);
-
-          setLetraSeleccionada(
-            datos[0] ?? null
-          );
-
+          setLetraSeleccionada(null);
           setMensajeError("");
         }
       } catch (error) {
@@ -331,22 +322,9 @@ function Practica({
     setModalidadPractica("libre");
   };
 
-  const seleccionarPracticaEspecifica =
-    () => {
-      if (!letraSeleccionada) {
-        return;
-      }
-
-      setModalidadPractica("especifica");
-    };
-
   const cambiarModalidad = () => {
     detenerCamara();
-
-    setLetraSeleccionada(
-      letrasDisponibles[0] ?? null
-    );
-
+    setLetraSeleccionada(null);
     setModalidadPractica(null);
   };
 
@@ -426,82 +404,17 @@ function Practica({
               </h2>
 
               <p>
-                Selecciona una letra para
-                concentrar el reconocimiento
-                en ella.
+                Elige en Aprender la letra
+                que quieres practicar.
               </p>
-
-              <label
-                htmlFor="letraPracticaEspecifica"
-              >
-                Letra para practicar
-              </label>
-
-              <select
-                id="letraPracticaEspecifica"
-                value={
-                  letraSeleccionada?.id_letra
-                  ?? ""
-                }
-                onChange={(evento) => {
-                  const idLetra =
-                    Number(
-                      evento.target.value
-                    );
-
-                  const nuevaLetra =
-                    letrasDisponibles.find(
-                      (letra) =>
-                        letra.id_letra
-                        === idLetra
-                    ) ?? null;
-
-                  setLetraSeleccionada(
-                    nuevaLetra
-                  );
-                }}
-                disabled={
-                  cargando
-                  || letrasDisponibles.length
-                    === 0
-                }
-              >
-                {cargando ? (
-                  <option value="">
-                    Cargando letras...
-                  </option>
-                ) : letrasDisponibles.length
-                  === 0 ? (
-                    <option value="">
-                      No hay letras disponibles
-                    </option>
-                  ) : (
-                    letrasDisponibles.map(
-                      (letra) => (
-                        <option
-                          key={letra.id_letra}
-                          value={letra.id_letra}
-                        >
-                          {obtenerNombreLetra(
-                            letra
-                          )}
-                        </option>
-                      )
-                    )
-                  )}
-              </select>
 
               <button
                 type="button"
-                onClick={
-                  seleccionarPracticaEspecifica
-                }
-                disabled={
-                  cargando
-                  || !letraSeleccionada
+                onClick={() =>
+                  cambiarPagina("aprender")
                 }
               >
-                Iniciar práctica específica
+                Elegir letra en Aprender
               </button>
             </article>
           </div>
