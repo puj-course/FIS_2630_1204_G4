@@ -104,3 +104,23 @@ def cambiar_rol(id_usuario: int, nuevo_rol: str):
             )
 
             return cursor.fetchone()
+
+def desactivar_usuario(id_usuario: int):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET activo = FALSE
+                WHERE id_usuario = %s
+                RETURNING
+                    id_usuario,
+                    nombre,
+                    correo,
+                    rol,
+                    activo;
+                """,
+                (id_usuario,)
+            )
+
+            return cursor.fetchone()
