@@ -104,9 +104,11 @@ def autenticar_usuario(correo: str, contrasena: str):
             usuario["contrasena_hash"]
         )
     except UnknownHashError:
+        registrar_intento_fallido(usuario["id_usuario"])
         return None
 
     if not contrasena_correcta:
+        registrar_intento_fallido(usuario["id_usuario"])
         return None
 
     return {
