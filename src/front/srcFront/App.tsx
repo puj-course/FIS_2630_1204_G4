@@ -13,10 +13,15 @@ import Practica from "./Practica";
 import Home from "./Home";
 import Aprender from "./Aprender";
 import Recuperar from "./Recuperar";
+import RestablecerContrasena from "./RestablecerContrasena";
 
 function App() {
   const [logueado, setLogueado] = useState(false);
-  const [pagina, setPagina] = useState("login");
+  const [pagina, setPagina] = useState(
+    () => window.location.pathname === "/restablecer-contrasena"
+      ? "restablecer-contrasena"
+      : "login"
+  );
   const [mostrarAyuda, setMostrarAyuda] = useState(false);
 
   const [idLetraPractica, setIdLetraPractica] =
@@ -53,7 +58,11 @@ function App() {
       <EstadoBackend />
 
       {!logueado ? (
-        pagina === "registro" ? (
+        pagina === "restablecer-contrasena" ? (
+          <RestablecerContrasena
+            cambiarPagina={setPagina}
+          />
+        ) : pagina === "registro" ? (
           <Registro
             cambiarPagina={setPagina}
             guardarUsuario={setUsuario}

@@ -23,3 +23,28 @@ export function solicitarRecuperacion(
     }
   );
 }
+
+
+export interface SolicitudRestablecimiento {
+  token: string;
+  nueva_contrasena: string;
+  confirmacion_contrasena: string;
+}
+
+
+export interface RespuestaRestablecimiento {
+  mensaje: string;
+}
+
+
+export function restablecerContrasena(
+  datos: SolicitudRestablecimiento
+): Promise<RespuestaRestablecimiento> {
+  return solicitarApi<RespuestaRestablecimiento>(
+    "/auth/restablecer-contrasena",
+    {
+      method: "POST",
+      body: JSON.stringify(datos)
+    }
+  );
+}
