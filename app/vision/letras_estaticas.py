@@ -1,5 +1,7 @@
 from app.vision.vocales import (
+    angulo,
     dedo_estirado,
+    distancia_relativa,
     tamano_mano,
 )
 
@@ -29,3 +31,54 @@ def dedos_hacia_abajo(mano, *indices: int) -> bool:
         / escala > 0.4
         for indice in indices
     )
+
+def pulgar_abierto(mano) -> bool:
+    """Comprueba si el pulgar está separado de la palma."""
+    return (
+        angulo(mano[2], mano[3], mano[4]) > 140
+        and distancia_relativa(mano, 4, 5) > 0.55
+        and distancia_relativa(mano, 4, 9) > 0.75
+    )
+
+
+def dedos_curvos(mano) -> bool:
+    """Comprueba si los cuatro dedos forman un arco."""
+    return all(
+        75 < angulo(
+            mano[base],
+            mano[base + 1],
+            mano[base + 2],
+        ) < 155
+        for base in BASES
+    )
+
+
+def reconocer_consonante_estatica(mano) -> str | None:
+    """Reconoce las consonantes estáticas implementadas hasta ahora."""
+    if len(mano) != 21:
+        return None
+
+    dedos = dedos_extendidos(mano)
+
+    # B: cuatro dedos extendidos y juntos; pulgar sobre la palma.
+    if dedos == (True, True, True, True) and not pulgar_abierto(mano):
+        if all(
+            distancia_relativa(mano, primera, segunda) < 0.55
+            for primera, segunda in zip(PUNTAS, PUNTAS[1:])
+        ):
+            return "B"
+
+    # C: dedos curvos y espacio entre índice y pulgar.
+    if (
+        dedos_curvos(mano)
+        and distancia_relativa(mano, 4, 8) > 0.55
+    ):
+        return "C"
+
+    # D: índice extendido; pulgar cerca de la punta del medio.
+    if dedos == (True, False, False, False):
+        if distancia_relativa(mano, 4, 12) < 0.4:
+            return "D"
+
+    return None
+
