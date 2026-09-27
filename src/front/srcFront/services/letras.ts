@@ -37,3 +37,17 @@ export function actualizarLetra(
     }
   );
 }
+
+export function obtenerIdLetra(
+  letra: string
+): Promise<number | null> {
+  return obtenerLetras().then((letras) => {
+    const encontrada = letras.find(
+      (item) =>
+        item.letra.toUpperCase()
+        === letra.toUpperCase()
+    );
+
+    return encontrada?.id_letra ?? null;
+  });
+}

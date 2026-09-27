@@ -8,10 +8,19 @@ import { obtenerSesion } from "../services/autenticacion";
 import { registrarResultadoReconocimiento } from "../services/resultados";
 import { useReconocimiento } from "../hooks/useReconocimiento";
 
+import {
+  crearSesionReconocimiento,
+  guardarSesionReconocimiento,
+  obtenerSesionReconocimiento,
+} from "../services/sesiones";
+
+import {
+  obtenerIdLetra,
+} from "../services/letras";
+
 import type {
   ModoReconocimiento,
 } from "../services/vision";
-
 const CONFIANZA_MINIMA = 0.80;
 
 interface Props {
@@ -41,7 +50,8 @@ function ResultadoReconocimiento({
   const [mensajeRegistro, setMensajeRegistro] = useState("");
   const [errorRegistro, setErrorRegistro] = useState("");
 
-  const resultadoEstable = (
+  const resultadoEstable =
+  Boolean(
     resultado?.letra
     && confianza !== null
     && confianza >= CONFIANZA_MINIMA
@@ -80,14 +90,43 @@ function ResultadoReconocimiento({
     setErrorRegistro("");
 
     try {
-      const respuesta = await registrarResultadoReconocimiento(
-        {
-          id_letra_objetivo: idLetraObjetivo,
-          letra_detectada: resultado.letra,
-          confianza,
-        },
+  const idLetraDetectada = await obtenerIdLetra(
+    resultado.letra,
+  );
+
+  if (!idLetraDetectada) {
+    setErrorRegistro(
+      "No se encontró la letra detectada.",
+    );
+    return;
+  }
+
+  let sesionReconocimiento =
+    obtenerSesionReconocimiento();
+
+  if (!sesionReconocimiento) {
+    const nuevaSesion =
+      await crearSesionReconocimiento(
         sesion.access_token,
       );
+
+    sesionReconocimiento =
+      nuevaSesion.sesion;
+
+    guardarSesionReconocimiento(
+      sesionReconocimiento,
+    );
+  }
+
+  const respuesta = await registrarResultadoReconocimiento(
+    {
+      id_sesion: sesionReconocimiento.id_sesion,
+      id_letra_objetivo: idLetraObjetivo,
+      id_letra_detectada: idLetraDetectada,
+      confianza,
+    },
+    sesion.access_token,
+  );
 
       onResultadoRegistrado?.();
 
@@ -99,10 +138,8 @@ function ResultadoReconocimiento({
         onReconocimientoCorrecto?.(idLetraObjetivo);
       } else {
         setMensajeRegistro(
-          "Resultado guardado: se detectó "
-          + respuesta.resultado.letra_detectada
-          + "."
-        );
+  "Resultado guardado correctamente."
+);
       }
     } catch (error) {
       setErrorRegistro(
