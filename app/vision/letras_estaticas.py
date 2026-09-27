@@ -69,16 +69,40 @@ def reconocer_consonante_estatica(mano) -> str | None:
             return "B"
 
     # C: dedos curvos y espacio entre índice y pulgar.
-    if (
-        dedos_curvos(mano)
-        and distancia_relativa(mano, 4, 8) > 0.55
-    ):
-        return "C"
+        if (
+            dedos_curvos(mano)
+            and distancia_relativa(mano, 4, 8) > 0.55
+        ):
+            return "C"
 
+        # D: índice extendido; pulgar cerca de la punta del medio.
+        if dedos == (True, False, False, False):
+            if distancia_relativa(mano, 4, 12) < 0.4:
+                return "D"
     # D: índice extendido; pulgar cerca de la punta del medio.
     if dedos == (True, False, False, False):
         if distancia_relativa(mano, 4, 12) < 0.4:
             return "D"
 
-    return None
+        # L: índice extendido y pulgar abierto hacia un lado.
+        if (
+            pulgar_abierto(mano)
+            and distancia_relativa(mano, 4, 8) > 0.9
+        ):
+            return "L"
 
+    # F: índice y meñique extendidos, con el pulgar abierto.
+    # En U el pulgar permanece sobre la palma.
+    if dedos == (True, False, False, True):
+        if pulgar_abierto(mano):
+            return "F"
+
+    # K: índice y medio separados, con el pulgar abierto.
+    if dedos == (True, True, False, False):
+        if (
+            pulgar_abierto(mano)
+            and distancia_relativa(mano, 8, 12) > 0.5
+        ):
+            return "K"
+
+    return None
