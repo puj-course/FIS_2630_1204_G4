@@ -5,6 +5,7 @@ import {
 
 import { ErrorApi } from "../services/api";
 import { obtenerSesion } from "../services/autenticacion";
+import { registrarProgreso } from "../services/progreso";
 import { registrarResultadoReconocimiento } from "../services/resultados";
 import { useReconocimiento } from "../hooks/useReconocimiento";
 
@@ -136,6 +137,23 @@ function ResultadoReconocimiento({
         );
 
         onReconocimientoCorrecto?.(idLetraObjetivo);
+
+        try {
+          await registrarProgreso(
+            { id_letra: idLetraObjetivo },
+            sesion.access_token
+          );
+
+          setMensajeRegistro(
+            "Resultado guardado: la seña es correcta y la letra quedó aprendida."
+          );
+        } catch (error) {
+          setErrorRegistro(
+            error instanceof ErrorApi
+              ? `El resultado se guardó, pero no se pudo actualizar el progreso: ${error.message}`
+              : "El resultado se guardó, pero no se pudo actualizar el progreso."
+          );
+        }
       } else {
         setMensajeRegistro(
   "Resultado guardado correctamente."
