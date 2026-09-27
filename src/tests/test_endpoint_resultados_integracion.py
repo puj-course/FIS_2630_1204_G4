@@ -61,13 +61,31 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         self.id_letra_b = letras[1]["id_letra"]
 
         self.id_usuario = self.crear_usuario_prueba()
-        self.sesion = crear_sesion(self.id_usuario)
 
         token = crear_token_acceso(self.id_usuario)
         self.cabeceras = {
             "Authorization": f"Bearer {token}",
         }
 
+        respuesta = self.cliente.post(
+            "/sesiones",
+            headers=self.cabeceras,
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            201,
+            respuesta.text,
+        )
+
+        self.sesion = respuesta.json()["sesion"]
+
+        self.assertEqual(
+            self.sesion["id_usuario"],
+            self.id_usuario,
+        )
+        self.assertEqual(self.sesion["estado"], "activa")
+        self.assertIsNone(self.sesion["fecha_fin"])
         self.datos = {
             "id_sesion": self.sesion["id_sesion"],
             "id_letra_objetivo": self.id_letra_a,
@@ -199,6 +217,38 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 ResultadoRegistrado.model_validate(almacenado),
                 ResultadoRegistrado.model_validate(recibido),
             )
+
+        # Consulta desde otro cliente después de terminar
+        # las solicitudes que registraron los resultados.
+        with TestClient(app) as otro_cliente:
+            consulta = otro_cliente.get(
+                f"/resultados/sesion/{self.sesion['id_sesion']}",
+                headers=self.cabeceras,
+            )
+
+        self.assertEqual(
+            consulta.status_code,
+            200,
+            consulta.text,
+        )
+
+        contenido = consulta.json()
+
+        self.assertEqual(contenido["total"], 2)
+        self.assertEqual(len(contenido["resultados"]), 2)
+
+        self.assertEqual(
+            [
+                ResultadoRegistrado.model_validate(resultado)
+                for resultado in contenido["resultados"]
+            ],
+            [
+                ResultadoRegistrado.model_validate(resultado)
+                for resultado in resultados_api
+            ],
+        )
+
+
 
     def test_rechaza_sesion_ajena_sin_guardar_resultados(self):
         otro_usuario = self.crear_usuario_prueba()
