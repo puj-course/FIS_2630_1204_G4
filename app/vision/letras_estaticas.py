@@ -52,6 +52,24 @@ def dedos_curvos(mano) -> bool:
         for base in BASES
     )
 
+def indices_cruzados(mano) -> bool:
+    """Comprueba si índice y medio se cruzan en la imagen."""
+
+    def lado(inicio, fin, punto):
+        return (
+            (fin.x - inicio.x) * (punto.y - inicio.y)
+            - (fin.y - inicio.y) * (punto.x - inicio.x)
+        )
+
+    inicio_indice, punta_indice = mano[5], mano[8]
+    inicio_medio, punta_medio = mano[9], mano[12]
+
+    return (
+        lado(inicio_indice, punta_indice, inicio_medio)
+        * lado(inicio_indice, punta_indice, punta_medio) < 0
+        and lado(inicio_medio, punta_medio, inicio_indice)
+        * lado(inicio_medio, punta_medio, punta_indice) < 0
+    )
 
 def reconocer_consonante_estatica(mano) -> str | None:
     """Reconoce las consonantes estáticas implementadas hasta ahora."""
@@ -127,12 +145,32 @@ def reconocer_consonante_estatica(mano) -> str | None:
         if pulgar_abierto(mano):
             return "F"
 
-    # K: índice y medio separados, con el pulgar abierto.
+    # K, R, T y V comparten índice y medio extendidos.
     if dedos == (True, True, False, False):
-        if (
-            pulgar_abierto(mano)
-            and distancia_relativa(mano, 8, 12) > 0.5
-        ):
+        separacion = distancia_relativa(mano, 8, 12)
+
+        if pulgar_abierto(mano) and separacion > 0.5:
             return "K"
+
+        if indices_cruzados(mano):
+            return "R"
+
+        if (
+            separacion < 0.4
+            and distancia_relativa(mano, 4, 6) < 0.7
+        ):
+            return "T"
+
+        if separacion > 0.55 and not pulgar_abierto(mano):
+            return "V"
+
+    # W: índice, medio y anular extendidos y separados.
+    if dedos == (True, True, True, False):
+        if (
+            distancia_relativa(mano, 8, 12) > 0.45
+            and distancia_relativa(mano, 12, 16) > 0.45
+            and not pulgar_abierto(mano)
+        ):
+            return "W"
 
     return None
