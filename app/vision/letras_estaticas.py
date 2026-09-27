@@ -59,6 +59,36 @@ def reconocer_consonante_estatica(mano) -> str | None:
         return None
 
     dedos = dedos_extendidos(mano)
+    # M: índice, medio y anular extendidos hacia abajo.
+    if dedos == (True, True, True, False):
+        if dedos_hacia_abajo(mano, 0, 1, 2):
+            return "M"
+
+    # N: índice y medio extendidos hacia abajo.
+    if dedos == (True, True, False, False):
+        if (
+            dedos_hacia_abajo(mano, 0, 1)
+            and not pulgar_abierto(mano)
+        ):
+            return "N"
+
+    # P: índice y pulgar dirigidos hacia abajo.
+    if dedos == (True, False, False, False):
+        if (
+            dedos_hacia_abajo(mano, 0)
+            and (mano[4].y - mano[2].y) / tamano_mano(mano) > 0.3
+            and distancia_relativa(mano, 4, 8) > 0.6
+        ):
+            return "P"
+
+    # Q: las cuatro puntas se reúnen cerca del pulgar.
+    if dedos == (False, False, False, False):
+        if all(
+            distancia_relativa(mano, 4, punta) < 0.38
+            for punta in PUNTAS
+        ):
+            return "Q"
+
 
     # B: cuatro dedos extendidos y juntos; pulgar sobre la palma.
     if dedos == (True, True, True, True) and not pulgar_abierto(mano):
