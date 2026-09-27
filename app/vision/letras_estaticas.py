@@ -71,6 +71,13 @@ def indices_cruzados(mano) -> bool:
         * lado(inicio_medio, punta_medio, punta_indice) < 0
     )
 
+def indice_en_gancho(mano) -> bool:
+    """Comprueba si el índice está levantado con la punta doblada."""
+    return (
+        angulo(mano[5], mano[6], mano[7]) > 125
+        and 60 < angulo(mano[6], mano[7], mano[8]) < 140
+    )
+
 def reconocer_consonante_estatica(mano) -> str | None:
     """Reconoce las consonantes estáticas implementadas hasta ahora."""
     if len(mano) != 21:
@@ -172,5 +179,21 @@ def reconocer_consonante_estatica(mano) -> str | None:
             and not pulgar_abierto(mano)
         ):
             return "W"
+    # X: índice en forma de gancho y los demás dedos doblados.
+    if dedos == (False, False, False, False):
+        if (
+            indice_en_gancho(mano)
+            and distancia_relativa(mano, 8, 5) > 0.5
+        ):
+            return "X"
+
+    # Y: meñique y pulgar abiertos.
+    # Se diferencia de I porque en I el pulgar queda cerrado.
+    if dedos == (False, False, False, True):
+        if (
+            pulgar_abierto(mano)
+            and distancia_relativa(mano, 4, 20) > 1.2
+        ):
+            return "Y"
 
     return None
