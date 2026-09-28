@@ -5,6 +5,7 @@ from app.vision.letras_movimiento import (
 from app.vision.movimientos import FotogramaMovimiento
 from app.vision.vocales import reconocer_vocal
 
+
 def reconocer_mano(
     mano,
     fotogramas: tuple[FotogramaMovimiento, ...] = (),
