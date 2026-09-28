@@ -1,0 +1,156 @@
+.adminUsuarios {
+  padding: 24px;
+  color: #fff;
+}
+
+.adminUsuarios h1 {
+  color: #60a5fa;
+  margin-bottom: 4px;
+}
+
+.buscadorUsuarios {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 14px;
+  margin: 16px 0;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.buscadorUsuarios:focus {
+  outline: none;
+  border-color: #60a5fa;
+}
+
+.tablaUsuarios {
+  width: 100%;
+  border-collapse: collapse;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tablaUsuarios th,
+.tablaUsuarios td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  font-size: 14px;
+}
+
+.tablaUsuarios th {
+  color: #60a5fa;
+  background: #111;
+  font-weight: 600;
+}
+
+.tablaUsuarios tr:last-child td {
+  border-bottom: none;
+}
+
+.mensajeSinUsuarios {
+  color: #aaa;
+  padding: 16px 0;
+}
+
+.mensajeExitoAdmin {
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid #2563eb;
+  color: #60a5fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.mensajeErrorAdmin {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid #dc2626;
+  color: #f87171;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.tablaUsuarios select {
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.botonDesactivarUsuario {
+  background: transparent;
+  border: 1px solid #dc2626;
+  color: #f87171;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.botonDesactivarUsuario:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.botonDesactivarUsuario:disabled,
+.tablaUsuarios select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.overlayConfirmacion {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalConfirmacion {
+  width: 100%;
+  max-width: 400px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.modalConfirmacion h2 {
+  color: #f87171;
+  margin-bottom: 12px;
+}
+
+.modalConfirmacion p {
+  color: #aaa;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.botonesConfirmacion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.botonConfirmarDesactivar {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.botonConfirmarDesactivar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

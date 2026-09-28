@@ -1,12 +1,14 @@
 import "./Navbar.css";
-import {FaGraduationCap, FaTools, FaUser, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
-
+// DESPUÉS
+import {FaGraduationCap, FaTools, FaUser, FaQuestionCircle, FaSignOutAlt, FaUsersCog } from "react-icons/fa";
 interface Props {
   cambiarPagina: (pagina: string) => void;
   paginaActual: string;
   cerrarSesion: () => void;
+  abrirAyuda: () => void;
+  esAdministrador: boolean;
 }
-function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
+function Navbar({ cambiarPagina, paginaActual, cerrarSesion, abrirAyuda, esAdministrador }: Props) {
 
   return (
     <nav className="navbar">
@@ -42,7 +44,7 @@ function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
           <FaTools />
           Practicar
         </button>
-
+        
         <button 
           className={paginaActual === "perfil" ? "botonActivo" : "botonMenu"}
           onClick={() => cambiarPagina("perfil")}
@@ -51,6 +53,16 @@ function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
           Perfil
         </button>
 
+        {esAdministrador && (
+          <button 
+            className={paginaActual === "admin" ? "botonActivo" : "botonMenu"}
+            onClick={() => cambiarPagina("admin")}
+          >
+            <FaUsersCog />
+            Administrar usuarios
+          </button>
+        )}
+
       </div>
       <div className="inferior">
         <div className="fraseinf"> 
@@ -58,7 +70,7 @@ function Navbar({ cambiarPagina, paginaActual, cerrarSesion }: Props) {
           <br/>
           comunicar para incluir
         </div>
-        <button className="botonMenu">
+        <button className="botonMenu" onClick={abrirAyuda}>
           <FaQuestionCircle />
           Ayuda
         </button>

@@ -6,6 +6,7 @@ from app.security import obtener_usuario_actual
 from app.services.resultados_reconocimiento_service import (
     LetraDetectadaNoEncontradaError,
     LetraObjetivoNoEncontradaError,
+    eliminar_resultados_usuario,
     obtener_resultados_usuario,
     registrar_resultado_reconocimiento,
 )
@@ -131,4 +132,39 @@ def registrar_resultado(
     return {
         "mensaje": "Resultado registrado correctamente",
         "resultado": resultado,
+    }
+@router.delete(
+    "",
+    status_code=status.HTTP_200_OK,
+    summary="Eliminar historial de reconocimiento",
+    responses={
+        401: {
+            "description": "El usuario no está autenticado",
+        },
+        500: {
+            "description": "No fue posible eliminar el historial",
+        },
+    },
+)
+def eliminar_historial(
+    usuario_actual: dict = Depends(obtener_usuario_actual),
+):
+    try:
+        eliminados = eliminar_resultados_usuario(
+            id_usuario=usuario_actual["id_usuario"]
+        )
+
+    except Exception as error:
+        logger.exception(
+            "Ocurrió un error al eliminar el historial"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No fue posible eliminar el historial",
+        ) from error
+
+    return {
+        "mensaje": "Historial eliminado correctamente",
+        "eliminados": eliminados,
     }
