@@ -7,7 +7,8 @@ import {
   cambiarRolUsuario,
   desactivarUsuario,
   type UsuarioListado
-} from "./services/usuariosAdmin";import { ErrorApi } from "./services/api";
+} from "./services/usuariosAdmin";
+import { ErrorApi } from "./services/api";
 
 function formatearFecha(fechaIso: string): string {
   return new Date(fechaIso).toLocaleDateString("es-CO", {
@@ -22,7 +23,7 @@ function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState<UsuarioListado[]>([]);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState("");
-    
+
   const [usuarioAConfirmar, setUsuarioAConfirmar] =
     useState<UsuarioListado | null>(null);
 
@@ -85,7 +86,7 @@ function AdminUsuarios() {
     };
   }, [busqueda, sesion?.access_token]);
 
-    async function manejarCambioRol(
+  async function manejarCambioRol(
     usuario: UsuarioListado,
     nuevoRol: "usuario" | "administrador"
   ) {
@@ -161,7 +162,7 @@ function AdminUsuarios() {
   }
 
   return (
-    <div className=      "adminUsuarios">
+    <div className="adminUsuarios">
       <h1>Administrar usuarios</h1>
       <p>Consulta los usuarios registrados en SignIA.</p>
 
@@ -188,7 +189,7 @@ function AdminUsuarios() {
           <p>No se encontraron usuarios para esta búsqueda.</p>
         </div>
       )}
-      
+
       {mensajeAccion && (
         <div
           className={
@@ -257,11 +258,7 @@ function AdminUsuarios() {
 
       {usuarioAConfirmar && (
         <div className="overlayConfirmacion" role="presentation">
-          <div
-            className="modalConfirmacion"
-            role="dialog"
-            aria-modal="true"
-          >
+          <div className="modalConfirmacion" role="dialog" aria-modal="true">
             <h2>Confirmar desactivación</h2>
 
             <p>
