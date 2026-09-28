@@ -83,7 +83,7 @@ function AdminUsuarios() {
       activo = false;
       clearTimeout(idTimeout);
     };
-  }, [busqueda, sesion]);
+  }, [busqueda, sesion?.access_token]);
 
     async function manejarCambioRol(
     usuario: UsuarioListado,
@@ -188,8 +188,7 @@ function AdminUsuarios() {
           <p>No se encontraron usuarios para esta búsqueda.</p>
         </div>
       )}
-
-      // DESPUÉS
+      
       {mensajeAccion && (
         <div
           className={
