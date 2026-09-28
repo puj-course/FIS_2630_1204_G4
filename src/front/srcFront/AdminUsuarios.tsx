@@ -22,17 +22,21 @@ function AdminUsuarios() {
   const sesion = obtenerSesion();
 
   useEffect(() => {
-    if (!sesion) {
-      setCargando(false);
-      return;
-    }
-
     let activo = true;
-
-    setCargando(true);
-
+    
     const idTimeout = setTimeout(() => {
       const cargarUsuarios = async () => {
+        if (!sesion) {
+          if (activo) {
+            setCargando(false);
+          }
+          return;
+        }
+
+        if (activo) {
+          setCargando(true);
+        }
+
         try {
           const resultado = await obtenerUsuarios(
             busqueda,
