@@ -23,7 +23,7 @@ function AdminUsuarios() {
 
   useEffect(() => {
     let activo = true;
-    
+
     const idTimeout = setTimeout(() => {
       const cargarUsuarios = async () => {
         if (!sesion) {
@@ -72,7 +72,7 @@ function AdminUsuarios() {
   }, [busqueda, sesion]);
 
   return (
-    <div className="adminUsuarios">
+    <div className=      "adminUsuarios">
       <h1>Administrar usuarios</h1>
       <p>Consulta los usuarios registrados en SignIA.</p>
 
