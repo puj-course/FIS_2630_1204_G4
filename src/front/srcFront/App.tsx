@@ -1,10 +1,11 @@
 import { useState } from "react";
 
-import { eliminarSesion } from "./services/autenticacion";
+import { eliminarSesion, obtenerSesion } from "./services/autenticacion";
 
 import Navbar from "./components/Navbar";
 import EstadoBackend from "./components/EstadoBackend";
 import Ayuda from "./components/Ayuda";
+import AdminUsuarios from "./AdminUsuarios";
 
 import Login from "./Login";
 import Registro from "./Registro";
@@ -31,6 +32,9 @@ function App() {
     nombre: "",
     correo: ""
   });
+
+  const esAdministrador =
+  obtenerSesion()?.usuario.rol === "administrador";
 
   const cambiarPaginaGeneral = (
     nuevaPagina: string
@@ -99,6 +103,7 @@ function App() {
             abrirAyuda={() =>
               setMostrarAyuda(true)
             }
+            esAdministrador={esAdministrador}
           />
 
           {mostrarAyuda && (
@@ -122,6 +127,8 @@ function App() {
               />
             ) : pagina === "perfil" ? (
               <Perfil />
+             ) : pagina === "admin" && esAdministrador ? (
+              <AdminUsuarios />
             ) : (
               <Practica
                 key={
