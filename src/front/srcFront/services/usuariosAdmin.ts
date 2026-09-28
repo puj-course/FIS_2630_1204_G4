@@ -25,3 +25,43 @@ export function obtenerUsuarios(
     }
   );
 }
+
+export function cambiarRolUsuario(
+  idUsuario: number,
+  nuevoRol: "usuario" | "administrador",
+  token: string
+): Promise<UsuarioListado> {
+  return solicitarApi<UsuarioListado>(
+    `/usuarios/${idUsuario}/rol`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ nuevo_rol: nuevoRol })
+    }
+  );
+}
+
+export interface UsuarioDesactivadoRespuesta {
+  id_usuario: number;
+  nombre: string;
+  correo: string;
+  rol: string;
+  activo: boolean;
+}
+
+export function desactivarUsuario(
+  idUsuario: number,
+  token: string
+): Promise<UsuarioDesactivadoRespuesta> {
+  return solicitarApi<UsuarioDesactivadoRespuesta>(
+    `/usuarios/${idUsuario}/desactivar`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
