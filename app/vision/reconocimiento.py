@@ -1,3 +1,4 @@
+from app.vision.letras_estaticas import reconocer_consonante_estatica
 from app.vision.letras_movimiento import (
     reconocer_letra_movimiento,
 )
@@ -26,7 +27,10 @@ def reconocer_mano(
         }
 
     if modo == "estatica":
-        letra = reconocer_vocal(mano)
+        letra = reconocer_consonante_estatica(mano)
+
+        if letra is None:
+            letra = reconocer_vocal(mano)
 
         return {
             "letra": letra,

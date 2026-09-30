@@ -1,10 +1,11 @@
 import { useState } from "react";
 
-import { eliminarSesion } from "./services/autenticacion";
+import { eliminarSesion, obtenerSesion } from "./services/autenticacion";
 
 import Navbar from "./components/Navbar";
 import EstadoBackend from "./components/EstadoBackend";
 import Ayuda from "./components/Ayuda";
+import AdminUsuarios from "./AdminUsuarios";
 
 import Login from "./Login";
 import Registro from "./Registro";
@@ -13,10 +14,15 @@ import Practica from "./Practica";
 import Home from "./Home";
 import Aprender from "./Aprender";
 import Recuperar from "./Recuperar";
+import RestablecerContrasena from "./RestablecerContrasena";
 
 function App() {
   const [logueado, setLogueado] = useState(false);
-  const [pagina, setPagina] = useState("login");
+  const [pagina, setPagina] = useState(
+    () => window.location.pathname === "/restablecer-contrasena"
+      ? "restablecer-contrasena"
+      : "login"
+  );
   const [mostrarAyuda, setMostrarAyuda] = useState(false);
 
   const [idLetraPractica, setIdLetraPractica] =
@@ -26,6 +32,19 @@ function App() {
     nombre: "",
     correo: ""
   });
+
+  const esAdministrador =
+  obtenerSesion()?.usuario.rol === "administrador";
+
+  const cambiarPaginaGeneral = (
+    nuevaPagina: string
+  ) => {
+    if (nuevaPagina === "practica") {
+      setIdLetraPractica(null);
+    }
+
+    setPagina(nuevaPagina);
+  };
 
   const cambiarPaginaDesdeAprender = (
     nuevaPagina: string,
@@ -43,7 +62,11 @@ function App() {
       <EstadoBackend />
 
       {!logueado ? (
-        pagina === "registro" ? (
+        pagina === "restablecer-contrasena" ? (
+          <RestablecerContrasena
+            cambiarPagina={setPagina}
+          />
+        ) : pagina === "registro" ? (
           <Registro
             cambiarPagina={setPagina}
             guardarUsuario={setUsuario}
@@ -64,7 +87,7 @@ function App() {
       ) : (
         <div className="app">
           <Navbar
-            cambiarPagina={setPagina}
+            cambiarPagina={cambiarPaginaGeneral}
             paginaActual={pagina}
             cerrarSesion={() => {
               eliminarSesion();
@@ -80,6 +103,7 @@ function App() {
             abrirAyuda={() =>
               setMostrarAyuda(true)
             }
+            esAdministrador={esAdministrador}
           />
 
           {mostrarAyuda && (
@@ -93,7 +117,7 @@ function App() {
           <main>
             {pagina === "home" ? (
               <Home
-                cambiarPagina={setPagina}
+                cambiarPagina={cambiarPaginaGeneral}
               />
             ) : pagina === "aprender" ? (
               <Aprender
@@ -103,6 +127,8 @@ function App() {
               />
             ) : pagina === "perfil" ? (
               <Perfil />
+             ) : pagina === "admin" && esAdministrador ? (
+              <AdminUsuarios />
             ) : (
               <Practica
                 key={
@@ -111,6 +137,9 @@ function App() {
                 }
                 idLetraPractica={
                   idLetraPractica
+                }
+                cambiarPagina={
+                  cambiarPaginaGeneral
                 }
               />
             )}

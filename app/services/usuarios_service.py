@@ -98,9 +98,10 @@ def cambiar_rol(id_usuario: int, nuevo_rol: str):
                     id_usuario,
                     nombre,
                     correo,
-                    rol;
+                    rol,
+                    fecha_creacion;
                 """,
-                (nuevo_rol, id_usuario)
+                (nuevo_rol, id_usuario),
             )
 
             return cursor.fetchone()

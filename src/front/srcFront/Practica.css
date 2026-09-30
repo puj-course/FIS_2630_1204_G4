@@ -587,6 +587,163 @@
   color:var(--rojo);
 }
 
+.seleccionModalidadPractica{
+  max-width:920px;
+  margin:0 auto;
+  padding:42px 0;
+}
+
+.encabezadoSeleccionModalidad{
+  margin-bottom:28px;
+  text-align:center;
+}
+
+.encabezadoSeleccionModalidad h1{
+  margin:0 0 10px;
+  color:white;
+  font-size:32px;
+  font-weight:700;
+}
+
+.encabezadoSeleccionModalidad p{
+  margin:0 auto;
+  max-width:560px;
+  color:var(--texto-secundario);
+  font-size:14px;
+  line-height:1.6;
+}
+
+.opcionesModalidadPractica{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:22px;
+}
+
+.opcionModalidadPractica{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:30px 26px;
+  border:1px solid rgba(96,165,250,0.16);
+  border-radius:18px;
+  background:linear-gradient(
+    145deg,
+    rgba(28,37,53,0.96),
+    rgba(15,23,42,0.96)
+  );
+  box-shadow:0 15px 35px rgba(0,0,0,0.22);
+  text-align:center;
+}
+
+.opcionModalidadPractica>svg{
+  margin-bottom:16px;
+  color:var(--azul-claro);
+  font-size:32px;
+}
+
+.opcionModalidadPractica h2{
+  margin:0 0 10px;
+  color:white;
+  font-size:19px;
+}
+
+.opcionModalidadPractica p{
+  min-height:48px;
+  margin:0 0 20px;
+  color:var(--texto-secundario);
+  font-size:13px;
+  line-height:1.6;
+}
+
+.opcionModalidadPractica label{
+  align-self:stretch;
+  margin-bottom:7px;
+  color:var(--texto-secundario);
+  font-size:12px;
+  text-align:left;
+}
+
+.opcionModalidadPractica select{
+  width:100%;
+  margin-bottom:16px;
+  padding:11px 12px;
+  border:1px solid rgba(96,165,250,0.25);
+  border-radius:10px;
+  outline:none;
+  background:#111827;
+  color:white;
+  font-family:inherit;
+  font-size:13px;
+}
+
+.opcionModalidadPractica button{
+  width:100%;
+  margin-top:auto;
+  padding:12px 18px;
+  border:1px solid rgba(96,165,250,0.35);
+  border-radius:10px;
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:white;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.opcionModalidadPractica button:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 10px 24px rgba(37,99,235,0.28);
+}
+
+.opcionModalidadPractica button:disabled{
+  cursor:not-allowed;
+  opacity:0.45;
+}
+
+.botonCambiarModalidad{
+  margin-top:10px;
+  padding:0;
+  border:none;
+  background:transparent;
+  color:var(--azul-claro);
+  font-family:inherit;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.botonCambiarModalidad:hover{
+  color:white;
+  text-decoration:underline;
+}
+
+@media(max-width:800px){
+  .seleccionModalidadPractica{
+    padding:24px 0;
+  }
+
+  .opcionesModalidadPractica{
+    grid-template-columns:1fr;
+  }
+
+  .opcionModalidadPractica p{
+    min-height:auto;
+  }
+}
+
+@media(max-width:520px){
+  .encabezadoSeleccionModalidad h1{
+    font-size:27px;
+  }
+
+  .opcionModalidadPractica{
+    padding:24px 20px;
+  }
+}
+
 @media(max-width:1150px){
   .zonaPracticaNueva{
     grid-template-columns:1fr;

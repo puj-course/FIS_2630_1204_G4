@@ -28,20 +28,12 @@ class VisionEntrada(BaseModel):
 # Define el resultado del reconocimiento
 class VisionRespuesta(BaseModel):
     letra: Literal[
-    "A",
-    "E",
-    "G",
-    "H",
-    "I",
-    "J",
-    "Ñ",
-    "O",
-    "S",
-    "U",
-    "Z",
-] | None = Field(
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+        "K", "L", "M", "N", "Ñ", "O", "P", "Q", "R", "S",
+        "T", "U", "V", "W", "X", "Y", "Z",
+    ] | None = Field(
         ...,
-        description="Vocal reconocida o null si no se reconoce una vocal",
+        description="Letra reconocida o null si no se reconoce ninguna",
     )
 
     mensaje: str | None = Field(

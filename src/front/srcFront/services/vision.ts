@@ -16,19 +16,36 @@ export interface VisionEntrada {
 export interface VisionRespuesta {
   letra:
     | "A"
+    | "B"
+    | "C"
+    | "D"
     | "E"
+    | "F"
     | "G"
     | "H"
     | "I"
     | "J"
+    | "K"
+    | "L"
+    | "M"
+    | "N"
     | "Ñ"
     | "O"
+    | "P"
+    | "Q"
+    | "R"
     | "S"
+    | "T"
     | "U"
+    | "V"
+    | "W"
+    | "X"
+    | "Y"
     | "Z"
     | null;
   mensaje: string | null;
 }
+
 
 
 export function reconocerImagen(

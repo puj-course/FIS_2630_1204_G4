@@ -42,6 +42,7 @@ function Home({ cambiarPagina }: Props) {
 
     setMostrarBienvenida(false);
   }
+
   return (
     <div className="pantalla">
       {mostrarBienvenida && (
