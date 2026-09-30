@@ -115,9 +115,10 @@ def registrar_resultado(
 
             resultado = cursor.fetchone()
 
-            # Usa el mismo cursor para guardar el intento.
+            # Asocia el intento con el resultado recién creado.
             registrar_intento(
                 cursor=cursor,
+                id_resultado=resultado["id_resultado"],
                 id_usuario=id_usuario,
                 id_sesion=id_sesion,
                 id_letra=id_letra_objetivo,
