@@ -6,6 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+#Se agregaron todos los from de sloapi para el limite de intentos por IP en X tiempo
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 from app.routes.autenticacion import router as autenticacion_router
 from app.routes.letras import router as letras_router
 from app.routes.perfil import router as perfil_router
@@ -19,11 +24,6 @@ from app.routes.usuarios import router as usuarios_router
 from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
 from conf.logging_config import configurar_logging
-
-#Se agregaron todos los from de sloapi para el limite de intentos por IP en X tiempo
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 configurar_logging()
 
