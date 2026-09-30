@@ -266,6 +266,29 @@ class TestRutasAutenticacion(unittest.TestCase):
             {"detail": "No fue posible iniciar sesión"}
         )
 
+    @patch(
+        "app.routes.autenticacion.autenticar_usuario"
+    )
+    def test_login_responde_423_si_cuenta_bloqueada(
+        self,
+        autenticar_Simulado
+    ):
+        from app.services.autenticacion_service import CuentaBloqueadaError
+
+        autenticar_Simulado.side_effect = CuentaBloqueadaError(
+            "La cuenta está bloqueada temporalmente"
+        )
+
+        respuesta = self.cliente.post(
+            "/auth/login",
+            json={
+                "correo": "admin.prueba@signia.local",
+                "contrasena": "cualquier-clave"
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 423)
+
     def test_me_rechaza_peticion_sin_token(self):
         respuesta = self.cliente.get("/auth/me")
 
