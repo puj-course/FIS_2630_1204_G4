@@ -6,7 +6,7 @@ from app.limiter import limiter
 from app.routes.recuperacion_contrasena import router as router_recuperacion
 from app.routes.restablecimiento_contrasena import router as router_restablecimiento
 from app.security import crear_token_acceso, obtener_usuario_actual
-from app.services.autenticacion_service import autenticar_usuario
+from app.services.autenticacion_service import CuentaBloqueadaError, autenticar_usuario
 from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario
 from src.schemas.autenticacion import CredencialesLogin, TokenRespuesta, UsuarioAutenticadoRespuesta
 from src.schemas.usuario import UsuarioAutoRegistro, UsuarioRegistroRespuesta
@@ -27,6 +27,11 @@ def iniciar_sesion(request: Request, credenciales: CredencialesLogin):
             credenciales.correo,
             credenciales.contrasena
         )
+    except CuentaBloqueadaError as error:
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="La cuenta está bloqueada temporalmente por varios intentos fallidos"
+        ) from error
 
     except Exception as error:
         logger.exception(
