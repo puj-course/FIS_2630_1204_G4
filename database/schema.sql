@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     rol VARCHAR(20) NOT NULL DEFAULT 'usuario',
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    intentos_fallidos INTEGER NOT NULL DEFAULT 0,
+    bloqueado_hasta TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT pk_usuarios PRIMARY KEY (id_usuario),
     CONSTRAINT uq_usuarios_correo UNIQUE (correo),
