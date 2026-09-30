@@ -158,6 +158,10 @@ class TestServicioAutenticacion(unittest.TestCase):
 
 class TestRutasAutenticacion(unittest.TestCase):
 
+    def tearDown(self):
+        from app.limiter import limiter
+        limiter.reset()
+
     def setUp(self):
         self.cliente = TestClient(app)
 
@@ -266,6 +270,32 @@ class TestRutasAutenticacion(unittest.TestCase):
             respuesta.json(),
             {"detail": "No fue posible iniciar sesión"}
         )
+
+    @patch(
+        "app.routes.autenticacion.autenticar_usuario",
+        return_value=None
+    )
+    def test_login_responde_429_tras_superar_limite(
+        self,
+        autenticar_simulado
+    ):
+        for _ in range(5):
+            self.cliente.post(
+                "/auth/login",
+                json={
+                    "correo": "admin.prueba@signia.local",
+                    "contrasena": "incorrecta"
+                }
+            )
+        respuesta = self.cliente.post(
+            "/auth/login",
+            json={
+                "correo": "admin.prueba@signia.local",
+                "contrasena": "incorrecta"
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 429)
 
     @patch(
         "app.routes.autenticacion.autenticar_usuario"
