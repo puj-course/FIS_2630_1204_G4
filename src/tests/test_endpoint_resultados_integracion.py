@@ -8,6 +8,7 @@ from psycopg.rows import dict_row
 
 from app.main import app
 from app.security import crear_token_acceso
+from app.services.intentos_service import registrar_intento
 from app.services.sesiones_service import crear_sesion
 from conf.database import obtener_conexion
 from src.schemas.resultados import ResultadoRegistrado
@@ -168,6 +169,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     """
                     SELECT
                         id_intento,
+                        id_resultado,
                         id_usuario,
                         id_sesion,
                         id_letra,
@@ -302,6 +304,119 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         self.assertCountEqual(
             [intento["es_correcto"] for intento in intentos],
             [True, False],
+        )
+
+        # Comprueba la asociación con el resultado correspondiente.
+        resultados_por_id = {
+            resultado["id_resultado"]: resultado
+            for resultado in resultados_api
+        }
+
+        self.assertCountEqual(
+            [intento["id_resultado"] for intento in intentos],
+            list(resultados_por_id),
+        )
+
+        for intento in intentos:
+            resultado = resultados_por_id[
+                intento["id_resultado"]
+            ]
+
+            self.assertEqual(
+                intento["id_sesion"],
+                resultado["id_sesion"],
+            )
+            self.assertEqual(
+                intento["id_letra"],
+                resultado["id_letra_objetivo"],
+            )
+            self.assertIs(
+                intento["es_correcto"],
+                resultado["es_correcto"],
+            )
+
+    def test_mismo_resultado_no_genera_intentos_duplicados(self):
+        respuesta = self.cliente.post(
+            "/resultados",
+            headers=self.cabeceras,
+            json=self.datos,
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            201,
+            respuesta.text,
+        )
+
+        resultado = respuesta.json()["resultado"]
+
+        intentos_antes = self.leer_intentos(
+            self.sesion["id_sesion"]
+        )
+
+        self.assertEqual(len(intentos_antes), 1)
+        self.assertEqual(
+            intentos_antes[0]["id_resultado"],
+            resultado["id_resultado"],
+        )
+
+        # Repite la generación para el mismo resultado.
+        with obtener_conexion() as conexion:
+            with conexion.cursor(row_factory=dict_row) as cursor:
+                duplicado = registrar_intento(
+                    cursor=cursor,
+                    id_resultado=resultado["id_resultado"],
+                    id_usuario=self.id_usuario,
+                    id_sesion=resultado["id_sesion"],
+                    id_letra=resultado["id_letra_objetivo"],
+                    es_correcto=resultado["es_correcto"],
+                )
+
+        self.assertIsNone(duplicado)
+
+        # Conserva el intento original, incluida su fecha.
+        self.assertEqual(
+            self.leer_intentos(self.sesion["id_sesion"]),
+            intentos_antes,
+        )
+        self.assertEqual(
+            len(self.leer_resultados(self.sesion["id_sesion"])),
+            1,
+        )
+
+    def test_fallo_al_guardar_revierte_resultado_e_intento(self):
+        def insertar_y_fallar(*args, **kwargs):
+            # Ejecuta el INSERT real antes de provocar el fallo.
+            registrar_intento(*args, **kwargs)
+            raise RuntimeError(
+                "Fallo simulado después del intento"
+            )
+
+        with patch(
+            "app.services.resultados_service.registrar_intento",
+            side_effect=insertar_y_fallar,
+        ) as registrar_mock:
+            respuesta = self.cliente.post(
+                "/resultados",
+                headers=self.cabeceras,
+                json=self.datos,
+            )
+
+        self.assertEqual(
+            respuesta.status_code,
+            500,
+            respuesta.text,
+        )
+        registrar_mock.assert_called_once()
+
+        # Ninguno de los dos registros debe quedar almacenado.
+        self.assertEqual(
+            self.leer_resultados(self.sesion["id_sesion"]),
+            [],
+        )
+        self.assertEqual(
+            self.leer_intentos(self.sesion["id_sesion"]),
+            [],
         )
 
     def test_rechaza_sesion_ajena_sin_guardar_resultados(self):
@@ -467,8 +582,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 respuesta.json()["resultado"]["id_resultado"]
             )
 
-        # Cada consulta debe devolver únicamente los resultados
-        # de la sesión solicitada.
         consultas = [
             (self.sesion["id_sesion"], self.cabeceras),
             (otra_propia["id_sesion"], self.cabeceras),
@@ -507,8 +620,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     )
                 )
 
-                # Compara todos los campos con PostgreSQL
-                # mediante una conexión independiente.
+                # Compara todos los campos con PostgreSQL.
                 almacenados = self.leer_resultados(id_sesion)
 
                 self.assertEqual(
@@ -522,8 +634,8 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     ],
                 )
 
-        # El primer usuario no puede consultar la sesión ajena,
-        # aunque intente enviar otro usuario por query string.
+        # El token determina quién consulta, aunque se envíe
+        # otro identificador de usuario por query string.
         respuesta = self.cliente.get(
             f"/resultados/sesion/{ajena['id_sesion']}"
             f"?id_usuario={otro_usuario}",
