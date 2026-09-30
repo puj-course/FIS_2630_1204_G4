@@ -20,6 +20,11 @@ from app.routes.vision import router as vision_router
 from app.services.vision_service import cerrar_detectores
 from conf.logging_config import configurar_logging
 
+#Se agregaron todos los from de sloapi para el limite de intentos por IP en X tiempo
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 configurar_logging()
 
 logger = logging.getLogger(__name__)
@@ -40,6 +45,10 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+    
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.exception_handler(Exception)
 async def manejador_errores_no_controlados(request: Request, exc: Exception):
