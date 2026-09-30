@@ -6,4 +6,4 @@ node_modules/
 dist/
 *.pyc
 .coverage
-
+.DS_Store

@@ -1,12 +1,17 @@
 import os
 import unittest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import crear_token_acceso
-from app.services.autenticacion_service import autenticar_usuario, generar_hash_contrasena
+from app.services.autenticacion_service import (
+    CuentaBloqueadaError,
+    autenticar_usuario,
+    generar_hash_contrasena,
+)
 
 
 class TestServicioAutenticacion(unittest.TestCase):
@@ -15,7 +20,7 @@ class TestServicioAutenticacion(unittest.TestCase):
     def setUpClass(cls):
         cls.contrasena = "ClaveSeguraDePrueba123!"
         cls.hash_valido = generar_hash_contrasena(
-            cls.contrasena
+            cls.contrasena,
         )
 
         cls.usuario_con_hash = {
@@ -23,16 +28,23 @@ class TestServicioAutenticacion(unittest.TestCase):
             "nombre": "Administrador de prueba",
             "correo": "admin.prueba@signia.local",
             "contrasena_hash": cls.hash_valido,
-            "rol": "administrador"
+            "rol": "administrador",
+            "bloqueado_hasta": None
         }
 
+    @patch(
+            "app.services.autenticacion_service."
+            "reiniciar_intentos_fallidos"
+    )
     @patch(
         "app.services.autenticacion_service."
         "obtener_usuario_por_correo"
     )
+    
     def test_autentica_credenciales_correctas(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        reiniciar_simulado
     ):
         obtener_usuario_simulado.return_value = (
             self.usuario_con_hash
@@ -50,11 +62,16 @@ class TestServicioAutenticacion(unittest.TestCase):
 
     @patch(
         "app.services.autenticacion_service."
+        "registrar_intento_fallido"
+    )
+    @patch(
+        "app.services.autenticacion_service."
         "obtener_usuario_por_correo"
     )
     def test_rechaza_contrasena_incorrecta(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        registrar_simulado
     ):
         obtener_usuario_simulado.return_value = (
             self.usuario_con_hash
@@ -69,11 +86,16 @@ class TestServicioAutenticacion(unittest.TestCase):
 
     @patch(
         "app.services.autenticacion_service."
+        "registrar_intento_fallido"
+    )
+    @patch(
+        "app.services.autenticacion_service."
         "obtener_usuario_por_correo"
     )
     def test_controla_hash_no_utilizable(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        registrar_simulado
     ):
         usuario = dict(self.usuario_con_hash)
         usuario["contrasena_hash"] = (
@@ -89,6 +111,50 @@ class TestServicioAutenticacion(unittest.TestCase):
 
         self.assertIsNone(resultado)
 
+    @patch(
+        "app.services.autenticacion_service."
+        "obtener_usuario_por_correo"
+    )
+    def test_rechaza_login_si_cuenta_bloqueada(
+        self,
+        obtener_usuario_simulado
+    ):
+        usuario = dict(self.usuario_con_hash)
+        usuario["bloqueado_hasta"] = datetime.now(timezone.utc) + timedelta(
+            minutes=5
+        )
+        obtener_usuario_simulado.return_value = usuario
+
+        with self.assertRaises(CuentaBloqueadaError):
+            autenticar_usuario(
+                "admin.prueba@signia.local",
+                self.contrasena
+            )
+    @patch(
+        "app.services.autenticacion_service."
+        "reiniciar_intentos_fallidos"
+    )
+    @patch(
+        "app.services.autenticacion_service."
+        "obtener_usuario_por_correo"
+    )
+    def test_permite_login_si_bloqueo_ya_expiro(
+        self,
+        obtener_usuario_simulado,
+        reiniciar_simulado
+    ):
+        usuario = dict(self.usuario_con_hash)
+        usuario["bloqueado_hasta"] = datetime.now(timezone.utc) - timedelta(
+            minutes=5
+        )
+        obtener_usuario_simulado.return_value = usuario
+
+        resultado = autenticar_usuario(
+            "admin.prueba@signia.local",
+            self.contrasena
+        )
+
+        self.assertIsNotNone(resultado)
 
 class TestRutasAutenticacion(unittest.TestCase):
 
@@ -200,6 +266,29 @@ class TestRutasAutenticacion(unittest.TestCase):
             respuesta.json(),
             {"detail": "No fue posible iniciar sesión"}
         )
+
+    @patch(
+        "app.routes.autenticacion.autenticar_usuario"
+    )
+    def test_login_responde_423_si_cuenta_bloqueada(
+        self,
+        autenticar_Simulado
+    ):
+        from app.services.autenticacion_service import CuentaBloqueadaError
+
+        autenticar_Simulado.side_effect = CuentaBloqueadaError(
+            "La cuenta está bloqueada temporalmente"
+        )
+
+        respuesta = self.cliente.post(
+            "/auth/login",
+            json={
+                "correo": "admin.prueba@signia.local",
+                "contrasena": "cualquier-clave"
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 423)
 
     def test_me_rechaza_peticion_sin_token(self):
         respuesta = self.cliente.get("/auth/me")
