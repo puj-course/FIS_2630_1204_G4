@@ -1,7 +1,8 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
+from app.limiter import limiter
 from app.routes.recuperacion_contrasena import router as router_recuperacion
 from app.routes.restablecimiento_contrasena import router as router_restablecimiento
 from app.security import crear_token_acceso, obtener_usuario_actual
@@ -19,7 +20,8 @@ router = APIRouter(
 
 
 @router.post("/login", response_model=TokenRespuesta)
-def iniciar_sesion(credenciales: CredencialesLogin):
+@limiter.limit("5/minute")
+def iniciar_sesion(request: Request, credenciales: CredencialesLogin):
     try:
         usuario = autenticar_usuario(
             credenciales.correo,
