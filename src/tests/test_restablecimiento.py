@@ -185,11 +185,16 @@ class TestServicioRestablecimiento(unittest.TestCase):
         )
         usuario = {
             "id_usuario": 3, "nombre": "Prueba", "correo": "prueba@example.com",
-            "rol": "usuario", "contrasena_hash": hash_guardado
+            "rol": "usuario", "contrasena_hash": hash_guardado,
+            "bloqueado_hasta": None
         }
         with patch(
             "app.services.autenticacion_service.obtener_usuario_por_correo",
             return_value=usuario
+        ), patch(
+            "app.services.autenticacion_service.reiniciar_intentos_fallidos"
+        ), patch(
+            "app.services.autenticacion_service.registrar_intento_fallido"
         ):
             self.assertEqual(autenticar_usuario(usuario["correo"], CONTRASENA)["id_usuario"], 3)
             self.assertIsNone(autenticar_usuario(usuario["correo"], "Clave anterior 2026!"))
