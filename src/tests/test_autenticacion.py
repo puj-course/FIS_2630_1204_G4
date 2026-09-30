@@ -9,9 +9,10 @@ from app.main import app
 from app.security import crear_token_acceso
 from app.services.autenticacion_service import (
     CuentaBloqueadaError,
-    autenticar_usuario, 
-    generar_hash_contrasena
+    autenticar_usuario,
+    generar_hash_contrasena,
 )
+
 
 class TestServicioAutenticacion(unittest.TestCase):
 
