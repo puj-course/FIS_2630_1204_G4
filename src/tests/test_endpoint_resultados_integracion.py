@@ -23,12 +23,10 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         self.usuarios = []
         self.addCleanup(self.eliminar_datos_prueba)
 
-        # Conserva y restaura las dependencias de otras pruebas.
         anteriores = app.dependency_overrides.copy()
         app.dependency_overrides.clear()
         self.addCleanup(self.restaurar_overrides, anteriores)
 
-        # Usa una clave exclusiva de estas pruebas.
         parche = patch.dict(
             os.environ,
             {
@@ -128,7 +126,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         if not self.usuarios:
             return
 
-        # Las sesiones, resultados e intentos se eliminan por cascada.
+        # Elimina por cascada los datos de los usuarios de prueba.
         with obtener_conexion() as conexion:
             with conexion.cursor() as cursor:
                 cursor.execute(
@@ -140,7 +138,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 )
 
     def leer_resultados(self, id_sesion):
-        # Abre otra conexión para comprobar datos confirmados.
+        # Consulta desde una conexión independiente.
         with obtener_conexion() as conexion:
             with conexion.cursor(row_factory=dict_row) as cursor:
                 cursor.execute(
@@ -246,7 +244,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 ResultadoRegistrado.model_validate(recibido),
             )
 
-        # Consulta desde otro cliente después del registro.
+        # Consulta desde otro cliente después de guardar.
         with TestClient(app) as otro_cliente:
             consulta = otro_cliente.get(
                 f"/resultados/sesion/{self.sesion['id_sesion']}",
@@ -275,7 +273,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             ],
         )
 
-        # Comprueba los intentos desde otra conexión.
         intentos = self.leer_intentos(
             self.sesion["id_sesion"]
         )
@@ -300,13 +297,11 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     intento["fecha_intento"]
                 )
 
-        # Debe existir un acierto y un error.
         self.assertCountEqual(
             [intento["es_correcto"] for intento in intentos],
             [True, False],
         )
 
-        # Comprueba la asociación con el resultado correspondiente.
         resultados_por_id = {
             resultado["id_resultado"]: resultado
             for resultado in resultados_api
@@ -360,7 +355,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             resultado["id_resultado"],
         )
 
-        # Repite la generación para el mismo resultado.
+        # Intenta generar otro intento para el mismo resultado.
         with obtener_conexion() as conexion:
             with conexion.cursor(row_factory=dict_row) as cursor:
                 duplicado = registrar_intento(
@@ -374,7 +369,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
 
         self.assertIsNone(duplicado)
 
-        # Conserva el intento original, incluida su fecha.
         self.assertEqual(
             self.leer_intentos(self.sesion["id_sesion"]),
             intentos_antes,
@@ -386,7 +380,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
 
     def test_fallo_al_guardar_revierte_resultado_e_intento(self):
         def insertar_y_fallar(*args, **kwargs):
-            # Ejecuta el INSERT real antes de provocar el fallo.
             registrar_intento(*args, **kwargs)
             raise RuntimeError(
                 "Fallo simulado después del intento"
@@ -409,7 +402,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         )
         registrar_mock.assert_called_once()
 
-        # Ninguno de los dos registros debe quedar almacenado.
         self.assertEqual(
             self.leer_resultados(self.sesion["id_sesion"]),
             [],
@@ -418,6 +410,59 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             self.leer_intentos(self.sesion["id_sesion"]),
             [],
         )
+
+    def test_rechaza_sesiones_inactivas_sin_guardar_datos(self):
+        for estado in ("finalizada", "cancelada"):
+            with self.subTest(estado=estado):
+                with obtener_conexion() as conexion:
+                    with conexion.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            UPDATE sesiones_reconocimiento
+                            SET
+                                estado = %s,
+                                fecha_fin = GREATEST(
+                                    CURRENT_TIMESTAMP,
+                                    fecha_inicio
+                                )
+                            WHERE id_sesion = %s
+                                AND id_usuario = %s;
+                            """,
+                            (
+                                estado,
+                                self.sesion["id_sesion"],
+                                self.id_usuario,
+                            ),
+                        )
+
+                respuesta = self.cliente.post(
+                    "/resultados",
+                    headers=self.cabeceras,
+                    json=self.datos,
+                )
+
+                self.assertEqual(
+                    respuesta.status_code,
+                    409,
+                    respuesta.text,
+                )
+                self.assertEqual(
+                    respuesta.json(),
+                    {
+                        "detail": (
+                            "Solo se pueden registrar resultados "
+                            "en sesiones activas"
+                        ),
+                    },
+                )
+                self.assertEqual(
+                    self.leer_resultados(self.sesion["id_sesion"]),
+                    [],
+                )
+                self.assertEqual(
+                    self.leer_intentos(self.sesion["id_sesion"]),
+                    [],
+                )
 
     def test_rechaza_sesion_ajena_sin_guardar_resultados(self):
         otro_usuario = self.crear_usuario_prueba()
@@ -447,8 +492,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         )
 
     def test_rechaza_sesion_inexistente(self):
-        # Elimina una sesión propia de prueba para obtener
-        # un identificador inexistente sin adivinarlo.
         eliminada = crear_sesion(self.id_usuario)
 
         with obtener_conexion() as conexion:
@@ -530,8 +573,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             "Authorization": f"Bearer {token_ajeno}",
         }
 
-        # Registra dos resultados en la sesión consultada,
-        # uno en otra sesión propia y uno en una sesión ajena.
         casos = [
             (
                 self.sesion["id_sesion"],
@@ -620,7 +661,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     )
                 )
 
-                # Compara todos los campos con PostgreSQL.
                 almacenados = self.leer_resultados(id_sesion)
 
                 self.assertEqual(
@@ -634,8 +674,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     ],
                 )
 
-        # El token determina quién consulta, aunque se envíe
-        # otro identificador de usuario por query string.
+        # Otro identificador en la URL no cambia al usuario del token.
         respuesta = self.cliente.get(
             f"/resultados/sesion/{ajena['id_sesion']}"
             f"?id_usuario={otro_usuario}",
@@ -673,7 +712,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         )
 
     def test_consulta_sesion_inexistente_devuelve_404(self):
-        # Elimina únicamente la sesión creada para esta prueba.
         id_sesion = self.sesion["id_sesion"]
 
         with obtener_conexion() as conexion:
