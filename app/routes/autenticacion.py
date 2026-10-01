@@ -1,11 +1,21 @@
 import logging
 
+from datetime import datetime, timezone
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials
 
 from app.limiter import limiter
 from app.routes.recuperacion_contrasena import router as router_recuperacion
 from app.routes.restablecimiento_contrasena import router as router_restablecimiento
-from app.security import crear_token_acceso, obtener_usuario_actual
+from app.security import (
+    ALGORITMO_JWT,
+    crear_token_acceso,
+    obtener_clave_jwt,
+    obtener_usuario_actual,
+    revocar_token,
+    seguridad_bearer,
+)
 from app.services.autenticacion_service import CuentaBloqueadaError, autenticar_usuario
 from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario
 from src.schemas.autenticacion import CredencialesLogin, TokenRespuesta, UsuarioAutenticadoRespuesta
@@ -113,5 +123,23 @@ def autorregistrar_usuario(datos: UsuarioAutoRegistro):
         "mensaje": "Usuario registrado correctamente",
         "usuario": usuario
     }
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def cerrar_sesion(
+    credenciales: HTTPAuthorizationCredentials = Depends(seguridad_bearer),
+    _usuario: dict = Depends(obtener_usuario_actual)
+):
+    contenido = jwt.decode(
+        credenciales.credentials,
+        obtener_clave_jwt(),
+        algorithms=[ALGORITMO_JWT]
+    )
+
+    fecha_expiracion = datetime.fromtimestamp(
+        contenido["exp"], tz=timezone.utc
+    )
+
+    revocar_token(contenido["jti"], fecha_expiracion)
+
 router.include_router(router_recuperacion)
 router.include_router(router_restablecimiento)
