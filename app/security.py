@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
-from conf.database import obtener_conexion
 
 from app.services.autenticacion_service import obtener_usuario_por_id
+from conf.database import obtener_conexion
 
 load_dotenv()
 
@@ -106,8 +106,12 @@ def obtener_usuario_actual(
         )
 
         id_usuario = int(contenido.get("sub"))
+        jti = contenido.get("jti")
 
     except (InvalidTokenError, TypeError, ValueError):
+        raise crear_error_credenciales()
+
+    if jti is not None and token_esta_revocado(jti):
         raise crear_error_credenciales()
 
     usuario = obtener_usuario_por_id(id_usuario)
