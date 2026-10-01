@@ -6,7 +6,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.security import crear_token_acceso
+from app.security import crear_token_acceso, obtener_usuario_actual
 from app.services.autenticacion_service import (
     CuentaBloqueadaError,
     autenticar_usuario,
@@ -161,6 +161,7 @@ class TestRutasAutenticacion(unittest.TestCase):
     def tearDown(self):
         from app.limiter import limiter
         limiter.reset()
+        app.dependency_overrides.clear()
 
     def setUp(self):
         self.cliente = TestClient(app)
@@ -171,6 +172,24 @@ class TestRutasAutenticacion(unittest.TestCase):
             "correo": "admin.prueba@signia.local",
             "rol": "administrador"
         }
+
+    @patch("app.routes.autenticacion.revocar_token")
+    def test_logout_revoca_el_token(self, revocar_simulado):
+        token = crear_token_acceso(self.usuario["id_usuario"])
+        app.dependency_overrides[obtener_usuario_actual] = lambda: self.usuario
+
+        respuesta = self.cliente.post(
+            "/auth/logout",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+
+        self.assertEqual(respuesta.status_code, 204)
+        revocar_simulado.assert_called_once()
+
+    def test_logout_requiere_autenticacion(self):
+        respuesta = self.cliente.post("/auth/logout")
+
+        self.assertEqual(respuesta.status_code, 401)
 
     def test_login_exitoso(self):
         with patch(
@@ -351,11 +370,17 @@ class TestRutasAutenticacion(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 401)
 
     @patch(
+        "app.security.token_esta_revocado",
+        return_value=False
+    )
+
+    @patch(
         "app.security.obtener_usuario_por_id"
     )
     def test_me_devuelve_usuario_autenticado(
         self,
-        obtener_usuario_simulado
+        obtener_usuario_simulado,
+        token_revocado_simulado
     ):
         obtener_usuario_simulado.return_value = self.usuario
 
