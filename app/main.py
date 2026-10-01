@@ -5,7 +5,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from app.limiter import limiter
 from app.routes.router import api_router
 from app.services.vision_service import cerrar_detectores
 from conf.logging_config import configurar_logging
@@ -35,6 +38,12 @@ app = FastAPI(
     description="Backend para la plataforma de aprendizaje del alfabeto LSC",
     version="1.0.1",
     lifespan=lifespan,
+)
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
 )
 
 
