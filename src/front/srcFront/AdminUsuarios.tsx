@@ -35,13 +35,13 @@ function AdminUsuarios() {
   } | null>(null);
 
   const sesion = obtenerSesion();
-
-  useEffect(() => {
+  const token = sesion?.access_token;
+    useEffect(() => {
     let activo = true;
 
     const idTimeout = setTimeout(() => {
       const cargarUsuarios = async () => {
-        if (!sesion) {
+        if (!token) {
           if (activo) {
             setCargando(false);
           }
@@ -55,7 +55,7 @@ function AdminUsuarios() {
         try {
           const resultado = await obtenerUsuarios(
             busqueda,
-            sesion.access_token
+            token
           );
 
           if (activo) {
@@ -84,7 +84,7 @@ function AdminUsuarios() {
       activo = false;
       clearTimeout(idTimeout);
     };
-  }, [busqueda, sesion?.access_token]);
+  }, [busqueda, token]);
 
   async function manejarCambioRol(
     usuario: UsuarioListado,
