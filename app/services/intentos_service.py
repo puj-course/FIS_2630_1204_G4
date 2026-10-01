@@ -1,3 +1,8 @@
+from psycopg.rows import dict_row
+
+from conf.database import obtener_conexion
+
+
 def registrar_intento(
     cursor,
     id_resultado: int,
@@ -42,3 +47,55 @@ def registrar_intento(
     )
 
     return cursor.fetchone()
+
+
+def consultar_intentos_usuario(
+    id_usuario: int,
+    id_letra: int | None = None,
+    id_sesion: int | None = None,
+) -> list[dict]:
+    """
+    Consulta los intentos de un usuario.
+
+    Permite filtrar por letra objetivo, sesión o ambos.
+    Devuelve los intentos del más reciente al más antiguo.
+    Si no hay coincidencias, devuelve una lista vacía.
+    """
+
+    consulta = """
+        SELECT
+            id_intento,
+            id_resultado,
+            id_usuario,
+            id_sesion,
+            id_letra,
+            es_correcto,
+            fecha_intento
+        FROM intentos_reconocimiento
+        WHERE id_usuario = %s
+    """
+
+    parametros = [id_usuario]
+
+    if id_letra is not None:
+        consulta += " AND id_letra = %s"
+        parametros.append(id_letra)
+
+    if id_sesion is not None:
+        consulta += " AND id_sesion = %s"
+        parametros.append(id_sesion)
+
+    consulta += """
+        ORDER BY
+            fecha_intento DESC,
+            id_intento DESC;
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                consulta,
+                tuple(parametros),
+            )
+
+            return cursor.fetchall()
