@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
+from conf.database import obtener_conexion
 
 from app.services.autenticacion_service import obtener_usuario_por_id
 
@@ -57,6 +58,28 @@ def crear_token_acceso(id_usuario: int):
         obtener_clave_jwt(),
         algorithm=ALGORITMO_JWT
     )
+
+def revocar_token(jti: str, fecha_expiracion: datetime):
+    with obtener_conexion() as conexion:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO tokens_revocados (jti, fecha_expiracion)
+                VALUES (%s, %s)
+                ON CONFLICT (jti) DO NOTHING;
+                """,
+                (jti, fecha_expiracion)
+            )
+
+def token_esta_revocado(jti: str) -> bool:
+    with obtener_conexion() as conexion:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "SELECT 1 FROM tokens_revocados WHERE jti = %s;",
+                    (jti,)
+                )
+
+                return cursor.fetchone() is not None
 
 
 def crear_error_credenciales():
