@@ -11,17 +11,13 @@ import { obtenerSesion } from "../services/autenticacion";
 import { obtenerIdLetra } from "../services/letras";
 import { registrarProgreso } from "../services/progreso";
 import { registrarResultadoReconocimiento } from "../services/resultados";
-
 import {
   crearSesionReconocimiento,
   guardarSesionReconocimiento,
   limpiarSesionReconocimiento,
   obtenerSesionReconocimiento,
 } from "../services/sesiones";
-
-import type {
-  ModoReconocimiento,
-} from "../services/vision";
+import type { ModoReconocimiento } from "../services/vision";
 
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
@@ -98,7 +94,8 @@ function ResultadoReconocimiento({
 
     ultimoIntento.current = deteccion.id;
 
-    let token: string;
+    let token: string | null = null;
+    let errorSesion: Error | null = null;
 
     try {
       const sesion = obtenerSesion();
@@ -111,14 +108,11 @@ function ResultadoReconocimiento({
 
       token = sesion.access_token;
     } catch (error) {
-      pausado.current = true;
-      setRegistroPausado(true);
-      setErrorRegistro(
-        error instanceof Error
-          ? error.message
-          : "No fue posible obtener la sesión del usuario.",
-      );
-      return;
+      errorSesion = error instanceof Error
+        ? error
+        : new Error(
+            "No fue posible obtener la sesión del usuario.",
+          );
     }
 
     async function guardarIntento() {
@@ -134,6 +128,16 @@ function ResultadoReconocimiento({
       setErrorRegistro("");
 
       try {
+        if (errorSesion !== null) {
+          throw errorSesion;
+        }
+
+        if (!token) {
+          throw new Error(
+            "Debes iniciar sesión para registrar los intentos.",
+          );
+        }
+
         if (obtenerSesion()?.access_token !== token) {
           throw new Error(
             "La sesión del usuario cambió. Inicia otra práctica.",
@@ -272,8 +276,8 @@ function ResultadoReconocimiento({
           return;
         }
 
-        // Evita repetir automáticamente una solicitud cuyo
-        // resultado podría haberse guardado antes de perder la conexión.
+        // Pausa los envíos para evitar repetir una solicitud
+        // que pudo guardarse antes de perder la conexión.
         pausado.current = true;
         setRegistroPausado(true);
         setErrorRegistro(detalle);
