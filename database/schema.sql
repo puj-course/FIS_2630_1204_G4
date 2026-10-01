@@ -158,4 +158,12 @@ CREATE TABLE IF NOT EXISTS recuperaciones_contrasena (
 CREATE INDEX IF NOT EXISTS idx_recuperaciones_usuario_fecha
     ON recuperaciones_contrasena (id_usuario, fecha_creacion DESC);
 
+CREATE TABLE IF NOT EXISTS tokens_revocados (
+    jti VARCHAR(36) NOT NULL,
+    fecha_expiracion TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    CONSTRAINT pk_tokens_revocados PRIMARY KEY (jti)
+);
+
 COMMIT;
+

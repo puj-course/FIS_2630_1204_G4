@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -8,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
 
 from app.services.autenticacion_service import obtener_usuario_por_id
+from conf.database import obtener_conexion
 
 load_dotenv()
 
@@ -47,7 +49,8 @@ def crear_token_acceso(id_usuario: int):
     contenido = {
         "sub": str(id_usuario),
         "iat": momento_actual,
-        "exp": fecha_expiracion
+        "exp": fecha_expiracion,
+        "jti": str(uuid.uuid4())
     }
 
     return jwt.encode(
@@ -55,6 +58,28 @@ def crear_token_acceso(id_usuario: int):
         obtener_clave_jwt(),
         algorithm=ALGORITMO_JWT
     )
+
+def revocar_token(jti: str, fecha_expiracion: datetime):
+    with obtener_conexion() as conexion:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO tokens_revocados (jti, fecha_expiracion)
+                VALUES (%s, %s)
+                ON CONFLICT (jti) DO NOTHING;
+                """,
+                (jti, fecha_expiracion)
+            )
+
+def token_esta_revocado(jti: str) -> bool:
+    with obtener_conexion() as conexion:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    "SELECT 1 FROM tokens_revocados WHERE jti = %s;",
+                    (jti,)
+                )
+
+                return cursor.fetchone() is not None
 
 
 def crear_error_credenciales():
@@ -81,8 +106,12 @@ def obtener_usuario_actual(
         )
 
         id_usuario = int(contenido.get("sub"))
+        jti = contenido.get("jti")
 
     except (InvalidTokenError, TypeError, ValueError):
+        raise crear_error_credenciales()
+
+    if jti is not None and token_esta_revocado(jti):
         raise crear_error_credenciales()
 
     usuario = obtener_usuario_por_id(id_usuario)

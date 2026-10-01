@@ -97,12 +97,19 @@ class TestRutaPerfil(unittest.TestCase):
         self.assertEqual(respuesta.status_code, 401)
 
     @patch(
+        "app.security.token_esta_revocado",
+        return_value=False
+    )
+
+    @patch(
         "app.security.obtener_usuario_por_id",
         return_value=None
     )
+    
     def test_rechaza_usuario_inexistente(
         self,
-        _obtener_usuario_simulado
+        _obtener_usuario_simulado,
+        _token_revocado_simulado
     ):
         with patch.dict(
             os.environ,
