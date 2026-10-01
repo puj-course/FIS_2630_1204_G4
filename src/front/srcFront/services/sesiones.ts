@@ -54,3 +54,7 @@ export function obtenerSesionReconocimiento():
 
   return JSON.parse(datos);
 }
+
+export function limpiarSesionReconocimiento() {
+  localStorage.removeItem(CLAVE_SESION);
+}
