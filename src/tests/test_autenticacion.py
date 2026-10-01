@@ -175,13 +175,21 @@ class TestRutasAutenticacion(unittest.TestCase):
 
     @patch("app.routes.autenticacion.revocar_token")
     def test_logout_revoca_el_token(self, revocar_simulado):
-        token = crear_token_acceso(self.usuario["id_usuario"])
-        app.dependency_overrides[obtener_usuario_actual] = lambda: self.usuario
+        with patch.dict(
+            os.environ,
+            {
+                "JWT_SECRET": "clave-secreta-de-prueba",
+                "JWT_EXPIRE_MINUTES": "60"
+            }
+        ):
+            
+            token = crear_token_acceso(self.usuario["id_usuario"])
+            app.dependency_overrides[obtener_usuario_actual] = lambda: self.usuario
 
-        respuesta = self.cliente.post(
-            "/auth/logout",
-            headers={"Authorization": f"Bearer {token}"}
-        )
+            respuesta = self.cliente.post(
+                "/auth/logout",
+                headers={"Authorization": f"Bearer {token}"}
+            )
 
         self.assertEqual(respuesta.status_code, 204)
         revocar_simulado.assert_called_once()
