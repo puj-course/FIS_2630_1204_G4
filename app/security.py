@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -47,7 +48,8 @@ def crear_token_acceso(id_usuario: int):
     contenido = {
         "sub": str(id_usuario),
         "iat": momento_actual,
-        "exp": fecha_expiracion
+        "exp": fecha_expiracion,
+        "jti": str(uuid.uuid4())
     }
 
     return jwt.encode(
