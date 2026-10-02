@@ -188,3 +188,53 @@ def consultar_estado_letras_usuario(id_usuario: int):
             )
 
             return cursor.fetchall()
+
+def consultar_resumen_progreso_usuario(id_usuario: int):
+    """
+    Obtiene un resumen del progreso de un usuario especifico.
+    """
+
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT id_usuario
+                FROM usuarios
+                WHERE id_usuario = %s;
+                """,
+                (id_usuario,),
+            )
+
+            if cursor.fetchone() is None:
+                raise UsuarioNoEncontradoError(
+                    "El usuario no existe"
+                )
+
+            cursor.execute(
+                """
+                SELECT
+                    COUNT(l.id_letra) AS total_letras,
+                    COUNT(p.id_progreso) FILTER (
+                        WHERE p.dominada = TRUE
+                    ) AS letras_dominadas,
+                    COALESCE(SUM(p.cantidad_intentos), 0) AS total_intentos,
+                    COALESCE(SUM(p.cantidad_aciertos), 0) AS total_aciertos
+                FROM letras AS l
+                LEFT JOIN progreso_usuario AS p
+                    ON p.id_letra = l.id_letra
+                    AND p.id_usuario = %s
+                WHERE l.activa = TRUE;
+                """,
+                (id_usuario,),
+            )
+
+            resumen = cursor.fetchone()
+
+    return {
+        "total_intentos": resumen["total_intentos"],
+        "total_aciertos": resumen["total_aciertos"],
+        "letras_dominadas": resumen["letras_dominadas"],
+        "letras_pendientes": (
+            resumen["total_letras"] - resumen["letras_dominadas"]
+        ),
+    }
