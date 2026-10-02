@@ -416,5 +416,58 @@ class TestRegistroUsuarios(unittest.TestCase):
             {"detail": "No fue posible obtener la lista de los usuarios"}
         )
 
+    @patch("app.routes.usuarios.reactivar_usuario")
+    def test_reactiva_un_usuario(self, servicio_simulado):
+        servicio_simulado.return_value = {
+            "id_usuario": 5,
+            "nombre": "Usuario Prueba",
+            "correo": "usuario@signia.local",
+            "rol": "usuario",
+            "activo": True
+        }
+
+        respuesta = self.cliente.patch("/usuarios/5/reactivar")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertTrue(respuesta.json()["activo"])
+        servicio_simulado.assert_called_once_with(5)
+
+    @patch("app.routes.usuarios.reactivar_usuario")
+    def test_reactivar_responde_404_si_no_existe(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.return_value = None
+
+        respuesta = self.cliente.patch("/usuarios/999/reactivar")
+
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "El usuario no existe"}
+        )
+
+    def test_no_puede_reactivar_su_propia_cuenta(self):
+        respuesta = self.cliente.patch("/usuarios/1/reactivar")
+
+        self.assertEqual(respuesta.status_code,400)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "No se puede reactivar su propia cuenta"}
+        )
+
+    def test_reactivar_rechaza_usuario_sin_permisos(self):
+        app.dependency_overrides.pop(requerir_administrador, None)
+        app.dependency_overrides[obtener_usuario_actual] = lambda: {
+            "id_usuario": 4,
+            "nombre": "Usuario",
+            "correo": "usuarios@signia.local",
+            "rol": "usuario"
+        }
+
+        respuesta = self.cliente.patch("/usuarios/5/reactivar")
+
+        self.assertEqual(respuesta.status_code, 403)
+
 if __name__ == "__main__":
     unittest.main()
