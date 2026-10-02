@@ -691,6 +691,87 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             {"detail": "La sesión no pertenece al usuario"},
         )
 
+    def test_genera_intentos_para_varios_usuarios_sesiones_y_letras(self):
+        otra_propia = crear_sesion(self.id_usuario)
+        otro_usuario = self.crear_usuario_prueba()
+        otra_sesion = crear_sesion(otro_usuario)
+        otras_cabeceras = {
+            "Authorization": f"Bearer {crear_token_acceso(otro_usuario)}",
+        }
+
+        sesiones = [
+            (self.sesion["id_sesion"], self.id_usuario, self.cabeceras),
+            (otra_propia["id_sesion"], self.id_usuario, self.cabeceras),
+            (otra_sesion["id_sesion"], otro_usuario, otras_cabeceras),
+        ]
+        esperados_por_sesion = {}
+
+        for indice, (id_sesion, id_usuario, cabeceras) in enumerate(sesiones):
+            esperados = {}
+            esperados_por_sesion[id_sesion] = esperados
+
+            for posicion, objetivo in enumerate((self.id_letra_a, self.id_letra_b)):
+                correcto = (indice + posicion) % 2 == 0
+                detectada = objetivo if correcto else (
+                    self.id_letra_b if objetivo == self.id_letra_a else self.id_letra_a
+                )
+                datos = {
+                    "id_sesion": id_sesion,
+                    "id_letra_objetivo": objetivo,
+                    "id_letra_detectada": detectada,
+                    "confianza": 0.95,
+                }
+                respuesta = self.cliente.post(
+                    "/resultados",
+                    headers=cabeceras,
+                    json=datos,
+                )
+                self.assertEqual(respuesta.status_code, 201, respuesta.text)
+                resultado = respuesta.json()["resultado"]
+                self.assertIs(resultado["es_correcto"], correcto)
+                esperados[resultado["id_resultado"]] = {
+                    **datos,
+                    "es_correcto": correcto,
+                }
+
+        for id_sesion, id_usuario, _ in sesiones:
+            with self.subTest(id_usuario=id_usuario, id_sesion=id_sesion):
+                esperados = esperados_por_sesion[id_sesion]
+                resultados = self.leer_resultados(id_sesion)
+                intentos = self.leer_intentos(id_sesion)
+
+                self.assertEqual(len(esperados), 2)
+                self.assertEqual(len(resultados), 2)
+                self.assertEqual(len(intentos), 2)
+                self.assertCountEqual(
+                    [r["id_resultado"] for r in resultados],
+                    list(esperados),
+                )
+                self.assertCountEqual(
+                    [i["id_resultado"] for i in intentos],
+                    list(esperados),
+                )
+
+                for resultado in resultados:
+                    esperado = esperados[resultado["id_resultado"]]
+                    for campo in (
+                        "id_sesion",
+                        "id_letra_objetivo",
+                        "id_letra_detectada",
+                        "es_correcto",
+                    ):
+                        self.assertEqual(resultado[campo], esperado[campo])
+                    self.assertAlmostEqual(float(resultado["confianza"]), 0.95)
+
+                for intento in intentos:
+                    esperado = esperados[intento["id_resultado"]]
+                    self.assertEqual(intento["id_usuario"], id_usuario)
+                    self.assertEqual(intento["id_sesion"], id_sesion)
+                    self.assertEqual(intento["id_letra"], esperado["id_letra_objetivo"])
+                    self.assertIs(intento["es_correcto"], esperado["es_correcto"])
+                    self.assertIsNotNone(intento["fecha_intento"])
+
+
     def test_consulta_sesion_vacia_devuelve_respuesta_valida(self):
         respuesta = self.cliente.get(
             f"/resultados/sesion/{self.sesion['id_sesion']}",
