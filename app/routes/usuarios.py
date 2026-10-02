@@ -3,6 +3,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import requerir_administrador
+from app.services.progreso_service import (
+    UsuarioNoEncontradoError,
+    consultar_resumen_progreso_usuario,
+)
 from app.services.usuarios_service import (
     CorreoYaRegistradoError,
     cambiar_rol,
@@ -11,11 +15,7 @@ from app.services.usuarios_service import (
     listar_usuarios,
     reactivar_usuario,
 )
-from app.services.progreso_service import (
-    UsuarioNoEncontradoError,
-    consultar_resumen_progreso_usuario,
-)
-
+from src.schemas.progreso import ResumenProgresoUsuarioRespuesta
 from src.schemas.usuario import (
     CambioRolUsuario,
     UsuarioDesactivadoRespuesta,
@@ -23,7 +23,6 @@ from src.schemas.usuario import (
     UsuarioRegistro,
     UsuarioRegistroRespuesta,
 )
-from src.schemas.progreso import ResumenProgresoUsuarioRespuesta
 
 logger = logging.getLogger(__name__)
 
