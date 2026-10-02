@@ -11,6 +11,11 @@ from app.services.usuarios_service import (
     listar_usuarios,
     reactivar_usuario,
 )
+from app.services.progreso_service import (
+    UsuarioNoEncontradoError,
+    consultar_resumen_progreso_usuario,
+)
+
 from src.schemas.usuario import (
     CambioRolUsuario,
     UsuarioDesactivadoRespuesta,
@@ -18,6 +23,7 @@ from src.schemas.usuario import (
     UsuarioRegistro,
     UsuarioRegistroRespuesta,
 )
+from src.schemas.progreso import ResumenProgresoUsuarioRespuesta
 
 logger = logging.getLogger(__name__)
 
@@ -157,3 +163,22 @@ def reactivar(
         )
 
     return usuario
+
+@router.get(
+    "/{id_usuario}/progreso",
+    response_model=ResumenProgresoUsuarioRespuesta
+)
+def consultar_progreso(
+    id_usuario:int,
+    _administrador: dict = Depends(requerir_administrador)
+):
+    try:
+        resumen = consultar_resumen_progreso_usuario(id_usuario)
+
+    except UsuarioNoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error)
+        ) from error
+
+    return resumen
