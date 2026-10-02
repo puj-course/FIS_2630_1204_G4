@@ -9,14 +9,6 @@ left to right direction
 
 title HU#4 - Consultar Alfabeto - Diagrama de Componentes
 
-/'
-Visión Arquitectónica
-El cliente consulta la pantalla de aprendizaje; la capa de presentación pide
-el alfabeto al módulo de letras, que lo obtiene de la tabla letras. La
-actualización de una letra (PATCH) requiere además validar el token con el
-módulo de autenticación.
-'/
-
 package "Capa Cliente" {
   component "Cliente Navegador Web" as Browser
 }
