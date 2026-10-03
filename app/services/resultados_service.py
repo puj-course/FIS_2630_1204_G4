@@ -1,7 +1,13 @@
+import logging
+
 from psycopg.rows import dict_row
 
 from app.services.intentos_service import registrar_intento
+from app.services.progreso_service import registrar_progreso
 from conf.database import obtener_conexion
+
+
+logger = logging.getLogger(__name__)
 
 
 class SesionNoEncontradaError(Exception):
@@ -27,7 +33,11 @@ def registrar_resultado(
     id_letra_detectada: int,
     confianza: float,
 ):
-    """Registra el resultado y su intento en una sesión activa."""
+    """Guarda resultado e intento y después actualiza el progreso si acertó.
+
+    El progreso usa una transacción independiente. Si falla, se registra
+    el error y se conserva el resultado confirmado, sin reintento automático.
+    """
 
     with obtener_conexion() as conexion:
         with conexion.cursor(row_factory=dict_row) as cursor:
@@ -133,7 +143,24 @@ def registrar_resultado(
                 es_correcto=es_correcto,
             )
 
-            return resultado
+    # Salir del contexto confirma resultado e intento antes de tocar progreso.
+    # Un fallo del guardado o del commit impide llegar a este punto.
+    if es_correcto:
+        try:
+            registrar_progreso(
+                id_usuario=sesion["id_usuario"],
+                id_letra=resultado["id_letra_objetivo"],
+            )
+        except Exception:
+            logger.exception(
+                "No se pudo actualizar el progreso del resultado %s "
+                "para el usuario %s y la letra %s",
+                resultado["id_resultado"],
+                sesion["id_usuario"],
+                resultado["id_letra_objetivo"],
+            )
+
+    return resultado
 
 
 def consultar_resultados_sesion(
