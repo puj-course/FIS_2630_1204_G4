@@ -6,7 +6,6 @@ from app.services.intentos_service import registrar_intento
 from app.services.progreso_service import registrar_progreso
 from conf.database import obtener_conexion
 
-
 logger = logging.getLogger(__name__)
 
 
