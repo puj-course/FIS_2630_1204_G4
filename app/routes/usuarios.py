@@ -9,6 +9,7 @@ from app.services.usuarios_service import (
     crear_usuario,
     desactivar_usuario,
     listar_usuarios,
+    reactivar_usuario,
 )
 from src.schemas.usuario import (
     CambioRolUsuario,
@@ -124,6 +125,30 @@ def desactivar(
             detail="No se puede desactivar su propia cuenta"
         )
     usuario = desactivar_usuario(id_usuario)
+
+    if usuario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El usuario no existe"
+        )
+
+    return usuario
+
+
+@router.patch(
+    "/{id_usuario}/reactivar",
+    response_model=UsuarioDesactivadoRespuesta
+)
+def reactivar(
+    id_usuario: int,
+    administrador: dict = Depends(requerir_administrador)
+):
+    if id_usuario == administrador["id_usuario"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede reactivar su propia cuenta"
+        )
+    usuario = reactivar_usuario(id_usuario)
 
     if usuario is None:
         raise HTTPException(
