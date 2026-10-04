@@ -496,6 +496,22 @@ class TestRegistroUsuarios(unittest.TestCase):
         )
         servicio_simulado.assert_called_once_with(5)
 
+    @patch("app.routes.usuarios.consultar_resumen_progreso_usuario")
+    def test_progreso_responde_404_si_no_existe(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.side_effect = UsuarioNoEncontradoError(
+            "El usuario no existe"
+        )
+
+        respuesta = self.cliente.get("/usuarios/999/progreso")
+
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "El usuario no existe"}
+        )
 
 if __name__ == "__main__":
     unittest.main()
