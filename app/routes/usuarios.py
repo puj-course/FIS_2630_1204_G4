@@ -3,6 +3,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.security import requerir_administrador
+from app.services.progreso_service import (
+    UsuarioNoEncontradoError,
+    consultar_resumen_progreso_usuario,
+)
 from app.services.usuarios_service import (
     CorreoYaRegistradoError,
     cambiar_rol,
@@ -11,6 +15,7 @@ from app.services.usuarios_service import (
     listar_usuarios,
     reactivar_usuario,
 )
+from src.schemas.progreso import ResumenProgresoUsuarioRespuesta
 from src.schemas.usuario import (
     CambioRolUsuario,
     UsuarioDesactivadoRespuesta,
@@ -157,3 +162,22 @@ def reactivar(
         )
 
     return usuario
+
+@router.get(
+    "/{id_usuario}/progreso",
+    response_model=ResumenProgresoUsuarioRespuesta
+)
+def consultar_progreso(
+    id_usuario:int,
+    _administrador: dict = Depends(requerir_administrador)
+):
+    try:
+        resumen = consultar_resumen_progreso_usuario(id_usuario)
+
+    except UsuarioNoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error)
+        ) from error
+
+    return resumen
