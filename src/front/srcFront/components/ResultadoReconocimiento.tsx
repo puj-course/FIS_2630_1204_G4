@@ -243,9 +243,6 @@ function ResultadoReconocimiento({
         callbacks.current.onResultadoRegistrado?.();
 
         if (respuesta.resultado.es_correcto) {
-          callbacks.current.onReconocimientoCorrecto?.(objetivo);
-
-          // Conserva la actualización de progreso que ya existía.
           await registrarProgreso(
             { id_letra: objetivo },
             token,
@@ -258,6 +255,7 @@ function ResultadoReconocimiento({
             setMensajeRegistro(
               "Intento guardado automáticamente y progreso actualizado.",
             );
+            callbacks.current.onReconocimientoCorrecto?.(objetivo);
           }
         }
       } catch (error) {
@@ -276,8 +274,6 @@ function ResultadoReconocimiento({
           return;
         }
 
-        // Pausa los envíos para evitar repetir una solicitud
-        // que pudo guardarse antes de perder la conexión.
         pausado.current = true;
         setRegistroPausado(true);
         setErrorRegistro(detalle);
@@ -297,7 +293,7 @@ function ResultadoReconocimiento({
               limpiarSesionReconocimiento();
             }
           } catch {
-            // Conserva el mensaje del error original.
+            return;
           }
         }
       } finally {
@@ -307,7 +303,6 @@ function ResultadoReconocimiento({
       }
     }
 
-    // Procesa los intentos en orden, sin enviar dos al mismo tiempo.
     colaRegistros.current = colaRegistros.current.then(
       guardarIntento,
     );

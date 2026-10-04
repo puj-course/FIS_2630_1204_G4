@@ -26,6 +26,7 @@ import {
 } from "./services/resultados";
 
 import Camara from "./components/Camara";
+import ConfirmacionAprendizaje from "./components/ConfirmacionAprendizaje";
 import HistorialReconocimiento from "./components/HistorialReconocimiento";
 import { useCamara } from "./hooks/useCamara";
 import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
@@ -90,6 +91,11 @@ function Practica({
     letraSeleccionada,
     setLetraSeleccionada,
   ] = useState<Letra | null>(null);
+
+  const [
+    letraConfirmada,
+    setLetraConfirmada,
+  ] = useState<string | null>(null);
 
   const [historial, setHistorial] =
     useState<ResultadoRegistrado[]>([]);
@@ -331,15 +337,17 @@ function Practica({
     idLetra: number
   ) => {
     if (
-      modalidadPractica === "especifica"
-      && (
-        !letraSeleccionada
-        || letraSeleccionada.id_letra
-        !== idLetra
-      )
+      modalidadPractica !== "especifica"
+      || !letraSeleccionada
+      || letraSeleccionada.id_letra !== idLetra
     ) {
       return;
     }
+
+    detenerCamara();
+    setLetraConfirmada(
+      obtenerNombreLetra(letraSeleccionada)
+    );
   };
 
   if (
@@ -618,6 +626,14 @@ function Practica({
           )}
         </aside>
       </section>
+
+      {letraConfirmada !== null && (
+        <ConfirmacionAprendizaje
+          letra={letraConfirmada}
+          onVolverAprender={() => cambiarPagina("aprender")}
+          onVerPerfil={() => cambiarPagina("perfil")}
+        />
+      )}
     </div>
   );
 }
