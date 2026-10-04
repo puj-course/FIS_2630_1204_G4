@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import obtener_usuario_actual, requerir_administrador
+from app.services.progreso_service import UsuarioNoEncontradoError
 from app.services.usuarios_service import CorreoYaRegistradoError
 
 
@@ -468,6 +469,33 @@ class TestRegistroUsuarios(unittest.TestCase):
         respuesta = self.cliente.patch("/usuarios/5/reactivar")
 
         self.assertEqual(respuesta.status_code, 403)
+
+    @patch("app.routes.usuarios.consultar_resumen_progreso_usuario")
+    def test_consulta_el_progreso_de_un_usuario(
+        self,            
+        servicio_simulado
+    ):
+        servicio_simulado.return_value = {
+            "total_intentos": 20, 
+            "total_aciertos": 15,                
+            "letras_dominadas": 3,
+            "letras_pendientes": 23
+        }
+
+        respuesta = self.cliente.get("/usuarios/5/progreso")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "total_intentos": 20, 
+                "total_aciertos": 15,
+                "letras_dominadas": 3,                                
+                "letras_pendientes": 23
+            }
+        )
+        servicio_simulado.assert_called_once_with(5)
+
 
 if __name__ == "__main__":
     unittest.main()
