@@ -2,8 +2,8 @@ import logging
 
 from psycopg.rows import dict_row
 
+from app.services.aprendizaje_service import evaluar_aprendizaje
 from app.services.intentos_service import registrar_intento
-from app.services.progreso_service import registrar_progreso
 from conf.database import obtener_conexion
 
 logger = logging.getLogger(__name__)
@@ -32,10 +32,13 @@ def registrar_resultado(
     id_letra_detectada: int,
     confianza: float,
 ):
-    """Guarda resultado e intento y después actualiza el progreso si acertó.
+    """Guarda resultado e intento y después evalúa el aprendizaje.
 
-    El progreso usa una transacción independiente. Si falla, se registra
-    el error y se conserva el resultado confirmado, sin reintento automático.
+    Solo los resultados correctos activan la evaluación.
+    El progreso se actualiza cuando se alcanza el mínimo de aciertos.
+
+    La evaluación usa una transacción independiente. Si falla, se
+    registra el error y se conservan el resultado y su intento.
     """
 
     with obtener_conexion() as conexion:
@@ -142,17 +145,17 @@ def registrar_resultado(
                 es_correcto=es_correcto,
             )
 
-    # Salir del contexto confirma resultado e intento antes de tocar progreso.
-    # Un fallo del guardado o del commit impide llegar a este punto.
+    # Resultado e intento ya quedaron confirmados al salir de los contextos.
+    # Si su guardado falla, no se llega a la evaluación del aprendizaje.
     if es_correcto:
         try:
-            registrar_progreso(
+            evaluar_aprendizaje(
                 id_usuario=sesion["id_usuario"],
                 id_letra=resultado["id_letra_objetivo"],
             )
         except Exception:
             logger.exception(
-                "No se pudo actualizar el progreso del resultado %s "
+                "No se pudo evaluar el aprendizaje del resultado %s "
                 "para el usuario %s y la letra %s",
                 resultado["id_resultado"],
                 sesion["id_usuario"],
@@ -160,7 +163,6 @@ def registrar_resultado(
             )
 
     return resultado
-
 
 def consultar_resultados_sesion(
     id_usuario: int,
