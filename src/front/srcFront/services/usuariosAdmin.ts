@@ -6,6 +6,7 @@ export interface UsuarioListado {
   correo: string;
   rol: "usuario" | "administrador";
   fecha_creacion: string;
+  activo: boolean;
 }
 
 export function obtenerUsuarios(
@@ -57,6 +58,21 @@ export function desactivarUsuario(
 ): Promise<UsuarioDesactivadoRespuesta> {
   return solicitarApi<UsuarioDesactivadoRespuesta>(
     `/usuarios/${idUsuario}/desactivar`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+
+export function reactivarUsuario(
+  idUsuario: number,
+  token: string
+): Promise<UsuarioDesactivadoRespuesta> {
+  return solicitarApi<UsuarioDesactivadoRespuesta>(
+    `/usuarios/${idUsuario}/reactivar`,
     {
       method: "PATCH",
       headers: {
