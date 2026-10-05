@@ -6,6 +6,7 @@ import {
   obtenerUsuarios,
   cambiarRolUsuario,
   desactivarUsuario,
+  reactivarUsuario,
   type UsuarioListado
 } from "./services/usuariosAdmin";
 import { ErrorApi } from "./services/api";
@@ -27,6 +28,11 @@ function AdminUsuarios() {
   const [usuarioAConfirmar, setUsuarioAConfirmar] =
     useState<UsuarioListado | null>(null);
 
+  const [usuarioAReactivar, setUsuarioAReactivar] =
+    useState<UsuarioListado | null>(null);
+
+  const [pestana, setPestana] = useState<"activos" | "inactivos">("activos");
+  
   const [procesandoAccion, setProcesandoAccion] = useState(false);
 
   const [mensajeAccion, setMensajeAccion] = useState<{
@@ -161,6 +167,46 @@ function AdminUsuarios() {
     }
   }
 
+
+  async function confirmarReactivacion() {
+    if (!sesion || !usuarioAReactivar) return;
+
+    setProcesandoAccion(true);
+    setMensajeAccion(null);
+
+    try {
+      const actualizado = await reactivarUsuario(
+        usuarioAReactivar.id_usuario,
+        sesion.access_token
+      );
+
+      setUsuarios((previos) =>
+        previos.map((u) =>
+          u.id_usuario === actualizado.id_usuario
+            ? { ...u, activo: actualizado.activo }
+            : u
+        )
+      );
+
+      setMensajeAccion({
+        tipo: "exito",
+        texto: `${usuarioAReactivar.nombre} fue reactivado correctamente`
+      });
+    } catch (error) {
+      setMensajeAccion({
+        tipo: "error",
+        texto:
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible reactivar al usuario"
+      });
+    } finally {
+      setProcesandoAccion(false);
+      setUsuarioAReactivar(null);
+    }
+  }
+
+
   return (
     <div className="adminUsuarios">
       <h1>Administrar usuarios</h1>
@@ -203,6 +249,22 @@ function AdminUsuarios() {
         </div>
       )}
 
+      <div className="pestanasUsuarios">
+        <button
+          className={pestana === "activos" ? "pestanaActiva" : "pestanaUsuario"}
+          onClick={() => setPestana("activos")}
+        >
+          Activos
+        </button>
+        <button
+          className={pestana === "inactivos" ? "pestanaActiva" : "pestanaUsuario"}
+          onClick={() => setPestana("inactivos")}
+        >
+          Inactivos
+        </button>
+      </div>
+
+
       {!cargando && !errorCarga && usuarios.length > 0 && (
         <table className="tablaUsuarios">
           <thead>
@@ -214,44 +276,60 @@ function AdminUsuarios() {
               <th>Acciones</th>
             </tr>
           </thead>
-
+          
           <tbody>
-            {usuarios.map((usuario) => {
-              const esUnoMismo =
-                sesion?.usuario.id_usuario === usuario.id_usuario;
+            {usuarios
+              .filter((usuario) =>
+                pestana === "activos" ? usuario.activo : !usuario.activo
+              )
+              .map((usuario) => {
+                const esUnoMismo =
+                  sesion?.usuario.id_usuario === usuario.id_usuario;
 
-              return (
-                <tr key={usuario.id_usuario}>
-                  <td>{usuario.nombre}</td>
-                  <td>{usuario.correo}</td>
-                  <td>
-                    <select
-                      value={usuario.rol}
-                      disabled={esUnoMismo || procesandoAccion}
-                      onChange={(evento) =>
-                        manejarCambioRol(
-                          usuario,
-                          evento.target.value as "usuario" | "administrador"
-                        )
-                      }
-                    >
-                      <option value="usuario">Usuario</option>
-                      <option value="administrador">Administrador</option>
-                    </select>
-                  </td>
-                  <td>{formatearFecha(usuario.fecha_creacion)}</td>
-                  <td>
-                    <button
-                      className="botonDesactivarUsuario"
-                      disabled={esUnoMismo || procesandoAccion}
-                      onClick={() => setUsuarioAConfirmar(usuario)}
-                    >
-                      Desactivar
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={usuario.id_usuario}>
+                    <td>{usuario.nombre}</td>
+                    <td>{usuario.correo}</td>
+                    <td>
+                      <select
+                        value={usuario.rol}
+                        disabled={
+                          esUnoMismo || procesandoAccion || !usuario.activo
+                        }
+                        onChange={(evento) =>
+                          manejarCambioRol(
+                            usuario,
+                            evento.target.value as "usuario" | "administrador"
+                          )
+                        }
+                      >
+                        <option value="usuario">Usuario</option>
+                        <option value="administrador">Administrador</option>
+                      </select>
+                    </td>
+                    <td>{formatearFecha(usuario.fecha_creacion)}</td>
+                    <td>
+                      {usuario.activo ? (
+                        <button
+                          className="botonDesactivarUsuario"
+                          disabled={esUnoMismo || procesandoAccion}
+                          onClick={() => setUsuarioAConfirmar(usuario)}
+                        >
+                          Desactivar
+                        </button>
+                      ) : (
+                        <button
+                          className="botonReactivarUsuario"
+                          disabled={esUnoMismo || procesandoAccion}
+                          onClick={() => setUsuarioAReactivar(usuario)}
+                        >
+                          Reactivar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       )}
@@ -281,6 +359,36 @@ function AdminUsuarios() {
                 disabled={procesandoAccion}
               >
                 {procesandoAccion ? "Desactivando..." : "Sí, desactivar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+            {usuarioAReactivar && (
+        <div className="overlayConfirmacion" role="presentation">
+          <div className="modalConfirmacion" role="dialog" aria-modal="true">
+            <h2>Confirmar reactivación</h2>
+
+            <p>
+              ¿Seguro que deseas reactivar la cuenta de{" "}
+              <strong>{usuarioAReactivar.nombre}</strong>? Podrá volver a
+              iniciar sesión y usar SignIA normalmente.
+            </p>
+
+            <div className="botonesConfirmacion">
+              <button
+                onClick={() => setUsuarioAReactivar(null)}
+                disabled={procesandoAccion}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="botonConfirmarReactivar"
+                onClick={confirmarReactivacion}
+                disabled={procesandoAccion}
+              >
+                {procesandoAccion ? "Reactivando..." : "Sí, reactivar"}
               </button>
             </div>
           </div>
