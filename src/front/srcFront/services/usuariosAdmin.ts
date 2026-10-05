@@ -81,3 +81,23 @@ export function reactivarUsuario(
     }
   );
 }
+export interface ResumenProgresoUsuario {
+  total_intentos: number;
+  total_aciertos: number;
+  letras_dominadas: number;
+  letras_pendientes: number;
+}
+
+export function obtenerProgresoUsuario(
+  idUsuario: number,
+  token: string
+): Promise<ResumenProgresoUsuario> {
+  return solicitarApi<ResumenProgresoUsuario>(
+    `/usuarios/${idUsuario}/progreso`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
