@@ -7,7 +7,9 @@ import {
   cambiarRolUsuario,
   desactivarUsuario,
   reactivarUsuario,
-  type UsuarioListado
+  obtenerProgresoUsuario,
+  type UsuarioListado,
+  type ResumenProgresoUsuario
 } from "./services/usuariosAdmin";
 import { ErrorApi } from "./services/api";
 
@@ -34,6 +36,16 @@ function AdminUsuarios() {
   const [pestana, setPestana] = useState<"activos" | "inactivos">("activos");
   
   const [procesandoAccion, setProcesandoAccion] = useState(false);
+  
+  const [usuarioProgreso, setUsuarioProgreso] =
+    useState<UsuarioListado | null>(null);
+
+  const [progresoDatos, setProgresoDatos] =
+    useState<ResumenProgresoUsuario | null>(null);
+
+  const [progresoCargando, setProgresoCargando] = useState(false);
+
+  const [progresoError, setProgresoError] = useState("");
 
   const [mensajeAccion, setMensajeAccion] = useState<{
     tipo: "exito" | "error";
@@ -206,6 +218,38 @@ function AdminUsuarios() {
     }
   }
 
+  async function verProgreso(usuario: UsuarioListado) {
+    if (!sesion) return;
+
+    setUsuarioProgreso(usuario);
+    setProgresoDatos(null);
+    setProgresoError("");
+    setProgresoCargando(true);
+
+    try {
+      const resumen = await obtenerProgresoUsuario(
+        usuario.id_usuario,
+        sesion.access_token
+      );
+
+      setProgresoDatos(resumen);
+    } catch (error) {
+      setProgresoError(
+        error instanceof ErrorApi
+          ? error.message
+          : "No fue posible cargar el progreso del usuario"
+      );
+    } finally {
+      setProgresoCargando(false);
+    }
+  }
+
+  function cerrarProgreso() {
+    setUsuarioProgreso(null);
+    setProgresoDatos(null);
+    setProgresoError("");
+  }
+
 
   return (
     <div className="adminUsuarios">
@@ -276,7 +320,7 @@ function AdminUsuarios() {
               <th>Acciones</th>
             </tr>
           </thead>
-          
+
           <tbody>
             {usuarios
               .filter((usuario) =>
@@ -287,10 +331,13 @@ function AdminUsuarios() {
                   sesion?.usuario.id_usuario === usuario.id_usuario;
 
                 return (
-                  <tr key={usuario.id_usuario}>
+                  <tr key={usuario.id_usuario}
+                    className="filaUsuarioClickeable"
+                    onClick={() => verProgreso(usuario)}
+                  >
                     <td>{usuario.nombre}</td>
                     <td>{usuario.correo}</td>
-                    <td>
+                    <td onClick={(evento) => evento.stopPropagation()}>
                       <select
                         value={usuario.rol}
                         disabled={
@@ -308,7 +355,7 @@ function AdminUsuarios() {
                       </select>
                     </td>
                     <td>{formatearFecha(usuario.fecha_creacion)}</td>
-                    <td>
+                    <td onClick={(evento) => evento.stopPropagation()}>
                       {usuario.activo ? (
                         <button
                           className="botonDesactivarUsuario"
@@ -391,6 +438,69 @@ function AdminUsuarios() {
                 {procesandoAccion ? "Reactivando..." : "Sí, reactivar"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {usuarioProgreso && (
+        <div className="overlayProgreso" role="presentation" onClick={cerrarProgreso}>
+          <div
+            className="modalProgreso"
+            role="dialog"
+            aria-modal="true"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <button
+              className="botonCerrarProgreso"
+              onClick={cerrarProgreso}
+              aria-label="Cerrar progreso"
+            >
+              ✕
+            </button>
+
+            <h2>Progreso de {usuarioProgreso.nombre}</h2>
+
+            {progresoCargando && (
+              <p role="status">Cargando progreso...</p>
+            )}
+
+            {!progresoCargando && progresoError && (
+              <div className="mensajeErrorAdmin" role="alert">
+                <p>{progresoError}</p>
+              </div>
+            )}
+
+            {!progresoCargando && !progresoError && progresoDatos && (
+              <div className="resumenProgreso">
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.total_intentos}
+                  </span>
+                  <span className="statEtiqueta">Intentos</span>
+                </div>
+
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.total_aciertos}
+                  </span>
+                  <span className="statEtiqueta">Aciertos</span>
+                </div>
+
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.letras_dominadas}
+                  </span>
+                  <span className="statEtiqueta">Letras dominadas</span>
+                </div>
+
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.letras_pendientes}
+                  </span>
+                  <span className="statEtiqueta">Letras pendientes</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
