@@ -6,7 +6,10 @@ import {
   obtenerUsuarios,
   cambiarRolUsuario,
   desactivarUsuario,
-  type UsuarioListado
+  reactivarUsuario,
+  obtenerProgresoUsuario,
+  type UsuarioListado,
+  type ResumenProgresoUsuario
 } from "./services/usuariosAdmin";
 import { ErrorApi } from "./services/api";
 
@@ -27,7 +30,22 @@ function AdminUsuarios() {
   const [usuarioAConfirmar, setUsuarioAConfirmar] =
     useState<UsuarioListado | null>(null);
 
+  const [usuarioAReactivar, setUsuarioAReactivar] =
+    useState<UsuarioListado | null>(null);
+
+  const [pestana, setPestana] = useState<"activos" | "inactivos">("activos");
+  
   const [procesandoAccion, setProcesandoAccion] = useState(false);
+  
+  const [usuarioProgreso, setUsuarioProgreso] =
+    useState<UsuarioListado | null>(null);
+
+  const [progresoDatos, setProgresoDatos] =
+    useState<ResumenProgresoUsuario | null>(null);
+
+  const [progresoCargando, setProgresoCargando] = useState(false);
+
+  const [progresoError, setProgresoError] = useState("");
 
   const [mensajeAccion, setMensajeAccion] = useState<{
     tipo: "exito" | "error";
@@ -161,6 +179,78 @@ function AdminUsuarios() {
     }
   }
 
+
+  async function confirmarReactivacion() {
+    if (!sesion || !usuarioAReactivar) return;
+
+    setProcesandoAccion(true);
+    setMensajeAccion(null);
+
+    try {
+      const actualizado = await reactivarUsuario(
+        usuarioAReactivar.id_usuario,
+        sesion.access_token
+      );
+
+      setUsuarios((previos) =>
+        previos.map((u) =>
+          u.id_usuario === actualizado.id_usuario
+            ? { ...u, activo: actualizado.activo }
+            : u
+        )
+      );
+
+      setMensajeAccion({
+        tipo: "exito",
+        texto: `${usuarioAReactivar.nombre} fue reactivado correctamente`
+      });
+    } catch (error) {
+      setMensajeAccion({
+        tipo: "error",
+        texto:
+          error instanceof ErrorApi
+            ? error.message
+            : "No fue posible reactivar al usuario"
+      });
+    } finally {
+      setProcesandoAccion(false);
+      setUsuarioAReactivar(null);
+    }
+  }
+
+  async function verProgreso(usuario: UsuarioListado) {
+    if (!sesion) return;
+
+    setUsuarioProgreso(usuario);
+    setProgresoDatos(null);
+    setProgresoError("");
+    setProgresoCargando(true);
+
+    try {
+      const resumen = await obtenerProgresoUsuario(
+        usuario.id_usuario,
+        sesion.access_token
+      );
+
+      setProgresoDatos(resumen);
+    } catch (error) {
+      setProgresoError(
+        error instanceof ErrorApi
+          ? error.message
+          : "No fue posible cargar el progreso del usuario"
+      );
+    } finally {
+      setProgresoCargando(false);
+    }
+  }
+
+  function cerrarProgreso() {
+    setUsuarioProgreso(null);
+    setProgresoDatos(null);
+    setProgresoError("");
+  }
+
+
   return (
     <div className="adminUsuarios">
       <h1>Administrar usuarios</h1>
@@ -203,6 +293,22 @@ function AdminUsuarios() {
         </div>
       )}
 
+      <div className="pestanasUsuarios">
+        <button
+          className={pestana === "activos" ? "pestanaActiva" : "pestanaUsuario"}
+          onClick={() => setPestana("activos")}
+        >
+          Activos
+        </button>
+        <button
+          className={pestana === "inactivos" ? "pestanaActiva" : "pestanaUsuario"}
+          onClick={() => setPestana("inactivos")}
+        >
+          Inactivos
+        </button>
+      </div>
+
+
       {!cargando && !errorCarga && usuarios.length > 0 && (
         <table className="tablaUsuarios">
           <thead>
@@ -216,42 +322,61 @@ function AdminUsuarios() {
           </thead>
 
           <tbody>
-            {usuarios.map((usuario) => {
-              const esUnoMismo =
-                sesion?.usuario.id_usuario === usuario.id_usuario;
+            {usuarios
+              .filter((usuario) =>
+                pestana === "activos" ? usuario.activo : !usuario.activo
+              )
+              .map((usuario) => {
+                const esUnoMismo =
+                  sesion?.usuario.id_usuario === usuario.id_usuario;
 
-              return (
-                <tr key={usuario.id_usuario}>
-                  <td>{usuario.nombre}</td>
-                  <td>{usuario.correo}</td>
-                  <td>
-                    <select
-                      value={usuario.rol}
-                      disabled={esUnoMismo || procesandoAccion}
-                      onChange={(evento) =>
-                        manejarCambioRol(
-                          usuario,
-                          evento.target.value as "usuario" | "administrador"
-                        )
-                      }
-                    >
-                      <option value="usuario">Usuario</option>
-                      <option value="administrador">Administrador</option>
-                    </select>
-                  </td>
-                  <td>{formatearFecha(usuario.fecha_creacion)}</td>
-                  <td>
-                    <button
-                      className="botonDesactivarUsuario"
-                      disabled={esUnoMismo || procesandoAccion}
-                      onClick={() => setUsuarioAConfirmar(usuario)}
-                    >
-                      Desactivar
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={usuario.id_usuario}
+                    className="filaUsuarioClickeable"
+                    onClick={() => verProgreso(usuario)}
+                  >
+                    <td>{usuario.nombre}</td>
+                    <td>{usuario.correo}</td>
+                    <td onClick={(evento) => evento.stopPropagation()}>
+                      <select
+                        value={usuario.rol}
+                        disabled={
+                          esUnoMismo || procesandoAccion || !usuario.activo
+                        }
+                        onChange={(evento) =>
+                          manejarCambioRol(
+                            usuario,
+                            evento.target.value as "usuario" | "administrador"
+                          )
+                        }
+                      >
+                        <option value="usuario">Usuario</option>
+                        <option value="administrador">Administrador</option>
+                      </select>
+                    </td>
+                    <td>{formatearFecha(usuario.fecha_creacion)}</td>
+                    <td onClick={(evento) => evento.stopPropagation()}>
+                      {usuario.activo ? (
+                        <button
+                          className="botonDesactivarUsuario"
+                          disabled={esUnoMismo || procesandoAccion}
+                          onClick={() => setUsuarioAConfirmar(usuario)}
+                        >
+                          Desactivar
+                        </button>
+                      ) : (
+                        <button
+                          className="botonReactivarUsuario"
+                          disabled={esUnoMismo || procesandoAccion}
+                          onClick={() => setUsuarioAReactivar(usuario)}
+                        >
+                          Reactivar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       )}
@@ -283,6 +408,99 @@ function AdminUsuarios() {
                 {procesandoAccion ? "Desactivando..." : "Sí, desactivar"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+            {usuarioAReactivar && (
+        <div className="overlayConfirmacion" role="presentation">
+          <div className="modalConfirmacion" role="dialog" aria-modal="true">
+            <h2>Confirmar reactivación</h2>
+
+            <p>
+              ¿Seguro que deseas reactivar la cuenta de{" "}
+              <strong>{usuarioAReactivar.nombre}</strong>? Podrá volver a
+              iniciar sesión y usar SignIA normalmente.
+            </p>
+
+            <div className="botonesConfirmacion">
+              <button
+                onClick={() => setUsuarioAReactivar(null)}
+                disabled={procesandoAccion}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="botonConfirmarReactivar"
+                onClick={confirmarReactivacion}
+                disabled={procesandoAccion}
+              >
+                {procesandoAccion ? "Reactivando..." : "Sí, reactivar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {usuarioProgreso && (
+        <div className="overlayProgreso" role="presentation" onClick={cerrarProgreso}>
+          <div
+            className="modalProgreso"
+            role="dialog"
+            aria-modal="true"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <button
+              className="botonCerrarProgreso"
+              onClick={cerrarProgreso}
+              aria-label="Cerrar progreso"
+            >
+              ✕
+            </button>
+
+            <h2>Progreso de {usuarioProgreso.nombre}</h2>
+
+            {progresoCargando && (
+              <p role="status">Cargando progreso...</p>
+            )}
+
+            {!progresoCargando && progresoError && (
+              <div className="mensajeErrorAdmin" role="alert">
+                <p>{progresoError}</p>
+              </div>
+            )}
+
+            {!progresoCargando && !progresoError && progresoDatos && (
+              <div className="resumenProgreso">
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.total_intentos}
+                  </span>
+                  <span className="statEtiqueta">Intentos</span>
+                </div>
+
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.total_aciertos}
+                  </span>
+                  <span className="statEtiqueta">Aciertos</span>
+                </div>
+
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.letras_dominadas}
+                  </span>
+                  <span className="statEtiqueta">Letras dominadas</span>
+                </div>
+
+                <div className="statProgreso">
+                  <span className="statValor">
+                    {progresoDatos.letras_pendientes}
+                  </span>
+                  <span className="statEtiqueta">Letras pendientes</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
