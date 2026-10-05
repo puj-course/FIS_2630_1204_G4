@@ -346,7 +346,8 @@ class TestRegistroUsuarios(unittest.TestCase):
                 "nombre": "Usuario Uno",
                 "correo": "uno@signia.local",
                 "rol": "usuario",
-                "fecha_creacion": "2026-01-01T00:00:00"
+                "fecha_creacion": "2026-01-01T00:00:00",
+                "activo": True
             }
         ]
 
@@ -379,7 +380,8 @@ class TestRegistroUsuarios(unittest.TestCase):
                 "nombre": "Usuario Uno",
                 "correo": "uno@signia.local",
                 "rol": "usuario",
-                "fecha_creacion": "2026-01-01T00:00:00"
+                "fecha_creacion": "2026-01-01T00:00:00",
+                "activo": True
             }
         ]
 

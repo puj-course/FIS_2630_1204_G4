@@ -45,6 +45,7 @@ class UsuarioListado(BaseModel):
     correo: str
     rol: str
     fecha_creacion: datetime
+    activo: bool
 
 class CambioRolUsuario(BaseModel):
     model_config = ConfigDict(extra="forbid")
