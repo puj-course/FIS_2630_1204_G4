@@ -565,6 +565,152 @@ class TestResultadosProgresoIntegracion(unittest.TestCase):
         intentos = self.leer_intentos(self.sesion["id_sesion"])
         self.assertEqual(len(intentos), 7)
         self.assertTrue(all(intento["es_correcto"] for intento in intentos))
+    def test_perfil_refleja_porcentaje_solo_al_aprender_la_letra(self):
+        with obtener_conexion() as conexion:
+            with conexion.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) AS total
+                    FROM letras
+                    WHERE activa = TRUE;
+                    """
+                )
+                total_letras = cursor.fetchone()["total"]
+
+        self.assertGreaterEqual(total_letras, 2)
+
+        def consultar_perfil():
+            respuesta = self.cliente.get(
+                "/perfil",
+                headers=self.cabeceras,
+            )
+            self.assertEqual(
+                respuesta.status_code,
+                200,
+                respuesta.text,
+            )
+            perfil = respuesta.json()
+            self.assertEqual(perfil["id_usuario"], self.id_usuario)
+            self.assertEqual(
+                perfil["progreso"]["total_letras"],
+                total_letras,
+            )
+            return perfil["progreso"]
+
+        inicial = consultar_perfil()
+        self.assertEqual(inicial["letras_dominadas"], 0)
+        self.assertEqual(inicial["porcentaje_progreso"], 0.0)
+
+        for numero_acierto in (1, 2):
+            with self.subTest(acierto=numero_acierto):
+                self.registrar_resultado()
+                pendiente = consultar_perfil()
+                self.assertEqual(pendiente["letras_dominadas"], 0)
+                self.assertEqual(
+                    pendiente["porcentaje_progreso"],
+                    0.0,
+                )
+
+        self.registrar_resultado()
+
+        aprendido = consultar_perfil()
+        porcentaje_esperado = round(100 / total_letras, 2)
+
+        self.assertEqual(aprendido["letras_dominadas"], 1)
+        self.assertEqual(
+            aprendido["porcentaje_progreso"],
+            porcentaje_esperado,
+        )
+
+        # Comprueba también el registro almacenado en otra conexión.
+        almacenado = self.leer_progreso(self.id_usuario)
+        self.assertEqual(len(almacenado), 1)
+        self.assertEqual(almacenado[0]["id_letra"], self.id_letra_a)
+        self.assertTrue(almacenado[0]["dominada"])
+
+        # Repetir una letra aprendida no aumenta el porcentaje.
+        self.registrar_resultado()
+        repetido = consultar_perfil()
+
+        self.assertEqual(repetido["letras_dominadas"], 1)
+        self.assertEqual(
+            repetido["porcentaje_progreso"],
+            porcentaje_esperado,
+        )
+        self.assertEqual(
+            self.leer_progreso(self.id_usuario),
+            almacenado,
+        )
+    def test_configuracion_invalida_conserva_datos_y_permite_recuperacion(self):
+        for _ in range(2):
+            self.registrar_resultado()
+
+        self.assertEqual(self.leer_progreso(self.id_usuario), [])
+
+        with patch.dict(
+            os.environ,
+            {"APRENDIZAJE_MIN_ACIERTOS": "0"},
+        ):
+            with self.assertLogs(
+                "app.services.resultados_service",
+                level="ERROR",
+            ) as registros:
+                tercero = self.registrar_resultado()
+
+        self.assertTrue(tercero["es_correcto"])
+        self.assertTrue(
+            any(
+                "ConfiguracionAprendizajeError" in mensaje
+                for mensaje in registros.output
+            )
+        )
+
+        resultados = self.leer_resultados(self.sesion["id_sesion"])
+        intentos = self.leer_intentos(self.sesion["id_sesion"])
+
+        self.assertEqual(len(resultados), 3)
+        self.assertEqual(len(intentos), 3)
+        self.assertEqual(
+            resultados[-1]["id_resultado"],
+            tercero["id_resultado"],
+        )
+        self.assertEqual(
+            intentos[-1]["id_resultado"],
+            tercero["id_resultado"],
+        )
+        self.assertEqual(intentos[-1]["id_usuario"], self.id_usuario)
+        self.assertEqual(intentos[-1]["id_letra"], self.id_letra_a)
+        self.assertTrue(intentos[-1]["es_correcto"])
+        self.assertEqual(self.leer_progreso(self.id_usuario), [])
+
+        # El parche restauró el mínimo de tres definido en setUp.
+        self.assertEqual(os.environ["APRENDIZAJE_MIN_ACIERTOS"], "3")
+
+        # Un nuevo reconocimiento vuelve a evaluar los aciertos almacenados.
+        cuarto = self.registrar_resultado()
+        self.assertTrue(cuarto["es_correcto"])
+
+        progreso = self.leer_progreso(self.id_usuario)
+        self.assertEqual(len(progreso), 1)
+        self.assertEqual(progreso[0]["id_usuario"], self.id_usuario)
+        self.assertEqual(progreso[0]["id_letra"], self.id_letra_a)
+        self.assertTrue(progreso[0]["dominada"])
+
+        resultados_finales = self.leer_resultados(
+            self.sesion["id_sesion"]
+        )
+        intentos_finales = self.leer_intentos(
+            self.sesion["id_sesion"]
+        )
+
+        self.assertEqual(len(resultados_finales), 4)
+        self.assertEqual(len(intentos_finales), 4)
+        self.assertEqual(resultados_finales[:3], resultados)
+        self.assertEqual(intentos_finales[:3], intentos)
+        self.assertEqual(
+            intentos_finales[-1]["id_resultado"],
+            cuarto["id_resultado"],
+        )
 
 
 if __name__ == "__main__":
