@@ -62,7 +62,8 @@ def listar_usuarios(buscar: str | None = None):
                         nombre,
                         correo,
                         rol,
-                        fecha_creacion
+                        fecha_creacion,
+                        activo
                     FROM usuarios
                     WHERE nombre ILIKE %s OR correo ILIKE %s
                     ORDER BY nombre;
@@ -78,7 +79,8 @@ def listar_usuarios(buscar: str | None = None):
                         nombre,
                         correo,
                         rol,
-                        fecha_creacion
+                        fecha_creacion,
+                        activo
                     FROM usuarios
                     ORDER BY nombre;
                     """
