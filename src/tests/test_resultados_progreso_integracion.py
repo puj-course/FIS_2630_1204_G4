@@ -203,7 +203,6 @@ class TestResultadosProgresoIntegracion(unittest.TestCase):
         )
         self.assertEqual(respuesta.status_code, 201, respuesta.text)
         return respuesta.json()["resultado"]
-
     def test_actualiza_solo_al_usuario_de_cada_sesion(self):
         otro_usuario = self.crear_usuario_prueba()
         token = crear_token_acceso(otro_usuario)
@@ -242,7 +241,6 @@ class TestResultadosProgresoIntegracion(unittest.TestCase):
         self.assertEqual(progreso[0]["id_usuario"], self.id_usuario)
         self.assertEqual(progreso[0]["id_letra"], self.id_letra_a)
         self.assertTrue(progreso[0]["dominada"])
-
         otros_datos = {
             **self.datos,
             "id_sesion": otra_sesion["id_sesion"],
@@ -413,6 +411,160 @@ class TestResultadosProgresoIntegracion(unittest.TestCase):
             observados["intentos"],
         )
         self.assertEqual(self.leer_progreso(self.id_usuario), [])
+    def test_acumula_aciertos_entre_sesiones_del_mismo_usuario(self):
+        for _ in range(2):
+            self.registrar_resultado()
+
+        self.assertEqual(self.leer_progreso(self.id_usuario), [])
+
+        # Prepara una segunda sesión sin depender del endpoint de cierre.
+        with obtener_conexion() as conexion:
+            with conexion.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE sesiones_reconocimiento
+                    SET
+                        estado = 'finalizada',
+                        fecha_fin = CURRENT_TIMESTAMP
+                    WHERE id_sesion = %s
+                        AND id_usuario = %s;
+                    """,
+                    (self.sesion["id_sesion"], self.id_usuario),
+                )
+                self.assertEqual(cursor.rowcount, 1)
+
+        respuesta = self.cliente.post(
+            "/sesiones",
+            headers=self.cabeceras,
+        )
+        self.assertEqual(respuesta.status_code, 201, respuesta.text)
+        nueva_sesion = respuesta.json()["sesion"]
+
+        self.assertNotEqual(
+            nueva_sesion["id_sesion"],
+            self.sesion["id_sesion"],
+        )
+        self.assertEqual(nueva_sesion["id_usuario"], self.id_usuario)
+        self.assertEqual(nueva_sesion["estado"], "activa")
+
+        resultado = self.registrar_resultado(
+            {
+                **self.datos,
+                "id_sesion": nueva_sesion["id_sesion"],
+            }
+        )
+        self.assertTrue(resultado["es_correcto"])
+
+        progreso = self.leer_progreso(self.id_usuario)
+        self.assertEqual(len(progreso), 1)
+        self.assertEqual(progreso[0]["id_usuario"], self.id_usuario)
+        self.assertEqual(progreso[0]["id_letra"], self.id_letra_a)
+        self.assertTrue(progreso[0]["dominada"])
+
+        anteriores = self.leer_intentos(self.sesion["id_sesion"])
+        nuevos = self.leer_intentos(nueva_sesion["id_sesion"])
+
+        self.assertEqual(len(anteriores), 2)
+        self.assertEqual(len(nuevos), 1)
+        self.assertEqual(
+            nuevos[0]["id_resultado"],
+            resultado["id_resultado"],
+        )
+
+        for intento in anteriores + nuevos:
+            self.assertEqual(intento["id_usuario"], self.id_usuario)
+            self.assertEqual(intento["id_letra"], self.id_letra_a)
+            self.assertTrue(intento["es_correcto"])
+    def test_cuenta_aciertos_independientemente_por_letra(self):
+        datos_b = {
+            **self.datos,
+            "id_letra_objetivo": self.id_letra_b,
+            "id_letra_detectada": self.id_letra_b,
+        }
+
+        for _ in range(2):
+            self.registrar_resultado()
+            self.registrar_resultado(datos_b)
+
+        self.assertEqual(self.leer_progreso(self.id_usuario), [])
+
+        # Solo la primera letra alcanza tres aciertos.
+        self.registrar_resultado()
+
+        progreso_a = self.leer_progreso(self.id_usuario)
+        self.assertEqual(len(progreso_a), 1)
+        self.assertEqual(progreso_a[0]["id_letra"], self.id_letra_a)
+        self.assertTrue(progreso_a[0]["dominada"])
+
+        # La segunda letra necesita su tercer acierto.
+        self.registrar_resultado(datos_b)
+
+        progreso_final = self.leer_progreso(self.id_usuario)
+        self.assertEqual(len(progreso_final), 2)
+
+        por_letra = {
+            registro["id_letra"]: registro
+            for registro in progreso_final
+        }
+        self.assertEqual(
+            set(por_letra),
+            {self.id_letra_a, self.id_letra_b},
+        )
+        self.assertEqual(por_letra[self.id_letra_a], progreso_a[0])
+
+        for registro in progreso_final:
+            self.assertEqual(registro["id_usuario"], self.id_usuario)
+            self.assertTrue(registro["dominada"])
+
+        intentos = self.leer_intentos(self.sesion["id_sesion"])
+        self.assertEqual(len(intentos), 6)
+
+        for id_letra in (self.id_letra_a, self.id_letra_b):
+            aciertos = sum(
+                intento["es_correcto"]
+                for intento in intentos
+                if intento["id_letra"] == id_letra
+            )
+            self.assertEqual(aciertos, 3)
+    def test_respeta_minimo_configurado_y_conserva_aprendizaje(self):
+        with patch.dict(
+            os.environ,
+            {"APRENDIZAJE_MIN_ACIERTOS": "5"},
+        ):
+            for numero_acierto in range(1, 5):
+                with self.subTest(acierto=numero_acierto):
+                    resultado = self.registrar_resultado()
+                    self.assertTrue(resultado["es_correcto"])
+                    self.assertEqual(
+                        self.leer_progreso(self.id_usuario),
+                        [],
+                    )
+
+            self.registrar_resultado()
+
+        aprendido = self.leer_progreso(self.id_usuario)
+        self.assertEqual(len(aprendido), 1)
+        self.assertEqual(aprendido[0]["id_usuario"], self.id_usuario)
+        self.assertEqual(aprendido[0]["id_letra"], self.id_letra_a)
+        self.assertTrue(aprendido[0]["dominada"])
+
+        with patch.dict(
+            os.environ,
+            {"APRENDIZAJE_MIN_ACIERTOS": "7"},
+        ):
+            for numero_acierto in (6, 7):
+                with self.subTest(acierto=numero_acierto):
+                    self.registrar_resultado()
+
+                    # También conserva la fecha de actualización.
+                    self.assertEqual(
+                        self.leer_progreso(self.id_usuario),
+                        aprendido,
+                    )
+
+        intentos = self.leer_intentos(self.sesion["id_sesion"])
+        self.assertEqual(len(intentos), 7)
+        self.assertTrue(all(intento["es_correcto"] for intento in intentos))
 
 
 if __name__ == "__main__":
