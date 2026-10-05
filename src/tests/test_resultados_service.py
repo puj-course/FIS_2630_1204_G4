@@ -11,14 +11,14 @@ from src.schemas.resultados import ResultadoRegistrado
 
 
 class TestRegistroResultadosPorSesion(unittest.TestCase):
-    @patch("app.services.resultados_service.registrar_progreso")
+    @patch("app.services.resultados_service.evaluar_aprendizaje")
     @patch("app.services.resultados_service.registrar_intento")
     @patch("app.services.resultados_service.obtener_conexion")
     def test_registra_aciertos_y_errores(
         self,
         obtener_conexion,
         registrar_intento,
-        registrar_progreso,
+        evaluar_aprendizaje,
     ):
         for detectada, ids_existentes, correcto in (
             (1, [1], True),
@@ -26,7 +26,7 @@ class TestRegistroResultadosPorSesion(unittest.TestCase):
         ):
             with self.subTest(detectada=detectada):
                 registrar_intento.reset_mock()
-                registrar_progreso.reset_mock()
+                evaluar_aprendizaje.reset_mock()
 
                 conexion = MagicMock()
                 cursor = MagicMock()
@@ -85,30 +85,30 @@ class TestRegistroResultadosPorSesion(unittest.TestCase):
                 )
 
                 if correcto:
-                    registrar_progreso.assert_called_once_with(
+                    evaluar_aprendizaje.assert_called_once_with(
                         id_usuario=9,
                         id_letra=1,
                     )
                 else:
-                    registrar_progreso.assert_not_called()
+                    evaluar_aprendizaje.assert_not_called()
 
                 salida = ResultadoRegistrado(**resultado)
                 self.assertIs(salida.es_correcto, correcto)
                 self.assertEqual(salida.id_sesion, 10)
 
-    @patch("app.services.resultados_service.registrar_progreso")
+    @patch("app.services.resultados_service.evaluar_aprendizaje")
     @patch("app.services.resultados_service.registrar_intento")
     @patch("app.services.resultados_service.obtener_conexion")
     def test_rechaza_letras_inexistentes(
         self,
         obtener_conexion,
         registrar_intento,
-        registrar_progreso,
+        evaluar_aprendizaje,
     ):
         for ids_existentes in ([], [1], [2]):
             with self.subTest(ids_existentes=ids_existentes):
                 registrar_intento.reset_mock()
-                registrar_progreso.reset_mock()
+                evaluar_aprendizaje.reset_mock()
 
                 conexion = MagicMock()
                 cursor = MagicMock()
@@ -141,7 +141,7 @@ class TestRegistroResultadosPorSesion(unittest.TestCase):
                 # Consulta sesión y letras sin insertar el resultado.
                 self.assertEqual(cursor.execute.call_count, 2)
                 registrar_intento.assert_not_called()
-                registrar_progreso.assert_not_called()
+                evaluar_aprendizaje.assert_not_called()
 
 
 
@@ -155,7 +155,7 @@ class TestActualizacionProgresoDesdeResultados(unittest.TestCase):
 
         self.obtener_conexion = simular("obtener_conexion")
         self.registrar_intento = simular("registrar_intento")
-        self.registrar_progreso = simular("registrar_progreso")
+        self.evaluar_aprendizaje = simular("evaluar_aprendizaje")
         self.contexto = self.obtener_conexion.return_value
         self.conexion = self.contexto.__enter__.return_value
         self.cursor = self.conexion.cursor.return_value.__enter__.return_value
@@ -199,14 +199,14 @@ class TestActualizacionProgresoDesdeResultados(unittest.TestCase):
             eventos.append("progreso")
 
         self.contexto.__exit__.side_effect = confirmar
-        self.registrar_progreso.side_effect = actualizar
+        self.evaluar_aprendizaje.side_effect = actualizar
 
         self.assertEqual(self.registrar(), self.almacenado)
         self.assertEqual(eventos, ["intento", "commit", "progreso"])
-        self.registrar_progreso.assert_called_once_with(id_usuario=9, id_letra=1)
+        self.evaluar_aprendizaje.assert_called_once_with(id_usuario=9, id_letra=1)
 
     def test_error_de_progreso_no_impide_devolver_resultado(self):
-        self.registrar_progreso.side_effect = RuntimeError("Fallo de progreso")
+        self.evaluar_aprendizaje.side_effect = RuntimeError("Fallo de progreso")
 
         with self.assertLogs("app.services.resultados_service", level="ERROR"):
             resultado = self.registrar()
@@ -214,7 +214,7 @@ class TestActualizacionProgresoDesdeResultados(unittest.TestCase):
         self.assertEqual(resultado, self.almacenado)
         self.contexto.__exit__.assert_called_once_with(None, None, None)
         self.registrar_intento.assert_called_once()
-        self.registrar_progreso.assert_called_once_with(id_usuario=9, id_letra=1)
+        self.evaluar_aprendizaje.assert_called_once_with(id_usuario=9, id_letra=1)
 
     def test_error_de_commit_no_actualiza_progreso(self):
         self.contexto.__exit__.side_effect = RuntimeError("Fallo de commit")
@@ -222,7 +222,7 @@ class TestActualizacionProgresoDesdeResultados(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Fallo de commit"):
             self.registrar()
 
-        self.registrar_progreso.assert_not_called()
+        self.evaluar_aprendizaje.assert_not_called()
 
     def test_error_de_intento_no_actualiza_progreso(self):
         self.registrar_intento.side_effect = RuntimeError("Fallo de intento")
@@ -230,8 +230,21 @@ class TestActualizacionProgresoDesdeResultados(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Fallo de intento"):
             self.registrar()
 
-        self.registrar_progreso.assert_not_called()
+        self.evaluar_aprendizaje.assert_not_called()
         self.assertIs(self.contexto.__exit__.call_args.args[0], RuntimeError)
+
+    def test_evaluacion_sin_nuevo_aprendizaje_devuelve_resultado(self):
+        self.evaluar_aprendizaje.return_value = None
+
+        resultado = self.registrar()
+
+        self.assertEqual(resultado, self.almacenado)
+        self.contexto.__exit__.assert_called_once_with(None, None, None)
+        self.registrar_intento.assert_called_once()
+        self.evaluar_aprendizaje.assert_called_once_with(
+            id_usuario=9,
+            id_letra=1,
+        )
 
 
 if __name__ == "__main__":

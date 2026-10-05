@@ -164,6 +164,7 @@ def registrar_resultado(
 
     return resultado
 
+
 def consultar_resultados_sesion(
     id_usuario: int,
     id_sesion: int,
