@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     rol VARCHAR(20) NOT NULL DEFAULT 'usuario',
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    intentos_fallidos INTEGER NOT NULL DEFAULT 0,
+    bloqueado_hasta TIMESTAMP WITH TIME ZONE,
 
     CONSTRAINT pk_usuarios PRIMARY KEY (id_usuario),
     CONSTRAINT uq_usuarios_correo UNIQUE (correo),
@@ -156,4 +158,12 @@ CREATE TABLE IF NOT EXISTS recuperaciones_contrasena (
 CREATE INDEX IF NOT EXISTS idx_recuperaciones_usuario_fecha
     ON recuperaciones_contrasena (id_usuario, fecha_creacion DESC);
 
+CREATE TABLE IF NOT EXISTS tokens_revocados (
+    jti VARCHAR(36) NOT NULL,
+    fecha_expiracion TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    CONSTRAINT pk_tokens_revocados PRIMARY KEY (jti)
+);
+
 COMMIT;
+

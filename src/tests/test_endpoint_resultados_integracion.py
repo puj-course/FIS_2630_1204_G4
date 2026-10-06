@@ -8,6 +8,7 @@ from psycopg.rows import dict_row
 
 from app.main import app
 from app.security import crear_token_acceso
+from app.services.intentos_service import registrar_intento
 from app.services.sesiones_service import crear_sesion
 from conf.database import obtener_conexion
 from src.schemas.resultados import ResultadoRegistrado
@@ -22,12 +23,10 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         self.usuarios = []
         self.addCleanup(self.eliminar_datos_prueba)
 
-        # Conserva y restaura las dependencias de otras pruebas.
         anteriores = app.dependency_overrides.copy()
         app.dependency_overrides.clear()
         self.addCleanup(self.restaurar_overrides, anteriores)
 
-        # Usa una clave exclusiva de estas pruebas.
         parche = patch.dict(
             os.environ,
             {
@@ -86,6 +85,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         )
         self.assertEqual(self.sesion["estado"], "activa")
         self.assertIsNone(self.sesion["fecha_fin"])
+
         self.datos = {
             "id_sesion": self.sesion["id_sesion"],
             "id_letra_objetivo": self.id_letra_a,
@@ -126,7 +126,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         if not self.usuarios:
             return
 
-        # Las sesiones y sus resultados se eliminan por cascada.
+        # Elimina por cascada los datos de los usuarios de prueba.
         with obtener_conexion() as conexion:
             with conexion.cursor() as cursor:
                 cursor.execute(
@@ -138,7 +138,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 )
 
     def leer_resultados(self, id_sesion):
-        # Abre otra conexión para comprobar datos confirmados.
+        # Consulta desde una conexión independiente.
         with obtener_conexion() as conexion:
             with conexion.cursor(row_factory=dict_row) as cursor:
                 cursor.execute(
@@ -157,6 +157,29 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     """,
                     (id_sesion,),
                 )
+
+                return cursor.fetchall()
+
+    def leer_intentos(self, id_sesion):
+        with obtener_conexion() as conexion:
+            with conexion.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                        id_intento,
+                        id_resultado,
+                        id_usuario,
+                        id_sesion,
+                        id_letra,
+                        es_correcto,
+                        fecha_intento
+                    FROM intentos_reconocimiento
+                    WHERE id_sesion = %s
+                    ORDER BY id_intento;
+                    """,
+                    (id_sesion,),
+                )
+
                 return cursor.fetchall()
 
     def test_guarda_acierto_y_error_en_la_misma_sesion(self):
@@ -193,7 +216,10 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 for campo, valor in datos.items():
                     self.assertEqual(resultado[campo], valor)
 
-                self.assertIs(resultado["es_correcto"], correcto)
+                self.assertIs(
+                    resultado["es_correcto"],
+                    correcto,
+                )
                 resultados_api.append(resultado)
 
         almacenados = self.leer_resultados(
@@ -218,8 +244,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 ResultadoRegistrado.model_validate(recibido),
             )
 
-        # Consulta desde otro cliente después de terminar
-        # las solicitudes que registraron los resultados.
+        # Consulta desde otro cliente después de guardar.
         with TestClient(app) as otro_cliente:
             consulta = otro_cliente.get(
                 f"/resultados/sesion/{self.sesion['id_sesion']}",
@@ -248,7 +273,196 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             ],
         )
 
+        intentos = self.leer_intentos(
+            self.sesion["id_sesion"]
+        )
 
+        self.assertEqual(len(intentos), 2)
+
+        for intento in intentos:
+            with self.subTest(id_intento=intento["id_intento"]):
+                self.assertEqual(
+                    intento["id_usuario"],
+                    self.id_usuario,
+                )
+                self.assertEqual(
+                    intento["id_sesion"],
+                    self.sesion["id_sesion"],
+                )
+                self.assertEqual(
+                    intento["id_letra"],
+                    self.datos["id_letra_objetivo"],
+                )
+                self.assertIsNotNone(
+                    intento["fecha_intento"]
+                )
+
+        self.assertCountEqual(
+            [intento["es_correcto"] for intento in intentos],
+            [True, False],
+        )
+
+        resultados_por_id = {
+            resultado["id_resultado"]: resultado
+            for resultado in resultados_api
+        }
+
+        self.assertCountEqual(
+            [intento["id_resultado"] for intento in intentos],
+            list(resultados_por_id),
+        )
+
+        for intento in intentos:
+            resultado = resultados_por_id[
+                intento["id_resultado"]
+            ]
+
+            self.assertEqual(
+                intento["id_sesion"],
+                resultado["id_sesion"],
+            )
+            self.assertEqual(
+                intento["id_letra"],
+                resultado["id_letra_objetivo"],
+            )
+            self.assertIs(
+                intento["es_correcto"],
+                resultado["es_correcto"],
+            )
+
+    def test_mismo_resultado_no_genera_intentos_duplicados(self):
+        respuesta = self.cliente.post(
+            "/resultados",
+            headers=self.cabeceras,
+            json=self.datos,
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            201,
+            respuesta.text,
+        )
+
+        resultado = respuesta.json()["resultado"]
+
+        intentos_antes = self.leer_intentos(
+            self.sesion["id_sesion"]
+        )
+
+        self.assertEqual(len(intentos_antes), 1)
+        self.assertEqual(
+            intentos_antes[0]["id_resultado"],
+            resultado["id_resultado"],
+        )
+
+        # Intenta generar otro intento para el mismo resultado.
+        with obtener_conexion() as conexion:
+            with conexion.cursor(row_factory=dict_row) as cursor:
+                duplicado = registrar_intento(
+                    cursor=cursor,
+                    id_resultado=resultado["id_resultado"],
+                    id_usuario=self.id_usuario,
+                    id_sesion=resultado["id_sesion"],
+                    id_letra=resultado["id_letra_objetivo"],
+                    es_correcto=resultado["es_correcto"],
+                )
+
+        self.assertIsNone(duplicado)
+
+        self.assertEqual(
+            self.leer_intentos(self.sesion["id_sesion"]),
+            intentos_antes,
+        )
+        self.assertEqual(
+            len(self.leer_resultados(self.sesion["id_sesion"])),
+            1,
+        )
+
+    def test_fallo_al_guardar_revierte_resultado_e_intento(self):
+        def insertar_y_fallar(*args, **kwargs):
+            registrar_intento(*args, **kwargs)
+            raise RuntimeError(
+                "Fallo simulado después del intento"
+            )
+
+        with patch(
+            "app.services.resultados_service.registrar_intento",
+            side_effect=insertar_y_fallar,
+        ) as registrar_mock:
+            respuesta = self.cliente.post(
+                "/resultados",
+                headers=self.cabeceras,
+                json=self.datos,
+            )
+
+        self.assertEqual(
+            respuesta.status_code,
+            500,
+            respuesta.text,
+        )
+        registrar_mock.assert_called_once()
+
+        self.assertEqual(
+            self.leer_resultados(self.sesion["id_sesion"]),
+            [],
+        )
+        self.assertEqual(
+            self.leer_intentos(self.sesion["id_sesion"]),
+            [],
+        )
+
+    def test_rechaza_sesiones_inactivas_sin_guardar_datos(self):
+        for estado in ("finalizada", "cancelada"):
+            with self.subTest(estado=estado):
+                with obtener_conexion() as conexion:
+                    with conexion.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            UPDATE sesiones_reconocimiento
+                            SET
+                                estado = %s,
+                                fecha_fin = GREATEST(
+                                    CURRENT_TIMESTAMP,
+                                    fecha_inicio
+                                )
+                            WHERE id_sesion = %s
+                                AND id_usuario = %s;
+                            """,
+                            (
+                                estado,
+                                self.sesion["id_sesion"],
+                                self.id_usuario,
+                            ),
+                        )
+
+                respuesta = self.cliente.post(
+                    "/resultados",
+                    headers=self.cabeceras,
+                    json=self.datos,
+                )
+
+                self.assertEqual(
+                    respuesta.status_code,
+                    409,
+                    respuesta.text,
+                )
+                self.assertEqual(
+                    respuesta.json(),
+                    {
+                        "detail": (
+                            "Solo se pueden registrar resultados "
+                            "en sesiones activas"
+                        ),
+                    },
+                )
+                self.assertEqual(
+                    self.leer_resultados(self.sesion["id_sesion"]),
+                    [],
+                )
+                self.assertEqual(
+                    self.leer_intentos(self.sesion["id_sesion"]),
+                    [],
+                )
 
     def test_rechaza_sesion_ajena_sin_guardar_resultados(self):
         otro_usuario = self.crear_usuario_prueba()
@@ -263,7 +477,11 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             },
         )
 
-        self.assertEqual(respuesta.status_code, 403, respuesta.text)
+        self.assertEqual(
+            respuesta.status_code,
+            403,
+            respuesta.text,
+        )
         self.assertEqual(
             self.leer_resultados(ajena["id_sesion"]),
             [],
@@ -274,8 +492,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         )
 
     def test_rechaza_sesion_inexistente(self):
-        # Elimina una sesión propia de prueba para obtener
-        # un identificador inexistente sin adivinarlo.
         eliminada = crear_sesion(self.id_usuario)
 
         with obtener_conexion() as conexion:
@@ -300,7 +516,11 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             },
         )
 
-        self.assertEqual(respuesta.status_code, 404, respuesta.text)
+        self.assertEqual(
+            respuesta.status_code,
+            404,
+            respuesta.text,
+        )
         self.assertEqual(
             self.leer_resultados(eliminada["id_sesion"]),
             [],
@@ -312,7 +532,11 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             json=self.datos,
         )
 
-        self.assertEqual(respuesta.status_code, 401, respuesta.text)
+        self.assertEqual(
+            respuesta.status_code,
+            401,
+            respuesta.text,
+        )
         self.assertEqual(
             self.leer_resultados(self.sesion["id_sesion"]),
             [],
@@ -328,7 +552,11 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             },
         )
 
-        self.assertEqual(respuesta.status_code, 422, respuesta.text)
+        self.assertEqual(
+            respuesta.status_code,
+            422,
+            respuesta.text,
+        )
         self.assertEqual(
             self.leer_resultados(self.sesion["id_sesion"]),
             [],
@@ -345,8 +573,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             "Authorization": f"Bearer {token_ajeno}",
         }
 
-        # Registra dos resultados en la sesión consultada,
-        # uno en otra sesión propia y uno en una sesión ajena.
         casos = [
             (
                 self.sesion["id_sesion"],
@@ -397,8 +623,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                 respuesta.json()["resultado"]["id_resultado"]
             )
 
-        # Cada consulta debe devolver únicamente los resultados
-        # de la sesión solicitada.
         consultas = [
             (self.sesion["id_sesion"], self.cabeceras),
             (otra_propia["id_sesion"], self.cabeceras),
@@ -437,8 +661,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     )
                 )
 
-                # Compara todos los campos con PostgreSQL
-                # mediante una conexión independiente.
                 almacenados = self.leer_resultados(id_sesion)
 
                 self.assertEqual(
@@ -452,8 +674,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
                     ],
                 )
 
-        # El primer usuario no puede consultar la sesión ajena,
-        # aunque intente enviar otro usuario por query string.
+        # Otro identificador en la URL no cambia al usuario del token.
         respuesta = self.cliente.get(
             f"/resultados/sesion/{ajena['id_sesion']}"
             f"?id_usuario={otro_usuario}",
@@ -469,6 +690,87 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             respuesta.json(),
             {"detail": "La sesión no pertenece al usuario"},
         )
+
+    def test_genera_intentos_para_varios_usuarios_sesiones_y_letras(self):
+        otra_propia = crear_sesion(self.id_usuario)
+        otro_usuario = self.crear_usuario_prueba()
+        otra_sesion = crear_sesion(otro_usuario)
+        otras_cabeceras = {
+            "Authorization": f"Bearer {crear_token_acceso(otro_usuario)}",
+        }
+
+        sesiones = [
+            (self.sesion["id_sesion"], self.id_usuario, self.cabeceras),
+            (otra_propia["id_sesion"], self.id_usuario, self.cabeceras),
+            (otra_sesion["id_sesion"], otro_usuario, otras_cabeceras),
+        ]
+        esperados_por_sesion = {}
+
+        for indice, (id_sesion, id_usuario, cabeceras) in enumerate(sesiones):
+            esperados = {}
+            esperados_por_sesion[id_sesion] = esperados
+
+            for posicion, objetivo in enumerate((self.id_letra_a, self.id_letra_b)):
+                correcto = (indice + posicion) % 2 == 0
+                detectada = objetivo if correcto else (
+                    self.id_letra_b if objetivo == self.id_letra_a else self.id_letra_a
+                )
+                datos = {
+                    "id_sesion": id_sesion,
+                    "id_letra_objetivo": objetivo,
+                    "id_letra_detectada": detectada,
+                    "confianza": 0.95,
+                }
+                respuesta = self.cliente.post(
+                    "/resultados",
+                    headers=cabeceras,
+                    json=datos,
+                )
+                self.assertEqual(respuesta.status_code, 201, respuesta.text)
+                resultado = respuesta.json()["resultado"]
+                self.assertIs(resultado["es_correcto"], correcto)
+                esperados[resultado["id_resultado"]] = {
+                    **datos,
+                    "es_correcto": correcto,
+                }
+
+        for id_sesion, id_usuario, _ in sesiones:
+            with self.subTest(id_usuario=id_usuario, id_sesion=id_sesion):
+                esperados = esperados_por_sesion[id_sesion]
+                resultados = self.leer_resultados(id_sesion)
+                intentos = self.leer_intentos(id_sesion)
+
+                self.assertEqual(len(esperados), 2)
+                self.assertEqual(len(resultados), 2)
+                self.assertEqual(len(intentos), 2)
+                self.assertCountEqual(
+                    [r["id_resultado"] for r in resultados],
+                    list(esperados),
+                )
+                self.assertCountEqual(
+                    [i["id_resultado"] for i in intentos],
+                    list(esperados),
+                )
+
+                for resultado in resultados:
+                    esperado = esperados[resultado["id_resultado"]]
+                    for campo in (
+                        "id_sesion",
+                        "id_letra_objetivo",
+                        "id_letra_detectada",
+                        "es_correcto",
+                    ):
+                        self.assertEqual(resultado[campo], esperado[campo])
+                    self.assertAlmostEqual(float(resultado["confianza"]), 0.95)
+
+                for intento in intentos:
+                    esperado = esperados[intento["id_resultado"]]
+                    self.assertEqual(intento["id_usuario"], id_usuario)
+                    self.assertEqual(intento["id_sesion"], id_sesion)
+                    self.assertEqual(intento["id_letra"], esperado["id_letra_objetivo"])
+                    self.assertIs(intento["es_correcto"], esperado["es_correcto"])
+                    self.assertIsNotNone(intento["fecha_intento"])
+
 
     def test_consulta_sesion_vacia_devuelve_respuesta_valida(self):
         respuesta = self.cliente.get(
@@ -491,7 +793,6 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
         )
 
     def test_consulta_sesion_inexistente_devuelve_404(self):
-        # Elimina únicamente la sesión creada para esta prueba.
         id_sesion = self.sesion["id_sesion"]
 
         with obtener_conexion() as conexion:
@@ -518,6 +819,7 @@ class TestEndpointResultadosIntegracion(unittest.TestCase):
             respuesta.json(),
             {"detail": "La sesión no existe"},
         )
+
 
 if __name__ == "__main__":
     unittest.main()

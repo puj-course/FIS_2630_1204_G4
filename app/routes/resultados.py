@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 from app.security import obtener_usuario_actual
 from app.services.resultados_service import (
     LetraNoEncontradaError,
+    SesionNoActivaError,
     SesionNoEncontradaError,
     UsuarioSesionError,
     consultar_resultados_sesion,
@@ -18,7 +19,6 @@ from src.schemas.resultados import (
 
 logger = logging.getLogger(__name__)
 
-
 router = APIRouter(
     prefix="/resultados",
     tags=["Resultados"],
@@ -29,10 +29,10 @@ router = APIRouter(
     "",
     response_model=ResultadoRespuesta,
     status_code=status.HTTP_201_CREATED,
-    summary="Registrar un resultado de reconocimiento en una sesión",
+    summary="Registrar un resultado de reconocimiento en una sesión activa",
     responses={
         201: {
-            "description": "Resultado registrado correctamente",
+            "description": "Resultado e intento registrados correctamente",
         },
         401: {
             "description": "Credenciales ausentes o inválidas",
@@ -42,6 +42,9 @@ router = APIRouter(
         },
         404: {
             "description": "La sesión o alguna de las letras no existe",
+        },
+        409: {
+            "description": "La sesión ya no está activa",
         },
         422: {
             "description": "Los datos enviados no cumplen el esquema",
@@ -56,12 +59,12 @@ def crear_resultado(
     usuario_actual: dict = Depends(obtener_usuario_actual),
 ):
     """
-    Registra un resultado dentro de una sesión del usuario autenticado.
+    Registra un resultado dentro de una sesión propia y activa.
 
     Requiere un token de acceso Bearer.
 
     El cuerpo debe incluir:
-    - id_sesion: identificador de una sesión propia.
+    - id_sesion: identificador de la sesión activa.
     - id_letra_objetivo: identificador de la letra practicada.
     - id_letra_detectada: identificador de la letra reconocida.
     - confianza: número entre 0 y 1.
@@ -72,7 +75,7 @@ def crear_resultado(
     El usuario se obtiene del token. El servicio calcula es_correcto
     comparando las letras y PostgreSQL asigna la fecha del resultado.
 
-    Devuelve el resultado almacenado y su identificador.
+    El resultado y su intento se guardan en una misma transacción.
     """
 
     try:
@@ -91,24 +94,27 @@ def crear_resultado(
 
     except SesionNoEncontradaError as error:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         ) from error
-
 
     except UsuarioSesionError as error:
         raise HTTPException(
-            status_code=403,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=str(error),
         ) from error
 
+    except SesionNoActivaError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
 
     except LetraNoEncontradaError as error:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         ) from error
-
 
     except Exception as error:
         logger.exception(
@@ -116,9 +122,10 @@ def crear_resultado(
         )
 
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No fue posible registrar el resultado",
         ) from error
+
 
 @router.get(
     "/sesion/{id_sesion}",

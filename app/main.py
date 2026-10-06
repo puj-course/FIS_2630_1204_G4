@@ -6,7 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+#Se agregaron todos los from de sloapi para el limite de intentos por IP en X tiempo
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.limiter import limiter
 from app.routes.autenticacion import router as autenticacion_router
+from app.routes.intentos import router as intentos_router
 from app.routes.letras import router as letras_router
 from app.routes.perfil import router as perfil_router
 from app.routes.progreso import router as progreso_router
@@ -40,6 +46,10 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+    
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.exception_handler(Exception)
 async def manejador_errores_no_controlados(request: Request, exc: Exception):
@@ -82,6 +92,7 @@ app.include_router(resultados_reconocimiento_router)
 app.include_router(progreso_router)
 app.include_router(resultados_router)
 app.include_router(sesiones_router)
+app.include_router(intentos_router)
 @app.get("/health", tags=["Estado"])
 def comprobar_estado():
     return {

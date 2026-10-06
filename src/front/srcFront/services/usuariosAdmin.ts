@@ -6,6 +6,7 @@ export interface UsuarioListado {
   correo: string;
   rol: "usuario" | "administrador";
   fecha_creacion: string;
+  activo: boolean;
 }
 
 export function obtenerUsuarios(
@@ -59,6 +60,41 @@ export function desactivarUsuario(
     `/usuarios/${idUsuario}/desactivar`,
     {
       method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+
+export function reactivarUsuario(
+  idUsuario: number,
+  token: string
+): Promise<UsuarioDesactivadoRespuesta> {
+  return solicitarApi<UsuarioDesactivadoRespuesta>(
+    `/usuarios/${idUsuario}/reactivar`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+export interface ResumenProgresoUsuario {
+  total_intentos: number;
+  total_aciertos: number;
+  letras_dominadas: number;
+  letras_pendientes: number;
+}
+
+export function obtenerProgresoUsuario(
+  idUsuario: number,
+  token: string
+): Promise<ResumenProgresoUsuario> {
+  return solicitarApi<ResumenProgresoUsuario>(
+    `/usuarios/${idUsuario}/progreso`,
+    {
       headers: {
         Authorization: `Bearer ${token}`
       }

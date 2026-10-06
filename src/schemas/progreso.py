@@ -79,3 +79,9 @@ class ConsultaEstadoLetrasRespuesta(BaseModel):
         description="Cantidad de letras disponibles para aprendizaje",
     )
     letras: list[EstadoAprendizajeLetraRespuesta]
+
+class ResumenProgresoUsuarioRespuesta(BaseModel):
+    total_intentos: int = Field(ge=0)
+    total_aciertos: int = Field(ge=0)
+    letras_dominadas: int = Field(ge=0)
+    letras_pendientes: int = Field(ge=0)

@@ -9,8 +9,6 @@ import {
 import {
   FaVideo,
   FaBullseye,
-  FaHistory,
-  FaTrash,
 } from "react-icons/fa";
 
 import { ErrorApi } from "./services/api";
@@ -28,6 +26,8 @@ import {
 } from "./services/resultados";
 
 import Camara from "./components/Camara";
+import ConfirmacionAprendizaje from "./components/ConfirmacionAprendizaje";
+import HistorialReconocimiento from "./components/HistorialReconocimiento";
 import { useCamara } from "./hooks/useCamara";
 import ResultadoReconocimiento from "./components/ResultadoReconocimiento";
 
@@ -91,6 +91,11 @@ function Practica({
     letraSeleccionada,
     setLetraSeleccionada,
   ] = useState<Letra | null>(null);
+
+  const [
+    letraConfirmada,
+    setLetraConfirmada,
+  ] = useState<string | null>(null);
 
   const [historial, setHistorial] =
     useState<ResultadoRegistrado[]>([]);
@@ -332,15 +337,17 @@ function Practica({
     idLetra: number
   ) => {
     if (
-      modalidadPractica === "especifica"
-      && (
-        !letraSeleccionada
-        || letraSeleccionada.id_letra
-        !== idLetra
-      )
+      modalidadPractica !== "especifica"
+      || !letraSeleccionada
+      || letraSeleccionada.id_letra !== idLetra
     ) {
       return;
     }
+
+    detenerCamara();
+    setLetraConfirmada(
+      obtenerNombreLetra(letraSeleccionada)
+    );
   };
 
   if (
@@ -607,110 +614,26 @@ function Practica({
               )}
             </div>
           </section>
+
           {modalidadPractica === "especifica" && (
-          <section className="panelUltimasSenas">
-            <div className="tituloUltimasSenas">
-              <div>
-                <FaHistory />
-
-                <h2>
-                  Últimas señas reconocidas
-                </h2>
-              </div>
-
-              <button
-                type="button"
-                className="botonLimpiarHistorial"
-                onClick={() =>
-                  void limpiarHistorial()
-                }
-                disabled={
-                  historial.length === 0
-                  || limpiandoHistorial
-                }
-              >
-                <FaTrash />
-
-                {limpiandoHistorial
-                  ? "Limpiando..."
-                  : "Limpiar"}
-              </button>
-            </div>
-
-            <div className="contenedorHistorialScroll">
-              {cargandoHistorial ? (
-                <div className="historialReconocimientoVacio">
-                  <p>
-                    Cargando historial...
-                  </p>
-                </div>
-              ) : errorHistorial ? (
-                <div className="historialReconocimientoVacio">
-                  <p role="alert">
-                    {errorHistorial}
-                  </p>
-                </div>
-              ) : historial.length === 0 ? (
-                <div className="historialReconocimientoVacio">
-                  <FaHistory />
-
-                  <p>
-                    Aún no tienes intentos
-                    registrados.
-                  </p>
-                </div>
-              ) : (
-                <div className="listaHistorialReconocimiento">
-                  {historial.map(
-                    (resultado) => (
-                      <div
-                        className={
-                          resultado.es_correcto
-                            ? "itemHistorialReconocimiento historialCorrecto"
-                            : "itemHistorialReconocimiento historialIncorrecto"
-                        }
-                        key={
-                          resultado.id_resultado
-                        }
-                      >
-                        <div className="letraHistorial">
-                          {
-                            resultado.letra_detectada
-                          }
-                        </div>
-
-                        <div className="detalleHistorial">
-                          <strong>
-                            {resultado.es_correcto
-                              ? "Seña correcta"
-                              : "Seña incorrecta"}
-                          </strong>
-
-                          <span>
-                            Detectada:{" "}
-                            {
-                              resultado.letra_detectada
-                            }
-                          </span>
-                        </div>
-
-                        <div className="confianzaHistorial">
-                          {Math.round(
-                            resultado.confianza
-                            * 100
-                          )}
-                          %
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
+            <HistorialReconocimiento
+              historial={historial}
+              cargando={cargandoHistorial}
+              error={errorHistorial}
+              limpiando={limpiandoHistorial}
+              onLimpiar={() => void limpiarHistorial()}
+            />
           )}
         </aside>
       </section>
+
+      {letraConfirmada !== null && (
+        <ConfirmacionAprendizaje
+          letra={letraConfirmada}
+          onVolverAprender={() => cambiarPagina("aprender")}
+          onVerPerfil={() => cambiarPagina("perfil")}
+        />
+      )}
     </div>
   );
 }

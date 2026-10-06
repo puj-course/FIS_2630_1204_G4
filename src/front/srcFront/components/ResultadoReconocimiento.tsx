@@ -1,28 +1,23 @@
 import {
+  useEffect,
+  useRef,
   useState,
   type RefObject,
 } from "react";
 
+import { useReconocimiento } from "../hooks/useReconocimiento";
 import { ErrorApi } from "../services/api";
 import { obtenerSesion } from "../services/autenticacion";
+import { obtenerIdLetra } from "../services/letras";
 import { registrarProgreso } from "../services/progreso";
 import { registrarResultadoReconocimiento } from "../services/resultados";
-import { useReconocimiento } from "../hooks/useReconocimiento";
-
 import {
   crearSesionReconocimiento,
   guardarSesionReconocimiento,
+  limpiarSesionReconocimiento,
   obtenerSesionReconocimiento,
 } from "../services/sesiones";
-
-import {
-  obtenerIdLetra,
-} from "../services/letras";
-
-import type {
-  ModoReconocimiento,
-} from "../services/vision";
-const CONFIANZA_MINIMA = 0.80;
+import type { ModoReconocimiento } from "../services/vision";
 
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
@@ -42,6 +37,7 @@ function ResultadoReconocimiento({
   const {
     resultado,
     confianza,
+    intentoReconocido,
     procesando,
     mensajeError,
     reintentar,
@@ -50,125 +46,271 @@ function ResultadoReconocimiento({
   const [guardando, setGuardando] = useState(false);
   const [mensajeRegistro, setMensajeRegistro] = useState("");
   const [errorRegistro, setErrorRegistro] = useState("");
+  const [registroPausado, setRegistroPausado] = useState(false);
 
-  const resultadoEstable =
-  Boolean(
-    resultado?.letra
-    && confianza !== null
-    && confianza >= CONFIANZA_MINIMA
-  );
+  const ultimoIntento = useRef<string | null>(null);
+  const colaRegistros = useRef<Promise<void>>(Promise.resolve());
+  const pausado = useRef(false);
+  const contexto = useRef({ activo: false });
 
-  async function guardarResultado() {
-    const sesion = obtenerSesion();
+  const callbacks = useRef({
+    onReconocimientoCorrecto,
+    onResultadoRegistrado,
+  });
 
-    if (!sesion) {
-      setErrorRegistro(
-        "Debes iniciar sesión para guardar el resultado."
-      );
-      return;
-    }
+  useEffect(() => {
+    callbacks.current = {
+      onReconocimientoCorrecto,
+      onResultadoRegistrado,
+    };
+  }, [
+    onReconocimientoCorrecto,
+    onResultadoRegistrado,
+  ]);
 
-    if (!idLetraObjetivo) {
-      setErrorRegistro(
-        "Selecciona una letra antes de registrar el resultado."
-      );
-      return;
-    }
+  useEffect(() => {
+    const actual = { activo: true };
+    contexto.current = actual;
 
+    return () => {
+      actual.activo = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (
-      !resultado?.letra
-      || confianza === null
-      || confianza < CONFIANZA_MINIMA
+      !intentoReconocido
+      || idLetraObjetivo === null
+      || intentoReconocido.modo !== modo
+      || ultimoIntento.current === intentoReconocido.id
+      || pausado.current
     ) {
-      setErrorRegistro(
-        "Espera a que el reconocimiento sea estable."
-      );
       return;
     }
 
-    setGuardando(true);
-    setMensajeRegistro("");
-    setErrorRegistro("");
+    const deteccion = intentoReconocido;
+    const objetivo = idLetraObjetivo;
+    const contextoActual = contexto.current;
+
+    ultimoIntento.current = deteccion.id;
+
+    let token: string | null = null;
+    let errorSesion: Error | null = null;
 
     try {
-  const idLetraDetectada = await obtenerIdLetra(
-    resultado.letra,
-  );
+      const sesion = obtenerSesion();
 
-  if (!idLetraDetectada) {
-    setErrorRegistro(
-      "No se encontró la letra detectada.",
-    );
-    return;
-  }
-
-  let sesionReconocimiento =
-    obtenerSesionReconocimiento();
-
-  if (!sesionReconocimiento) {
-    const nuevaSesion =
-      await crearSesionReconocimiento(
-        sesion.access_token,
-      );
-
-    sesionReconocimiento =
-      nuevaSesion.sesion;
-
-    guardarSesionReconocimiento(
-      sesionReconocimiento,
-    );
-  }
-
-  const respuesta = await registrarResultadoReconocimiento(
-    {
-      id_sesion: sesionReconocimiento.id_sesion,
-      id_letra_objetivo: idLetraObjetivo,
-      id_letra_detectada: idLetraDetectada,
-      confianza,
-    },
-    sesion.access_token,
-  );
-
-      onResultadoRegistrado?.();
-
-      if (respuesta.resultado.es_correcto) {
-        setMensajeRegistro(
-          "Resultado guardado: la seña es correcta."
+      if (!sesion) {
+        throw new Error(
+          "Debes iniciar sesión para registrar los intentos.",
         );
+      }
 
-        onReconocimientoCorrecto?.(idLetraObjetivo);
-
-        try {
-          await registrarProgreso(
-            { id_letra: idLetraObjetivo },
-            sesion.access_token
+      token = sesion.access_token;
+    } catch (error) {
+      errorSesion = error instanceof Error
+        ? error
+        : new Error(
+            "No fue posible obtener la sesión del usuario.",
           );
+    }
 
-          setMensajeRegistro(
-            "Resultado guardado: la seña es correcta y la letra quedó aprendida."
-          );
-        } catch (error) {
-          setErrorRegistro(
-            error instanceof ErrorApi
-              ? `El resultado se guardó, pero no se pudo actualizar el progreso: ${error.message}`
-              : "El resultado se guardó, pero no se pudo actualizar el progreso."
+    async function guardarIntento() {
+      if (!contextoActual.activo || pausado.current) {
+        return;
+      }
+
+      let resultadoGuardado = false;
+      let idSesionUtilizada: number | null = null;
+
+      setGuardando(true);
+      setMensajeRegistro("");
+      setErrorRegistro("");
+
+      try {
+        if (errorSesion !== null) {
+          throw errorSesion;
+        }
+
+        if (!token) {
+          throw new Error(
+            "Debes iniciar sesión para registrar los intentos.",
           );
         }
-      } else {
+
+        if (obtenerSesion()?.access_token !== token) {
+          throw new Error(
+            "La sesión del usuario cambió. Inicia otra práctica.",
+          );
+        }
+
+        if (
+          !Number.isInteger(objetivo)
+          || objetivo <= 0
+          || !Number.isFinite(deteccion.confianza)
+          || deteccion.confianza < 0.8
+          || deteccion.confianza > 1
+        ) {
+          throw new Error(
+            "La detección no contiene datos válidos para registrarla.",
+          );
+        }
+
+        const idLetraDetectada = await obtenerIdLetra(
+          deteccion.letra,
+        );
+
+        if (!contextoActual.activo) {
+          return;
+        }
+
+        if (
+          !Number.isInteger(idLetraDetectada)
+          || !idLetraDetectada
+          || idLetraDetectada <= 0
+        ) {
+          throw new Error(
+            "No se encontró la letra detectada en el alfabeto.",
+          );
+        }
+
+        let sesionReconocimiento =
+          obtenerSesionReconocimiento();
+
+        if (
+          !sesionReconocimiento
+          || sesionReconocimiento.estado !== "activa"
+          || sesionReconocimiento.fecha_fin !== null
+        ) {
+          if (obtenerSesion()?.access_token !== token) {
+            throw new Error(
+              "La sesión del usuario cambió. Inicia otra práctica.",
+            );
+          }
+
+          const nuevaSesion = await crearSesionReconocimiento(
+            token,
+          );
+
+          if (
+            !contextoActual.activo
+            || obtenerSesion()?.access_token !== token
+          ) {
+            return;
+          }
+
+          sesionReconocimiento = nuevaSesion.sesion;
+          guardarSesionReconocimiento(sesionReconocimiento);
+        }
+
+        if (!contextoActual.activo) {
+          return;
+        }
+
+        if (obtenerSesion()?.access_token !== token) {
+          throw new Error(
+            "La sesión del usuario cambió. Inicia otra práctica.",
+          );
+        }
+
+        idSesionUtilizada = sesionReconocimiento.id_sesion;
+
+        const respuesta = await registrarResultadoReconocimiento(
+          {
+            id_sesion: idSesionUtilizada,
+            id_letra_objetivo: objetivo,
+            id_letra_detectada: idLetraDetectada,
+            confianza: deteccion.confianza,
+          },
+          token,
+        );
+
+        resultadoGuardado = true;
+
+        if (
+          !contextoActual.activo
+          || obtenerSesion()?.access_token !== token
+        ) {
+          return;
+        }
+
         setMensajeRegistro(
-  "Resultado guardado correctamente."
-);
-      }
-    } catch (error) {
-      setErrorRegistro(
-        error instanceof ErrorApi
+          respuesta.resultado.es_correcto
+            ? "Intento guardado automáticamente: seña correcta."
+            : "Intento guardado automáticamente: la seña no coincide con la letra objetivo.",
+        );
+
+        callbacks.current.onResultadoRegistrado?.();
+
+        if (respuesta.resultado.es_correcto) {
+          await registrarProgreso(
+            { id_letra: objetivo },
+            token,
+          );
+
+          if (
+            contextoActual.activo
+            && obtenerSesion()?.access_token === token
+          ) {
+            setMensajeRegistro(
+              "Intento guardado automáticamente y progreso actualizado.",
+            );
+            callbacks.current.onReconocimientoCorrecto?.(objetivo);
+          }
+        }
+      } catch (error) {
+        if (!contextoActual.activo) {
+          return;
+        }
+
+        const detalle = error instanceof Error
           ? error.message
-          : "No fue posible guardar el resultado."
-      );
-    } finally {
-      setGuardando(false);
+          : "Ocurrió un error inesperado.";
+
+        if (resultadoGuardado) {
+          setErrorRegistro(
+            `El intento se guardó, pero no se pudo completar la actualización de la pantalla o del progreso: ${detalle}`,
+          );
+          return;
+        }
+
+        pausado.current = true;
+        setRegistroPausado(true);
+        setErrorRegistro(detalle);
+
+        if (
+          error instanceof ErrorApi
+          && (
+            error.codigoEstado === 403
+            || error.codigoEstado === 409
+          )
+          && idSesionUtilizada !== null
+        ) {
+          try {
+            const almacenada = obtenerSesionReconocimiento();
+
+            if (almacenada?.id_sesion === idSesionUtilizada) {
+              limpiarSesionReconocimiento();
+            }
+          } catch {
+            return;
+          }
+        }
+      } finally {
+        if (contextoActual.activo) {
+          setGuardando(false);
+        }
+      }
     }
-  }
+
+    colaRegistros.current = colaRegistros.current.then(
+      guardarIntento,
+    );
+  }, [
+    intentoReconocido,
+    idLetraObjetivo,
+    modo,
+  ]);
 
   return (
     <div className="resultadoReconocimiento">
@@ -221,35 +363,42 @@ function ResultadoReconocimiento({
               ? "Analizando imagen..."
               : "Reconocimiento activo"}
           </p>
+        </>
+      )}
 
-          {idLetraObjetivo !== null && (
-            <>
-              <button
-                type="button"
-                className="botonRegistrarIntento"
-                onClick={() => void guardarResultado()}
-                disabled={
-                  !resultadoEstable
-                  || guardando
-                }
-              >
-                {guardando
-                  ? "Guardando resultado..."
-                  : "Registrar intento"}
-              </button>
+      {idLetraObjetivo !== null && (
+        <>
+          <p role="status">
+            {registroPausado
+              ? "Registro automático pausado."
+              : guardando
+                ? "Guardando intento..."
+                : "Los intentos se registran automáticamente al reconocer una seña estable."}
+          </p>
 
-              {mensajeRegistro && (
-                <p role="status">
-                  {mensajeRegistro}
-                </p>
-              )}
+          <p>
+            Para repetir la misma seña, retira la mano
+            hasta que deje de reconocerse y vuelve a realizarla.
+          </p>
 
-              {errorRegistro && (
-                <p role="alert">
-                  {errorRegistro}
-                </p>
-              )}
-            </>
+          {mensajeRegistro && (
+            <p role="status">
+              {mensajeRegistro}
+            </p>
+          )}
+
+          {errorRegistro && (
+            <p role="alert">
+              {errorRegistro}
+            </p>
+          )}
+
+          {registroPausado && (
+            <p>
+              Revisa el historial antes de continuar.
+              Una vez resuelto el error, apaga y activa
+              la cámara para iniciar otra práctica.
+            </p>
           )}
         </>
       )}

@@ -62,7 +62,8 @@ def listar_usuarios(buscar: str | None = None):
                         nombre,
                         correo,
                         rol,
-                        fecha_creacion
+                        fecha_creacion,
+                        activo
                     FROM usuarios
                     WHERE nombre ILIKE %s OR correo ILIKE %s
                     ORDER BY nombre;
@@ -78,7 +79,8 @@ def listar_usuarios(buscar: str | None = None):
                         nombre,
                         correo,
                         rol,
-                        fecha_creacion
+                        fecha_creacion,
+                        activo
                     FROM usuarios
                     ORDER BY nombre;
                     """
@@ -113,6 +115,26 @@ def desactivar_usuario(id_usuario: int):
                 """
                 UPDATE usuarios
                 SET activo = FALSE
+                WHERE id_usuario = %s
+                RETURNING
+                    id_usuario,
+                    nombre,
+                    correo,
+                    rol,
+                    activo;
+                """,
+                (id_usuario,)
+            )
+
+            return cursor.fetchone()
+
+def reactivar_usuario(id_usuario: int):
+    with obtener_conexion() as conexion:
+        with conexion.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                UPDATE usuarios
+                SET activo = TRUE
                 WHERE id_usuario = %s
                 RETURNING
                     id_usuario,

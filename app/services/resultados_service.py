@@ -1,9 +1,19 @@
+import logging
+
 from psycopg.rows import dict_row
 
+from app.services.aprendizaje_service import evaluar_aprendizaje
+from app.services.intentos_service import registrar_intento
 from conf.database import obtener_conexion
+
+logger = logging.getLogger(__name__)
 
 
 class SesionNoEncontradaError(Exception):
+    pass
+
+
+class SesionNoActivaError(Exception):
     pass
 
 
@@ -15,7 +25,6 @@ class UsuarioSesionError(Exception):
     pass
 
 
-
 def registrar_resultado(
     id_usuario: int,
     id_sesion: int,
@@ -23,19 +32,24 @@ def registrar_resultado(
     id_letra_detectada: int,
     confianza: float,
 ):
-    """
-    Registra un resultado obtenido durante una sesión.
+    """Guarda resultado e intento y después evalúa el aprendizaje.
+
+    Solo los resultados correctos activan la evaluación.
+    El progreso se actualiza cuando se alcanza el mínimo de aciertos.
+
+    La evaluación usa una transacción independiente. Si falla, se
+    registra el error y se conservan el resultado y su intento.
     """
 
     with obtener_conexion() as conexion:
         with conexion.cursor(row_factory=dict_row) as cursor:
-
-            # Verifica que la sesión exista
+            # Bloquea la sesión hasta terminar la transacción.
             cursor.execute(
                 """
-                SELECT id_usuario
+                SELECT id_usuario, estado
                 FROM sesiones_reconocimiento
-                WHERE id_sesion = %s;
+                WHERE id_sesion = %s
+                FOR UPDATE;
                 """,
                 (id_sesion,),
             )
@@ -47,15 +61,17 @@ def registrar_resultado(
                     "La sesión no existe"
                 )
 
-
-            # Verifica que la sesión pertenezca al usuario
             if sesion["id_usuario"] != id_usuario:
                 raise UsuarioSesionError(
                     "La sesión no pertenece al usuario"
                 )
 
+            if sesion["estado"] != "activa":
+                raise SesionNoActivaError(
+                    "Solo se pueden registrar resultados en sesiones activas"
+                )
 
-            # Verifica que las letras existan
+            # Verifica que ambas letras existan.
             cursor.execute(
                 """
                 SELECT id_letra
@@ -85,15 +101,10 @@ def registrar_resultado(
                     "Alguna letra no existe"
                 )
 
-
-            # Determina si fue correcto
             es_correcto = (
-                id_letra_objetivo ==
-                id_letra_detectada
+                id_letra_objetivo == id_letra_detectada
             )
 
-
-            # Guarda el resultado
             cursor.execute(
                 """
                 INSERT INTO resultados_reconocimiento (
@@ -104,7 +115,6 @@ def registrar_resultado(
                     es_correcto
                 )
                 VALUES (%s, %s, %s, %s, %s)
-
                 RETURNING
                     id_resultado,
                     id_sesion,
@@ -123,13 +133,43 @@ def registrar_resultado(
                 ),
             )
 
-            return cursor.fetchone()
+            resultado = cursor.fetchone()
+
+            # Ambos registros utilizan la misma transacción.
+            registrar_intento(
+                cursor=cursor,
+                id_resultado=resultado["id_resultado"],
+                id_usuario=id_usuario,
+                id_sesion=id_sesion,
+                id_letra=id_letra_objetivo,
+                es_correcto=es_correcto,
+            )
+
+    # Resultado e intento ya quedaron confirmados al salir de los contextos.
+    # Si su guardado falla, no se llega a la evaluación del aprendizaje.
+    if es_correcto:
+        try:
+            evaluar_aprendizaje(
+                id_usuario=sesion["id_usuario"],
+                id_letra=resultado["id_letra_objetivo"],
+            )
+        except Exception:
+            logger.exception(
+                "No se pudo evaluar el aprendizaje del resultado %s "
+                "para el usuario %s y la letra %s",
+                resultado["id_resultado"],
+                sesion["id_usuario"],
+                resultado["id_letra_objetivo"],
+            )
+
+    return resultado
+
 
 def consultar_resultados_sesion(
     id_usuario: int,
     id_sesion: int,
 ):
-    """Consulta los resultados de una sesión del usuario."""
+    """Consulta los resultados propios sin restringir el estado de sesión."""
 
     with obtener_conexion() as conexion:
         with conexion.cursor(row_factory=dict_row) as cursor:

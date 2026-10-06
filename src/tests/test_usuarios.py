@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import obtener_usuario_actual, requerir_administrador
+from app.services.progreso_service import UsuarioNoEncontradoError
 from app.services.usuarios_service import CorreoYaRegistradoError
 
 
@@ -345,7 +346,8 @@ class TestRegistroUsuarios(unittest.TestCase):
                 "nombre": "Usuario Uno",
                 "correo": "uno@signia.local",
                 "rol": "usuario",
-                "fecha_creacion": "2026-01-01T00:00:00"
+                "fecha_creacion": "2026-01-01T00:00:00",
+                "activo": True
             }
         ]
 
@@ -378,7 +380,8 @@ class TestRegistroUsuarios(unittest.TestCase):
                 "nombre": "Usuario Uno",
                 "correo": "uno@signia.local",
                 "rol": "usuario",
-                "fecha_creacion": "2026-01-01T00:00:00"
+                "fecha_creacion": "2026-01-01T00:00:00",
+                "activo": True
             }
         ]
 
@@ -416,5 +419,114 @@ class TestRegistroUsuarios(unittest.TestCase):
             {"detail": "No fue posible obtener la lista de los usuarios"}
         )
 
+    @patch("app.routes.usuarios.reactivar_usuario")
+    def test_reactiva_un_usuario(self, servicio_simulado):
+        servicio_simulado.return_value = {
+            "id_usuario": 5,
+            "nombre": "Usuario Prueba",
+            "correo": "usuario@signia.local",
+            "rol": "usuario",
+            "activo": True
+        }
+
+        respuesta = self.cliente.patch("/usuarios/5/reactivar")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertTrue(respuesta.json()["activo"])
+        servicio_simulado.assert_called_once_with(5)
+
+    @patch("app.routes.usuarios.reactivar_usuario")
+    def test_reactivar_responde_404_si_no_existe(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.return_value = None
+
+        respuesta = self.cliente.patch("/usuarios/999/reactivar")
+
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "El usuario no existe"}
+        )
+
+    def test_no_puede_reactivar_su_propia_cuenta(self):
+        respuesta = self.cliente.patch("/usuarios/1/reactivar")
+
+        self.assertEqual(respuesta.status_code,400)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "No se puede reactivar su propia cuenta"}
+        )
+
+    def test_reactivar_rechaza_usuario_sin_permisos(self):
+        app.dependency_overrides.pop(requerir_administrador, None)
+        app.dependency_overrides[obtener_usuario_actual] = lambda: {
+            "id_usuario": 4,
+            "nombre": "Usuario",
+            "correo": "usuarios@signia.local",
+            "rol": "usuario"
+        }
+
+        respuesta = self.cliente.patch("/usuarios/5/reactivar")
+
+        self.assertEqual(respuesta.status_code, 403)
+
+    @patch("app.routes.usuarios.consultar_resumen_progreso_usuario")
+    def test_consulta_el_progreso_de_un_usuario(
+        self,            
+        servicio_simulado
+    ):
+        servicio_simulado.return_value = {
+            "total_intentos": 20, 
+            "total_aciertos": 15,                
+            "letras_dominadas": 3,
+            "letras_pendientes": 23
+        }
+
+        respuesta = self.cliente.get("/usuarios/5/progreso")
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(
+            respuesta.json(),
+            {
+                "total_intentos": 20, 
+                "total_aciertos": 15,
+                "letras_dominadas": 3,                                
+                "letras_pendientes": 23
+            }
+        )
+        servicio_simulado.assert_called_once_with(5)
+
+    @patch("app.routes.usuarios.consultar_resumen_progreso_usuario")
+    def test_progreso_responde_404_si_no_existe(
+        self,
+        servicio_simulado
+    ):
+        servicio_simulado.side_effect = UsuarioNoEncontradoError(
+            "El usuario no existe"
+        )
+
+        respuesta = self.cliente.get("/usuarios/999/progreso")
+
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertEqual(
+            respuesta.json(),
+            {"detail": "El usuario no existe"}
+        )
+
+    def test_progreso_rechaza_usuario_sin_permisos(self):
+        app.dependency_overrides.pop(requerir_administrador, None)
+        app.dependency_overrides[obtener_usuario_actual] = lambda: {
+            "id_usuario": 4,
+            "nombre": "Usuario",
+            "correo": "usuario@signia.local",
+            "rol": "usuario"
+        }
+
+        respuesta = self.cliente.get("/usuarios/5/progreso")
+
+        self.assertEqual(respuesta.status_code, 403)
+        
 if __name__ == "__main__":
     unittest.main()
