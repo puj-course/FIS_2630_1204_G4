@@ -207,7 +207,13 @@ function Aprender({ cambiarPagina }: Props) {
       setGuardando(false);
     }
   };
+  const textoBusqueda = busqueda.trim().toLowerCase();
 
+  const letrasFiltradas = textoBusqueda
+    ? letrasBackend.filter((letra) =>
+        letra.letra.toLowerCase().includes(textoBusqueda)
+      )
+    : letrasBackend;
   return (
     <div className="aprender">
       <div className="cabeceraModulo">
@@ -274,7 +280,7 @@ function Aprender({ cambiarPagina }: Props) {
             />
           </div>
           <div className="gridLetras">
-            {letrasBackend.map((letra) => {
+            {letrasFiltradas.map((letra) => {
               const estado =
                 estadosAprendizaje[letra.id_letra] ?? "pendiente";
 
