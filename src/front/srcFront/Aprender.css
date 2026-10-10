@@ -597,3 +597,22 @@
   }
 }
 
+.buscadorLetras {
+  width:100%;
+  max-width:260px;
+  padding:10px 14px;
+  border:1px solid var(--borde);
+  border-radius:9px;
+  background:#111827;
+  color:white;
+  font-size:13px;
+  font-family:inherit;
+  transition:border-color 0.2s ease;
+}
+.buscadorLetras::placeholder {
+  color:var(--texto-secundario);
+}
+.buscadorLetras:focus {
+  outline:none;
+  border-color:rgba(96,165,250,0.55);
+}
