@@ -36,6 +36,7 @@ function Aprender({ cambiarPagina }: Props) {
   const [guardando, setGuardando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const sesion = obtenerSesion();
   const esAdministrador = sesion?.usuario.rol === "administrador";
@@ -263,8 +264,15 @@ function Aprender({ cambiarPagina }: Props) {
               <h2>Alfabeto LSC</h2>
               <p>Conoce cada seña y revisa tu progreso de aprendizaje.</p>
             </div>
+              <input
+              type="text"
+              className="buscadorLetras"
+              placeholder="Buscar letra..."
+              aria-label="Buscar letra del alfabeto"
+              value={busqueda}
+              onChange={(evento) => setBusqueda(evento.target.value)}
+            />
           </div>
-
           <div className="gridLetras">
             {letrasBackend.map((letra) => {
               const estado =
