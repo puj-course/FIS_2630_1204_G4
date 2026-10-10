@@ -5,6 +5,7 @@ import {
   type RefObject,
 } from "react";
 
+import type { SujetoPractica } from "../events/EventosPractica";
 import { useReconocimiento } from "../hooks/useReconocimiento";
 import { ErrorApi } from "../services/api";
 import { obtenerSesion } from "../services/autenticacion";
@@ -23,16 +24,14 @@ interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
   idLetraObjetivo: number | null;
   modo: ModoReconocimiento;
-  onReconocimientoCorrecto?: (idLetra: number) => void;
-  onResultadoRegistrado?: () => void;
+  eventosPractica: SujetoPractica;
 }
 
 function ResultadoReconocimiento({
   videoRef,
   idLetraObjetivo,
   modo,
-  onReconocimientoCorrecto,
-  onResultadoRegistrado,
+  eventosPractica,
 }: Props) {
   const {
     resultado,
@@ -52,21 +51,6 @@ function ResultadoReconocimiento({
   const colaRegistros = useRef<Promise<void>>(Promise.resolve());
   const pausado = useRef(false);
   const contexto = useRef({ activo: false });
-
-  const callbacks = useRef({
-    onReconocimientoCorrecto,
-    onResultadoRegistrado,
-  });
-
-  useEffect(() => {
-    callbacks.current = {
-      onReconocimientoCorrecto,
-      onResultadoRegistrado,
-    };
-  }, [
-    onReconocimientoCorrecto,
-    onResultadoRegistrado,
-  ]);
 
   useEffect(() => {
     const actual = { activo: true };
@@ -240,7 +224,7 @@ function ResultadoReconocimiento({
             : "Intento guardado automáticamente: la seña no coincide con la letra objetivo.",
         );
 
-        callbacks.current.onResultadoRegistrado?.();
+        eventosPractica.notificar({ tipo: "intentoRegistrado" });
 
         if (respuesta.resultado.es_correcto) {
           await registrarProgreso(
@@ -255,7 +239,10 @@ function ResultadoReconocimiento({
             setMensajeRegistro(
               "Intento guardado automáticamente y progreso actualizado.",
             );
-            callbacks.current.onReconocimientoCorrecto?.(objetivo);
+            eventosPractica.notificar({
+              tipo: "progresoRegistrado",
+              idLetra: objetivo,
+            });
           }
         }
       } catch (error) {
@@ -310,6 +297,7 @@ function ResultadoReconocimiento({
     intentoReconocido,
     idLetraObjetivo,
     modo,
+    eventosPractica,
   ]);
 
   return (
