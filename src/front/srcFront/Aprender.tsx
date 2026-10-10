@@ -279,6 +279,19 @@ function Aprender({ cambiarPagina }: Props) {
               onChange={(evento) => setBusqueda(evento.target.value)}
             />
           </div>
+
+          {letrasFiltradas.length === 0 && (
+            <div
+              className="mensajeSinLetras mensajeSinResultados"
+              role="status"
+            >
+              <h2>No se encontró ninguna letra</h2>
+              <p>
+                {`No hay letras que coincidan con “${busqueda.trim()}”. `}
+                Borra la búsqueda para ver todo el alfabeto.
+              </p>
+            </div>
+          )}
           <div className="gridLetras">
             {letrasFiltradas.map((letra) => {
               const estado =
