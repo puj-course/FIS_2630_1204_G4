@@ -217,6 +217,11 @@
   text-align:center;
   font-size:14px;
 }
+
+.mensajeSinResultados {
+  margin-top:0;
+}
+
 .mensajeSinLetras h2 {
   margin-bottom:8px;
   color:white;
