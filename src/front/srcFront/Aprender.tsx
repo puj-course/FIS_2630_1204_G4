@@ -36,6 +36,7 @@ function Aprender({ cambiarPagina }: Props) {
   const [guardando, setGuardando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const sesion = obtenerSesion();
   const esAdministrador = sesion?.usuario.rol === "administrador";
@@ -206,7 +207,13 @@ function Aprender({ cambiarPagina }: Props) {
       setGuardando(false);
     }
   };
+  const textoBusqueda = busqueda.trim().toLowerCase();
 
+  const letrasFiltradas = textoBusqueda
+    ? letrasBackend.filter((letra) =>
+        letra.letra.toLowerCase().includes(textoBusqueda)
+      )
+    : letrasBackend;
   return (
     <div className="aprender">
       <div className="cabeceraModulo">
@@ -263,10 +270,30 @@ function Aprender({ cambiarPagina }: Props) {
               <h2>Alfabeto LSC</h2>
               <p>Conoce cada seña y revisa tu progreso de aprendizaje.</p>
             </div>
+              <input
+              type="text"
+              className="buscadorLetras"
+              placeholder="Buscar letra..."
+              aria-label="Buscar letra del alfabeto"
+              value={busqueda}
+              onChange={(evento) => setBusqueda(evento.target.value)}
+            />
           </div>
 
+          {letrasFiltradas.length === 0 && (
+            <div
+              className="mensajeSinLetras mensajeSinResultados"
+              role="status"
+            >
+              <h2>No se encontró ninguna letra</h2>
+              <p>
+                {`No hay letras que coincidan con “${busqueda.trim()}”. `}
+                Borra la búsqueda para ver todo el alfabeto.
+              </p>
+            </div>
+          )}
           <div className="gridLetras">
-            {letrasBackend.map((letra) => {
+            {letrasFiltradas.map((letra) => {
               const estado =
                 estadosAprendizaje[letra.id_letra] ?? "pendiente";
 

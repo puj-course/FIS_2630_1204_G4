@@ -5,34 +5,24 @@ import {
   type RefObject,
 } from "react";
 
+import type { SujetoPractica } from "../events/EventosPractica";
 import { useReconocimiento } from "../hooks/useReconocimiento";
-import { ErrorApi } from "../services/api";
 import { obtenerSesion } from "../services/autenticacion";
-import { obtenerIdLetra } from "../services/letras";
-import { registrarProgreso } from "../services/progreso";
-import { registrarResultadoReconocimiento } from "../services/resultados";
-import {
-  crearSesionReconocimiento,
-  guardarSesionReconocimiento,
-  limpiarSesionReconocimiento,
-  obtenerSesionReconocimiento,
-} from "../services/sesiones";
+import { FachadaRegistroPractica } from "../services/FachadaRegistroPractica";
 import type { ModoReconocimiento } from "../services/vision";
 
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
   idLetraObjetivo: number | null;
   modo: ModoReconocimiento;
-  onReconocimientoCorrecto?: (idLetra: number) => void;
-  onResultadoRegistrado?: () => void;
+  eventosPractica: SujetoPractica;
 }
 
 function ResultadoReconocimiento({
   videoRef,
   idLetraObjetivo,
   modo,
-  onReconocimientoCorrecto,
-  onResultadoRegistrado,
+  eventosPractica,
 }: Props) {
   const {
     resultado,
@@ -43,6 +33,10 @@ function ResultadoReconocimiento({
     reintentar,
   } = useReconocimiento(videoRef, modo);
 
+  const [fachada] = useState(
+    () => new FachadaRegistroPractica(),
+  );
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeRegistro, setMensajeRegistro] = useState("");
   const [errorRegistro, setErrorRegistro] = useState("");
@@ -52,21 +46,6 @@ function ResultadoReconocimiento({
   const colaRegistros = useRef<Promise<void>>(Promise.resolve());
   const pausado = useRef(false);
   const contexto = useRef({ activo: false });
-
-  const callbacks = useRef({
-    onReconocimientoCorrecto,
-    onResultadoRegistrado,
-  });
-
-  useEffect(() => {
-    callbacks.current = {
-      onReconocimientoCorrecto,
-      onResultadoRegistrado,
-    };
-  }, [
-    onReconocimientoCorrecto,
-    onResultadoRegistrado,
-  ]);
 
   useEffect(() => {
     const actual = { activo: true };
@@ -121,7 +100,6 @@ function ResultadoReconocimiento({
       }
 
       let resultadoGuardado = false;
-      let idSesionUtilizada: number | null = null;
 
       setGuardando(true);
       setMensajeRegistro("");
@@ -138,92 +116,17 @@ function ResultadoReconocimiento({
           );
         }
 
-        if (obtenerSesion()?.access_token !== token) {
-          throw new Error(
-            "La sesión del usuario cambió. Inicia otra práctica.",
-          );
-        }
-
-        if (
-          !Number.isInteger(objetivo)
-          || objetivo <= 0
-          || !Number.isFinite(deteccion.confianza)
-          || deteccion.confianza < 0.8
-          || deteccion.confianza > 1
-        ) {
-          throw new Error(
-            "La detección no contiene datos válidos para registrarla.",
-          );
-        }
-
-        const idLetraDetectada = await obtenerIdLetra(
-          deteccion.letra,
-        );
-
-        if (!contextoActual.activo) {
-          return;
-        }
-
-        if (
-          !Number.isInteger(idLetraDetectada)
-          || !idLetraDetectada
-          || idLetraDetectada <= 0
-        ) {
-          throw new Error(
-            "No se encontró la letra detectada en el alfabeto.",
-          );
-        }
-
-        let sesionReconocimiento =
-          obtenerSesionReconocimiento();
-
-        if (
-          !sesionReconocimiento
-          || sesionReconocimiento.estado !== "activa"
-          || sesionReconocimiento.fecha_fin !== null
-        ) {
-          if (obtenerSesion()?.access_token !== token) {
-            throw new Error(
-              "La sesión del usuario cambió. Inicia otra práctica.",
-            );
-          }
-
-          const nuevaSesion = await crearSesionReconocimiento(
-            token,
-          );
-
-          if (
-            !contextoActual.activo
-            || obtenerSesion()?.access_token !== token
-          ) {
-            return;
-          }
-
-          sesionReconocimiento = nuevaSesion.sesion;
-          guardarSesionReconocimiento(sesionReconocimiento);
-        }
-
-        if (!contextoActual.activo) {
-          return;
-        }
-
-        if (obtenerSesion()?.access_token !== token) {
-          throw new Error(
-            "La sesión del usuario cambió. Inicia otra práctica.",
-          );
-        }
-
-        idSesionUtilizada = sesionReconocimiento.id_sesion;
-
-        const respuesta = await registrarResultadoReconocimiento(
-          {
-            id_sesion: idSesionUtilizada,
-            id_letra_objetivo: objetivo,
-            id_letra_detectada: idLetraDetectada,
-            confianza: deteccion.confianza,
-          },
+        const respuesta = await fachada.registrarIntento({
           token,
-        );
+          idLetraObjetivo: objetivo,
+          letraDetectada: deteccion.letra,
+          confianza: deteccion.confianza,
+          sigueActivo: () => contextoActual.activo,
+        });
+
+        if (respuesta === null) {
+          return;
+        }
 
         resultadoGuardado = true;
 
@@ -240,11 +143,11 @@ function ResultadoReconocimiento({
             : "Intento guardado automáticamente: la seña no coincide con la letra objetivo.",
         );
 
-        callbacks.current.onResultadoRegistrado?.();
+        eventosPractica.notificar({ tipo: "intentoRegistrado" });
 
         if (respuesta.resultado.es_correcto) {
-          await registrarProgreso(
-            { id_letra: objetivo },
+          await fachada.registrarProgreso(
+            objetivo,
             token,
           );
 
@@ -255,7 +158,10 @@ function ResultadoReconocimiento({
             setMensajeRegistro(
               "Intento guardado automáticamente y progreso actualizado.",
             );
-            callbacks.current.onReconocimientoCorrecto?.(objetivo);
+            eventosPractica.notificar({
+              tipo: "progresoRegistrado",
+              idLetra: objetivo,
+            });
           }
         }
       } catch (error) {
@@ -277,25 +183,6 @@ function ResultadoReconocimiento({
         pausado.current = true;
         setRegistroPausado(true);
         setErrorRegistro(detalle);
-
-        if (
-          error instanceof ErrorApi
-          && (
-            error.codigoEstado === 403
-            || error.codigoEstado === 409
-          )
-          && idSesionUtilizada !== null
-        ) {
-          try {
-            const almacenada = obtenerSesionReconocimiento();
-
-            if (almacenada?.id_sesion === idSesionUtilizada) {
-              limpiarSesionReconocimiento();
-            }
-          } catch {
-            return;
-          }
-        }
       } finally {
         if (contextoActual.activo) {
           setGuardando(false);
@@ -310,6 +197,8 @@ function ResultadoReconocimiento({
     intentoReconocido,
     idLetraObjetivo,
     modo,
+    eventosPractica,
+    fachada,
   ]);
 
   return (

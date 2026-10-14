@@ -11,6 +11,10 @@ import {
   FaBullseye,
 } from "react-icons/fa";
 
+import {
+  EventosPractica,
+  type ObservadorPractica,
+} from "./events/EventosPractica";
 import { ErrorApi } from "./services/api";
 import { obtenerSesion } from "./services/autenticacion";
 
@@ -71,6 +75,10 @@ function Practica({
     iniciarCamara,
     detenerCamara,
   } = useCamara();
+
+  const [eventosPractica] = useState(
+    () => new EventosPractica()
+  );
 
   const camaraActiva =
     estadoCamara === "activa";
@@ -333,7 +341,7 @@ function Practica({
     setModalidadPractica(null);
   };
 
-  const manejarReconocimientoCorrecto = (
+  const manejarReconocimientoCorrecto = useCallback((
     idLetra: number
   ) => {
     if (
@@ -348,7 +356,41 @@ function Practica({
     setLetraConfirmada(
       obtenerNombreLetra(letraSeleccionada)
     );
-  };
+  }, [
+    modalidadPractica,
+    letraSeleccionada,
+    detenerCamara,
+  ]);
+
+  useEffect(() => {
+    const observadorHistorial: ObservadorPractica = {
+      actualizar(evento) {
+        if (evento.tipo === "intentoRegistrado") {
+          void cargarHistorial();
+        }
+      },
+    };
+
+    const observadorConfirmacion: ObservadorPractica = {
+      actualizar(evento) {
+        if (evento.tipo === "progresoRegistrado") {
+          manejarReconocimientoCorrecto(evento.idLetra);
+        }
+      },
+    };
+
+    eventosPractica.suscribir(observadorHistorial);
+    eventosPractica.suscribir(observadorConfirmacion);
+
+    return () => {
+      eventosPractica.desuscribir(observadorHistorial);
+      eventosPractica.desuscribir(observadorConfirmacion);
+    };
+  }, [
+    eventosPractica,
+    cargarHistorial,
+    manejarReconocimientoCorrecto,
+  ]);
 
   if (
     idLetraPractica === null
@@ -595,12 +637,7 @@ function Practica({
                       : null
                   }
                   modo={modo}
-                  onReconocimientoCorrecto={
-                    manejarReconocimientoCorrecto
-                  }
-                  onResultadoRegistrado={() => {
-                    void cargarHistorial();
-                  }}
+                  eventosPractica={eventosPractica}
                 />
               ) : (
                 <div className="reconocimientoInactivo">

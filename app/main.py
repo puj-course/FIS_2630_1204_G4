@@ -12,6 +12,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.limiter import limiter
 from app.routes.autenticacion import router as autenticacion_router
+from app.routes.historial import router as historial_router
 from app.routes.intentos import router as intentos_router
 from app.routes.letras import router as letras_router
 from app.routes.perfil import router as perfil_router
@@ -90,6 +91,7 @@ app.include_router(perfil_router)
 app.include_router(vision_router)
 app.include_router(resultados_reconocimiento_router)
 app.include_router(progreso_router)
+app.include_router(historial_router)
 app.include_router(resultados_router)
 app.include_router(sesiones_router)
 app.include_router(intentos_router)
