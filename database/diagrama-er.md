@@ -1,21 +1,20 @@
-# Diagrama entidad-relación de SignIA
-
-El siguiente diagrama representa la estructura inicial de la base de datos de SignIA y las relaciones implementadas mediante claves foráneas.
-
 ```mermaid
 erDiagram
-    USUARIOS {
+    usuarios {
         BIGINT id_usuario PK
-        VARCHAR nombre
-        VARCHAR correo UK
+        VARCHAR_100 nombre
+        VARCHAR_150 correo UK
         TEXT contrasena_hash
-        VARCHAR rol
+        VARCHAR_20 rol
         TIMESTAMPTZ fecha_creacion
+        BOOLEAN activo
+        INTEGER intentos_fallidos
+        TIMESTAMPTZ bloqueado_hasta
     }
 
-    LETRAS {
+    letras {
         BIGINT id_letra PK
-        VARCHAR letra UK
+        VARCHAR_2 letra UK
         TEXT descripcion
         TEXT ruta_imagen
         BOOLEAN activa
@@ -24,25 +23,25 @@ erDiagram
         TIMESTAMPTZ fecha_actualizacion
     }
 
-    SESIONES_RECONOCIMIENTO {
+    sesiones_reconocimiento {
         BIGINT id_sesion PK
         BIGINT id_usuario FK
         TIMESTAMPTZ fecha_inicio
         TIMESTAMPTZ fecha_fin
-        VARCHAR estado
+        VARCHAR_20 estado
     }
 
-    RESULTADOS_RECONOCIMIENTO {
+    resultados_reconocimiento {
         BIGINT id_resultado PK
         BIGINT id_sesion FK
         BIGINT id_letra_objetivo FK
         BIGINT id_letra_detectada FK
-        NUMERIC confianza
+        NUMERIC_5_4 confianza
         BOOLEAN es_correcto
         TIMESTAMPTZ fecha_resultado
     }
 
-    PROGRESO_USUARIO {
+    progreso_usuario {
         BIGINT id_progreso PK
         BIGINT id_usuario FK
         BIGINT id_letra FK
@@ -53,10 +52,27 @@ erDiagram
         TIMESTAMPTZ fecha_actualizacion
     }
 
-    USUARIOS ||--o{ SESIONES_RECONOCIMIENTO : realiza
-    USUARIOS ||--o{ PROGRESO_USUARIO : registra
-    USUARIOS o|--o{ LETRAS : crea
-    SESIONES_RECONOCIMIENTO ||--o{ RESULTADOS_RECONOCIMIENTO : contiene
-    LETRAS ||--o{ PROGRESO_USUARIO : corresponde
-    LETRAS ||--o{ RESULTADOS_RECONOCIMIENTO : objetivo
-    LETRAS ||--o{ RESULTADOS_RECONOCIMIENTO : detectada
+    recuperaciones_contrasena {
+        BIGINT id_recuperacion PK
+        BIGINT id_usuario FK
+        VARCHAR_64 token_hash UK
+        TIMESTAMPTZ fecha_creacion
+        TIMESTAMPTZ fecha_expiracion
+        TIMESTAMPTZ fecha_uso
+        TIMESTAMPTZ fecha_invalidacion
+    }
+
+    tokens_revocados {
+        VARCHAR_36 jti PK
+        TIMESTAMPTZ fecha_expiracion
+    }
+
+    usuarios |o--o{ letras : creada_por
+    usuarios ||--o{ sesiones_reconocimiento : inicia
+    sesiones_reconocimiento ||--o{ resultados_reconocimiento : genera
+    letras ||--o{ resultados_reconocimiento : objetivo
+    letras ||--o{ resultados_reconocimiento : detectada
+    usuarios ||--o{ progreso_usuario : registra
+    letras ||--o{ progreso_usuario : corresponde
+    usuarios ||--o{ recuperaciones_contrasena : solicita
+```
