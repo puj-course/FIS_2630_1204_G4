@@ -3,6 +3,7 @@ import "./Practica.css";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -15,6 +16,11 @@ import {
   EventosPractica,
   type ObservadorPractica,
 } from "./events/EventosPractica";
+import {
+  crearModalidad,
+  type TipoModalidad,
+} from "./modalidades/ModalidadPractica";
+
 import { ErrorApi } from "./services/api";
 import { obtenerSesion } from "./services/autenticacion";
 
@@ -44,10 +50,6 @@ interface Props {
   cambiarPagina: (pagina: string) => void;
 }
 
-type ModalidadPractica =
-  | "libre"
-  | "especifica";
-
 type LetraConNombre = Letra & {
   letra?: string;
   nombre?: string;
@@ -76,6 +78,23 @@ function Practica({
     detenerCamara,
   } = useCamara();
 
+    const [
+    modalidadPractica,
+    setModalidadPractica,
+  ] = useState<TipoModalidad | null>(
+    idLetraPractica !== null
+      ? "especifica"
+      : null
+  );
+
+  const modalidad = useMemo(
+    () =>
+      modalidadPractica
+        ? crearModalidad(modalidadPractica)
+        : null,
+    [modalidadPractica]
+  );
+
   const [eventosPractica] = useState(
     () => new EventosPractica()
   );
@@ -85,15 +104,6 @@ function Practica({
 
   const solicitandoCamara =
     estadoCamara === "solicitando";
-
-  const [
-    modalidadPractica,
-    setModalidadPractica,
-  ] = useState<ModalidadPractica | null>(
-    idLetraPractica !== null
-      ? "especifica"
-      : null
-  );
 
   const [
     letraSeleccionada,
@@ -345,9 +355,12 @@ function Practica({
     idLetra: number
   ) => {
     if (
-      modalidadPractica !== "especifica"
+      !modalidad
       || !letraSeleccionada
-      || letraSeleccionada.id_letra !== idLetra
+      || !modalidad.confirmaReconocimiento(
+        idLetra,
+        letraSeleccionada
+      )
     ) {
       return;
     }
@@ -357,7 +370,7 @@ function Practica({
       obtenerNombreLetra(letraSeleccionada)
     );
   }, [
-    modalidadPractica,
+    modalidad,
     letraSeleccionada,
     detenerCamara,
   ]);
@@ -472,18 +485,17 @@ function Practica({
     );
   }
 
-  const tituloPractica =
-    modalidadPractica === "especifica"
-      && letraSeleccionada
-      ? `Práctica Específica: ${obtenerNombreLetra(
-          letraSeleccionada
-        )}`
-      : "Práctica Libre";
+   const modalidadActual =
+    modalidad ?? crearModalidad("libre");
+
+  const tituloPractica = modalidadActual.titulo(
+    letraSeleccionada
+      ? obtenerNombreLetra(letraSeleccionada)
+      : null
+  );
 
   const descripcionPractica =
-    modalidadPractica === "especifica"
-      ? "Practica una letra específica de la Lengua de Señas Colombiana con visión por computadora."
-      : "Practica libremente el alfabeto de la Lengua de Señas Colombiana con visión por computadora.";
+    modalidadActual.descripcion;
 
   return (
     <div className="practica">
@@ -629,12 +641,9 @@ function Practica({
                   key={`${modalidadPractica}-${letraSeleccionada?.id_letra ?? "sin-letra"}-${modo}`}
                   videoRef={videoRef}
                   idLetraObjetivo={
-                    modalidadPractica
-                      === "especifica"
-                      ? letraSeleccionada
-                          ?.id_letra
-                        ?? null
-                      : null
+                    modalidadActual.idLetraObjetivo(
+                      letraSeleccionada
+                    )
                   }
                   modo={modo}
                   eventosPractica={eventosPractica}
@@ -652,7 +661,7 @@ function Practica({
             </div>
           </section>
 
-          {modalidadPractica === "especifica" && (
+          {modalidadActual.muestraHistorial && (
             <HistorialReconocimiento
               historial={historial}
               cargando={cargandoHistorial}
