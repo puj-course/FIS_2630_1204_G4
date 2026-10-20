@@ -11,21 +11,22 @@ flowchart LR
     subgraph Frontend["Frontend de SignIA"]
         Reconocimiento["Reconocimiento de señas<br/>ResultadoReconocimiento"]
         Eventos["Gestión de eventos de práctica<br/>EventosPractica"]
-        Practica["Coordinación de práctica<br/>Practica"]
+        Practica["Observadores definidos en<br/>Practica"]
         Historial["Vista del historial<br/>HistorialReconocimiento"]
         Confirmacion["Vista de confirmación<br/>ConfirmacionAprendizaje"]
     end
 
-    Reconocimiento -->|"Publica intento registrado<br/>o progreso registrado"| Eventos
-    Practica -->|"Suscribe y desuscribe<br/>sus observadores"| Eventos
-    Eventos -->|"Notifica los eventos"| Practica
+    Reconocimiento -->|"Llama a notificar(evento)"| Eventos
+    Eventos -->|"Llama a actualizar(evento)<br/>en cada observador"| Practica
     Practica -->|"Actualiza los datos mostrados"| Historial
     Practica -->|"Muestra la confirmación"| Confirmacion
 ```
 
-`ResultadoReconocimiento` publica un evento después de guardar un intento y otro después de registrar correctamente el progreso. `Practica` coordina las reacciones: actualiza el historial o muestra la confirmación. Las vistas no son observadores directos.
+`ResultadoReconocimiento` origina los eventos. `EventosPractica` notifica a todos los observadores que mantiene. Cada observador recibe el evento mediante `actualizar(evento)` y decide si debe reaccionar. Las vistas de historial y confirmación no son observadores directos: muestran el estado gestionado desde `Practica`.
 
 ### Nivel 4: diagrama de clases
+
+Este diagrama muestra únicamente las operaciones que intervienen en la notificación.
 
 ```mermaid
 classDiagram
@@ -33,8 +34,6 @@ classDiagram
 
     class SujetoPractica {
         <<interface>>
-        +suscribir(observador: ObservadorPractica) void
-        +desuscribir(observador: ObservadorPractica) void
         +notificar(evento: EventoPractica) void
     }
 
@@ -45,19 +44,16 @@ classDiagram
 
     class EventosPractica {
         -observadores: Set~ObservadorPractica~
-        +suscribir(observador: ObservadorPractica) void
-        +desuscribir(observador: ObservadorPractica) void
         +notificar(evento: EventoPractica) void
     }
 
     EventosPractica ..|> SujetoPractica : implementa
-    EventosPractica "1" o-- "0..*" ObservadorPractica : mantiene suscripciones
-    SujetoPractica ..> ObservadorPractica : registra
+    EventosPractica "1" o-- "0..*" ObservadorPractica : notifica a todos
 ```
 
-`EventosPractica` es la clase concreta que implementa `SujetoPractica`. Almacena referencias a elementos que cumplen `ObservadorPractica` y llama a `actualizar` al notificarlos. `EventoPractica` es un **tipo unión de TypeScript**, no una clase, por eso aparece en las firmas pero no como clase del diagrama.
+El recorrido es: `ResultadoReconocimiento` llama a `notificar(evento)` → `EventosPractica` recorre sus observadores → llama a `actualizar(evento)` en cada uno. El tipo `EventoPractica` es una unión de TypeScript, no una clase.
 
-Los observadores concretos del proyecto, `observadorHistorial` y `observadorConfirmacion`, son **objetos literales creados dentro de la función React `Practica`**. Tampoco se dibujan como clases porque no lo son. `ResultadoReconocimiento` es otra función React: origina la notificación, pero no implementa ninguna de estas interfaces.
+Los observadores concretos, `observadorHistorial` y `observadorConfirmacion`, son objetos creados dentro de la función React `Practica`; no se representan como clases que no existen. El código también contiene operaciones para agregar y retirar observadores, pero se omiten aquí para enfocar el diagrama en **notificar → actualizar**.
 
 ## Facade — registro de práctica
 
