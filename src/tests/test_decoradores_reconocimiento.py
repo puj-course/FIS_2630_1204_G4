@@ -2,8 +2,8 @@ import unittest
 from unittest.mock import patch
 
 from app.vision.decoradores_reconocimiento import (
-    DecoradorReconocimiento,
     DecoradorMedicionTiempo,
+    DecoradorReconocimiento,
 )
 from app.vision.estrategia_reconocimiento import (
     EstrategiaReconocimiento,

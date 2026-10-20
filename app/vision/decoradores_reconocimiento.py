@@ -7,7 +7,6 @@ from app.vision.estrategia_reconocimiento import (
 )
 from app.vision.movimientos import FotogramaMovimiento
 
-
 _logger = logging.getLogger(__name__)
 
 
