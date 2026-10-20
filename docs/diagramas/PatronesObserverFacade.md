@@ -1,6 +1,6 @@
 # Patrones de diseño en SignIA: Observer y Facade
 
-Estos diagramas se centran en el frontend de SignIA. Para cada patrón se presenta una vista de nivel 3 (componentes) y una de nivel 4 (código) del modelo C4.
+Estos diagramas se centran en el frontend de SignIA. Para cada patrón se presenta una vista de nivel 3 (componentes) y una de nivel 4 (código) del modelo C4. Las vistas de nivel 4 se representan mediante diagramas de clases Mermaid y muestran únicamente clases e interfaces existentes en el código.
 
 ## Observer — eventos de práctica
 
@@ -23,45 +23,41 @@ flowchart LR
     Practica -->|"Muestra la confirmación"| Confirmacion
 ```
 
-`ResultadoReconocimiento` publica un evento después de guardar un intento y otro después de registrar correctamente el progreso. `Practica` coordina las reacciones: actualiza el historial o muestra la confirmación de aprendizaje. Las vistas de historial y confirmación no son observadores por sí mismas; muestran el estado que gestiona `Practica`.
+`ResultadoReconocimiento` publica un evento después de guardar un intento y otro después de registrar correctamente el progreso. `Practica` coordina las reacciones: actualiza el historial o muestra la confirmación. Las vistas no son observadores directos.
 
-### Nivel 4: código
+### Nivel 4: diagrama de clases
 
 ```mermaid
-flowchart TB
-    Tipo["Tipo EventoPractica<br/>intentoRegistrado | progresoRegistrado"]
-    ISujeto["Interfaz SujetoPractica<br/>suscribir · desuscribir · notificar"]
-    IObservador["Interfaz ObservadorPractica<br/>actualizar(evento)"]
-    Clase["Clase EventosPractica<br/>Set de observadores"]
-    Instancia["Objeto eventosPractica<br/>instancia de EventosPractica"]
-    Practica["Función React Practica"]
-    Resultado["Función React ResultadoReconocimiento"]
-    ObsHistorial["Objeto observadorHistorial"]
-    ObsConfirmacion["Objeto observadorConfirmacion"]
+classDiagram
+    direction LR
 
-    Clase -.->|"implementa"| ISujeto
-    Clase -->|"almacena y notifica"| IObservador
-    ISujeto -->|"usa"| Tipo
-    IObservador -->|"recibe"| Tipo
+    class SujetoPractica {
+        <<interface>>
+        +suscribir(observador: ObservadorPractica) void
+        +desuscribir(observador: ObservadorPractica) void
+        +notificar(evento: EventoPractica) void
+    }
 
-    Practica -->|"crea"| Instancia
-    Instancia -->|"es instancia de"| Clase
-    Practica -->|"crea y suscribe"| ObsHistorial
-    Practica -->|"crea y suscribe"| ObsConfirmacion
-    ObsHistorial -.->|"cumple"| IObservador
-    ObsConfirmacion -.->|"cumple"| IObservador
+    class ObservadorPractica {
+        <<interface>>
+        +actualizar(evento: EventoPractica) void
+    }
 
-    Resultado -->|"recibe el sujeto y llama notificar"| Instancia
-    Instancia -->|"llama actualizar"| ObsHistorial
-    Instancia -->|"llama actualizar"| ObsConfirmacion
+    class EventosPractica {
+        -observadores: Set~ObservadorPractica~
+        +suscribir(observador: ObservadorPractica) void
+        +desuscribir(observador: ObservadorPractica) void
+        +notificar(evento: EventoPractica) void
+    }
+
+    EventosPractica ..|> SujetoPractica : implementa
+    EventosPractica "1" o-- "0..*" ObservadorPractica : mantiene suscripciones
+    SujetoPractica ..> ObservadorPractica : registra
 ```
 
-- **Sujeto observado:** la instancia `eventosPractica` de la clase `EventosPractica`.
-- **Observadores:** los objetos `observadorHistorial` y `observadorConfirmacion`, creados dentro de `Practica`.
-- **Contrato:** `SujetoPractica` define la suscripción y notificación; `ObservadorPractica` define `actualizar`.
-- **Emisor:** `ResultadoReconocimiento` llama a `notificar`, pero no es el sujeto ni un observador.
+`EventosPractica` es la clase concreta que implementa `SujetoPractica`. Almacena referencias a elementos que cumplen `ObservadorPractica` y llama a `actualizar` al notificarlos. `EventoPractica` es un **tipo unión de TypeScript**, no una clase, por eso aparece en las firmas pero no como clase del diagrama.
 
-Los observadores se desuscriben durante la limpieza del efecto de React. Así se evita que una instancia de práctica ya desmontada siga reaccionando a eventos.
+Los observadores concretos del proyecto, `observadorHistorial` y `observadorConfirmacion`, son **objetos literales creados dentro de la función React `Practica`**. Tampoco se dibujan como clases porque no lo son. `ResultadoReconocimiento` es otra función React: origina la notificación, pero no implementa ninguna de estas interfaces.
 
 ## Facade — registro de práctica
 
@@ -87,44 +83,52 @@ flowchart LR
     Fachada -->|"Registra aprendizaje"| Progreso
 ```
 
-La fachada ofrece al componente de reconocimiento una entrada más simple para registrar la práctica. La coordinación de autenticación, letras, sesiones, resultados y progreso queda concentrada en `FachadaRegistroPractica`, mientras los servicios existentes conservan sus responsabilidades.
+`FachadaRegistroPractica` coordina funciones de los servicios existentes. `ResultadoReconocimiento` utiliza sus operaciones públicas en lugar de coordinar directamente esos pasos para el registro de práctica.
 
-### Nivel 4: código
+### Nivel 4: diagrama de clases
 
 ```mermaid
-flowchart TB
-    Cliente["Función React<br/>ResultadoReconocimiento"]
-    Instancia["Objeto fachada<br/>instancia de FachadaRegistroPractica"]
-    Clase["Clase FachadaRegistroPractica<br/>registrarIntento · registrarProgreso"]
-    Contrato["Interfaz SubsistemasRegistroPractica<br/>dependencias requeridas"]
-    Defecto["Objeto subsistemasPorDefecto"]
+classDiagram
+    direction LR
 
-    Auth["Funciones de autenticación"]
-    Letras["Funciones de letras"]
-    Sesiones["Funciones de sesiones"]
-    Resultados["Funciones de resultados"]
-    Progreso["Funciones de progreso"]
+    class RegistroIntentoPracticaEntrada {
+        <<interface>>
+        +token: string
+        +idLetraObjetivo: number
+        +letraDetectada: string
+        +confianza: number
+        +sigueActivo: function
+    }
 
-    Cliente -->|"crea y utiliza"| Instancia
-    Instancia -->|"es instancia de"| Clase
-    Clase -->|"depende de"| Contrato
-    Clase -->|"usa por defecto o recibe inyectado"| Defecto
-    Defecto -.->|"cumple estructuralmente"| Contrato
+    class SubsistemasRegistroPractica {
+        <<interface>>
+        +obtenerSesion
+        +obtenerIdLetra
+        +obtenerSesionReconocimiento
+        +crearSesionReconocimiento
+        +guardarSesionReconocimiento
+        +limpiarSesionReconocimiento
+        +registrarResultadoReconocimiento
+        +registrarProgreso
+    }
 
-    Defecto --> Auth
-    Defecto --> Letras
-    Defecto --> Sesiones
-    Defecto --> Resultados
-    Defecto --> Progreso
+    class FachadaRegistroPractica {
+        -subsistemas: SubsistemasRegistroPractica
+        +registrarIntento(datos: RegistroIntentoPracticaEntrada) Promise
+        +registrarProgreso(idLetra: number, token: string) Promise
+        -limpiarSesionInvalida(idSesion: number) void
+    }
+
+    FachadaRegistroPractica --> SubsistemasRegistroPractica : depende de
+    FachadaRegistroPractica ..> RegistroIntentoPracticaEntrada : recibe
 ```
 
-- **Cliente:** `ResultadoReconocimiento`, que utiliza la fachada.
-- **Fachada:** la clase `FachadaRegistroPractica` y su instancia.
-- **Subsistemas:** las funciones de los servicios existentes. No se crearon clases nuevas para ellos.
-- **Contrato de dependencias:** `SubsistemasRegistroPractica` describe las funciones que necesita la fachada. La clase depende de esa interfaz, pero no la implementa; `subsistemasPorDefecto` es el objeto que cumple su estructura.
+`FachadaRegistroPractica` es la clase del patrón. Sus métodos públicos `registrarIntento` y `registrarProgreso` forman la interfaz simplificada que utiliza el cliente.
+
+`SubsistemasRegistroPractica` **no es una interfaz implementada por la fachada**: describe las funciones de servicio que la fachada necesita como dependencias. `RegistroIntentoPracticaEntrada` define los datos de entrada de `registrarIntento`. Las funciones de los servicios y el objeto `subsistemasPorDefecto` no se dibujan como clases porque no lo son.
 
 La fachada simplifica la coordinación, pero no convierte el guardado del intento y del progreso en una transacción única. El intento puede quedar registrado aunque falle una operación posterior de progreso.
 
 ## Diferencia entre los patrones
 
-Observer desacopla la comunicación de eventos: quien publica un resultado no necesita conocer las reacciones de cada observador. Facade simplifica la coordinación de servicios: el componente de reconocimiento no necesita ejecutar directamente cada paso del registro de práctica.
+Observer desacopla la comunicación de eventos: quien origina un evento no necesita conocer las reacciones de cada observador. Facade simplifica la coordinación de servicios: el cliente utiliza operaciones de la fachada en lugar de ejecutar directamente cada paso del registro de práctica.
