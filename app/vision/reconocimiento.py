@@ -1,3 +1,4 @@
+from app.vision.decoradores_reconocimiento import DecoradorMedicionTiempo
 from app.vision.estrategia_reconocimiento import EstrategiaReconocimiento
 from app.vision.letras_estaticas import reconocer_consonante_estatica
 from app.vision.letras_movimiento import reconocer_letra_movimiento
@@ -83,7 +84,12 @@ def reconocer_mano(
         "movimiento": ReconocimientoMovimiento,
     }
 
-    estrategia = estrategias[modo]()
+    estrategia_original = estrategias[modo]()
+
+    estrategia = DecoradorMedicionTiempo(
+    estrategia_original
+    )
+
     reconocedor = ReconocedorMano(estrategia)
 
     return reconocedor.reconocer(
