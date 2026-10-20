@@ -16,9 +16,6 @@ classDiagram
 
     class ModalidadPractica {
         <<interface>>
-        +tipo TipoModalidad
-        +descripcion string
-        +muestraHistorial boolean
         +titulo(nombreLetra) string
         +idLetraObjetivo(letra) number
         +confirmaReconocimiento(idLetra, letra) boolean
@@ -45,7 +42,6 @@ classDiagram
     class CreadorModalidad {
         <<abstract>>
         #crearModalidad() ModalidadPractica
-        +obtenerModalidad() ModalidadPractica
     }
 
     class CreadorPracticaLibre {
@@ -56,16 +52,14 @@ classDiagram
         #crearModalidad() ModalidadPractica
     }
 
-    class FabricaModalidades {
-        <<module>>
-        -creadores dict
-        +crearModalidad(tipo) ModalidadPractica
-    }
-
     class Practica {
         <<componente>>
         -modalidadPractica TipoModalidad
         -modalidad ModalidadPractica
+        -letraSeleccionada Letra
+        -seleccionarPracticaLibre()
+        -cambiarModalidad()
+        -manejarReconocimientoCorrecto(idLetra)
     }
 
     ModalidadPractica <|.. PracticaLibre
@@ -74,8 +68,5 @@ classDiagram
     CreadorModalidad <|-- CreadorPracticaEspecifica
     CreadorPracticaLibre ..> PracticaLibre : crea
     CreadorPracticaEspecifica ..> PracticaEspecifica : crea
-    CreadorModalidad ..> ModalidadPractica : devuelve
-    FabricaModalidades "1" o-- "2" CreadorModalidad
-    Practica ..> FabricaModalidades : usa
-    Practica --> ModalidadPractica : modalidad
+    Practica ..> CreadorModalidad : usa
 ```
