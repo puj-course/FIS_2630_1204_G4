@@ -3,6 +3,7 @@ from app.vision.letras_estaticas import reconocer_consonante_estatica
 from app.vision.letras_movimiento import reconocer_letra_movimiento
 from app.vision.movimientos import FotogramaMovimiento
 from app.vision.vocales import reconocer_vocal
+from app.vision.decoradores_reconocimiento import DecoradorMedicionTiempo
 
 
 class ReconocimientoEstatico(EstrategiaReconocimiento):
@@ -83,7 +84,12 @@ def reconocer_mano(
         "movimiento": ReconocimientoMovimiento,
     }
 
-    estrategia = estrategias[modo]()
+    estrategia_original = estrategias[modo]()
+
+    estrategia = DecoradorMedicionTiempo(
+    estrategia_original
+    )
+
     reconocedor = ReconocedorMano(estrategia)
 
     return reconocedor.reconocer(
