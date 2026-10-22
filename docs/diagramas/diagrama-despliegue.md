@@ -1,49 +1,62 @@
+# Diagrama de despliegue — SignIA
+
+SignIA se ejecuta localmente mediante `docker compose up --build`. Docker Compose inicia tres contenedores: frontend, backend y PostgreSQL. La aplicación React se descarga desde el frontend, pero **se ejecuta en el navegador del usuario**.
+
 ```mermaid
-flowchart TB
-    subgraph EQUIPO["COMPUTADOR LOCAL"]
-        direction TB
-        NAV("Navegador web")
+flowchart LR
+    Usuario["Usuario"] --> Navegador["Navegador<br/>SPA React en ejecución"]
+    Camara["Cámara web"] -->|"Captura de video local"| Navegador
 
-        subgraph DOCKER["DOCKER COMPOSE · SIGNIA"]
-            direction LR
-            FRONT["«container» frontend
-            Interfaz web
-            5173 → 80"]
-            BACK["«container» backend
-            FastAPI · Python 3.12
-            8000 → 8000"]
-            DB[("«container» postgres
-            PostgreSQL 16 · signia
-            5432 → 5432")]
-            VOL[("«volume» postgres_data
-            Datos persistentes")]
-
-            FRONT -.->|"healthy"| BACK
-            BACK -.->|"healthy"| DB
-            BACK <-->|"SQL · postgres:5432"| DB
-            DB --- VOL
+    subgraph Host["Equipo local — Docker Compose"]
+        subgraph Frontend["frontend · nginx:alpine<br/>5173:80"]
+            Nginx["Nginx<br/>sirve el build de Vite"]
         end
 
-        SQL["Inicialización
-        schema.sql · seed.sql"]
-        NAV <-->|"HTTP · localhost:5173"| FRONT
-        NAV <-->|"API disponible · localhost:8000"| BACK
-        SQL -->|"Primera creación de la BD"| DB
+        subgraph Backend["backend · python:3.12-slim<br/>8000:8000"]
+            API["Uvicorn + FastAPI<br/>app.main:app"]
+            Vision["Módulo de visión<br/>OpenCV + MediaPipe"]
+            API -->|"Procesa reconocimiento"| Vision
+        end
 
+        subgraph BaseDatos["postgres · postgres:16<br/>5432:5432"]
+            PG["PostgreSQL<br/>base de datos signia"]
+        end
+
+        Volumen[("Volumen persistente<br/>postgres_data")]
+        Scripts["schema.sql + seed.sql<br/>scripts de inicialización"]
     end
 
-    classDef browser fill:#F1F5F9,stroke:#64748B,stroke-width:2px,color:#0F172A
-    classDef frontend fill:#EDE9FE,stroke:#8B5CF6,stroke-width:2px,color:#3B0764
-    classDef backend fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#172554
-    classDef database fill:#DCFCE7,stroke:#22C55E,stroke-width:2px,color:#14532D
-    classDef storage fill:#FEF3C7,stroke:#D97706,stroke-width:1.5px,color:#78350F
-    classDef support fill:#F8FAFC,stroke:#CBD5E1,color:#475569
-    class NAV browser
-    class FRONT frontend
-    class BACK backend
-    class DB database
-    class VOL storage
-    class SQL support
-    style EQUIPO fill:#FFFFFF,stroke:#94A3B8,stroke-width:1.5px,color:#334155
-    style DOCKER fill:#F8FAFC,stroke:#94A3B8,stroke-width:1.5px,color:#334155
+    Navegador -->|"HTTP localhost:5173<br/>HTML, CSS y JavaScript"| Nginx
+    Navegador -->|"API REST localhost:8000<br/>URL incorporada al build de Vite"| API
+    API -->|"SQL · postgres:5432<br/>red interna de Compose"| PG
+    PG ---|"Datos persistentes"| Volumen
+    Scripts -.->|"Inicialización de una BD nueva"| PG
 ```
+
+## Servicios
+
+| Servicio | Imagen o build | Puerto host:contenedor | Función |
+|---|---|---|---|
+| `frontend` | `src/front/Dockerfile` · `nginx:alpine` | `5173:80` | Entrega los archivos estáticos generados por Vite. |
+| `backend` | `Dockerfile` de la raíz · `python:3.12-slim` | `8000:8000` | Expone la API FastAPI y ejecuta el reconocimiento. |
+| `postgres` | `postgres:16` | `5432:5432` | Almacena los datos de SignIA. |
+
+## Conexiones y persistencia
+
+- El navegador obtiene la SPA desde `http://localhost:5173`.
+- La SPA realiza las solicitudes REST **desde el navegador** hacia la dirección configurada mediante `VITE_API_URL`, indicada aquí como `http://127.0.0.1:8000`. Nginx no actúa como intermediario de esas solicitudes en este diagrama.
+- El backend accede a PostgreSQL mediante el nombre interno `postgres` y el puerto `5432`. Para esa conexión no necesita utilizar el puerto publicado en el host.
+- La cámara entrega video al navegador. La aplicación puede enviar fotogramas al backend para el reconocimiento.
+- Los datos de PostgreSQL persisten en el volumen nombrado `postgres_data`. Los scripts `database/schema.sql` y `database/seed.sql` inicializan una base nueva según la configuración de Compose.
+
+## Orden de arranque
+
+Si `docker-compose.yml` declara las dependencias con `condition: service_healthy`, el arranque se encadena así:
+
+`postgres` saludable → inicia `backend` → `backend` saludable → inicia `frontend`.
+
+`depends_on` controla el **orden de inicio**; no representa las conexiones HTTP o SQL del diagrama ni garantiza por sí solo que un servicio permanezca disponible.
+
+## Nota de verificación
+
+Este diagrama se elaboró con la configuración proporcionada. Antes de publicarlo como descripción exacta del despliegue, conviene cotejar `docker-compose.yml` y los Dockerfiles, especialmente los `healthcheck`, la instalación de `curl`, la configuración de `VITE_API_URL` durante el build y el montaje de los scripts de inicialización. No publiques credenciales reales de `DATABASE_URL`.
