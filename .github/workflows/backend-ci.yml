@@ -1,38 +1,89 @@
+
 name: Backend CI
 
-on: 
-    push:
-    pull_request:
+on:
+  push:
+  pull_request:
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Descargar el código del repo
-              uses: actions/checkout@v4
+  test:
+    runs-on: ubuntu-latest
 
-            - name: Instalar Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: "3.12"
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: signia_test
+          POSTGRES_USER: signia
+          POSTGRES_PASSWORD: signia_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U signia -d signia_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-            - name: Instalar dependencias del sistema
-              run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libgirepository1.0-dev libgirepository-2.0-dev pkg-config
+    env:
+      DATABASE_URL: postgresql://signia:signia_ci@localhost:5432/signia_test
 
-            - name: Instalar dependencias
-              run: pip install -r requirements.txt
+    steps:
+      - name: Descargar el codigo del repositorio
+        uses: actions/checkout@v4
 
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-            - name: Revisar estilo del codigo con ruff
-              run: ruff check
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            libgirepository-2.0-dev \
+            pkg-config \
+            postgresql-client
 
-            # Se pensó en probar la integración con base de datos, pero se
-            # decide saltar en el CI porque no hay una base de datos
-            # disponible en este entorno. Crearla solo para esta prueba y
-            # destruirla después parece innecesario por ahora.
+      - name: Instalar dependencias de Python
+        run: pip install -r requirements.txt
 
-            - name: Ejecutar pruebas
-              run: pytest --cov=app
+      - name: Revisar estilo del codigo con Ruff
+        run: ruff check
 
+      
+      
+      - name: Preparar base de datos de pruebas
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/schema.sql
 
-        
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/intentos_reconocimiento.sql
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/agregar_resultado_a_intentos.sql
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/seed.sql
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "\d intentos_reconocimiento"
+
+      - name: Crear carpeta de reportes
+        run: mkdir -p reports
+
+      - name: Ejecutar pruebas y generar reportes
+        run: |
+          pytest src/tests \
+            --cov=app \
+            --cov-fail-under=80 \
+            --cov-report=term-missing \
+            --cov-report=xml:reports/cobertura.xml \
+            --cov-report=html:reports/cobertura_html \
+            --junitxml=reports/resultados.xml
+
+      - name: Guardar reportes de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas-backend
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 14
