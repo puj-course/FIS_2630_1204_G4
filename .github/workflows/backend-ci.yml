@@ -40,6 +40,7 @@ jobs:
         run: |
           pytest \
             --cov=app \
+            --cov-fail-under=80 \
             --cov-report=term-missing \
             --cov-report=xml:reports/cobertura.xml \
             --cov-report=html:reports/cobertura_html \
