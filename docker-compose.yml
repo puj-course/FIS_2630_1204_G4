@@ -1,10 +1,11 @@
+
 services:
     postgres:
         image: postgres:16
         environment:
-            POSTGRES_USER: signia
-            POSTGRES_PASSWORD: signia
-            POSTGRES_DB: signia
+            POSTGRES_USER: ${POSTGRES_USER:-signia}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configura_POSTGRES_PASSWORD_en_.env}
+            POSTGRES_DB: ${POSTGRES_DB:-signia}
         ports:
             - "5432:5432"
         volumes:
@@ -12,10 +13,11 @@ services:
             - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
             - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U signia"]
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-signia} -d ${POSTGRES_DB:-signia}"]
             interval: 5s
             timeout: 5s
             retries: 5
+
     backend:
         build:
             context: .
@@ -23,7 +25,7 @@ services:
         env_file:
             - .env
         environment:
-            DATABASE_URL: postgresql://signia:signia@postgres:5432/signia
+            DATABASE_URL: "postgresql://${POSTGRES_USER:-signia}:${POSTGRES_PASSWORD:?Configura_POSTGRES_PASSWORD_en_.env}@postgres:5432/${POSTGRES_DB:-signia}"
         ports:
             - "8000:8000"
         depends_on:
@@ -34,9 +36,9 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-        
+
     frontend:
-        build: 
+        build:
             context: ./src/front
             dockerfile: Dockerfile
         ports:

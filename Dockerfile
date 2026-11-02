@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt requirements-recuperacion.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY app/ ./app/
+COPY conf/ ./conf/
+COPY src/ ./src/
 
 EXPOSE 8000
 
