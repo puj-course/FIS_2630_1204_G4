@@ -1,5 +1,5 @@
 import "./Aprender.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { obtenerSesion } from "./services/autenticacion";
 import {
   obtenerLetras,
@@ -37,6 +37,15 @@ function Aprender({ cambiarPagina }: Props) {
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const dialogoRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialogo = dialogoRef.current;
+    if (!dialogo || !letraSeleccionada || dialogo.open) return;
+
+    dialogo.showModal();
+    dialogo.querySelector<HTMLButtonElement>(".cerrarModal")?.focus();
+  }, [letraSeleccionada]);
 
   const sesion = obtenerSesion();
   const esAdministrador = sesion?.usuario.rol === "administrador";
@@ -393,25 +402,34 @@ function Aprender({ cambiarPagina }: Props) {
         !errorCarga &&
         letrasBackend.length > 0 &&
         letraSeleccionada && (
-          <div className="fondoModal">
+          <dialog
+            ref={dialogoRef}
+            className="fondoModal"
+            aria-label={`Detalle de la letra ${letraSeleccionada.letra}`}
+            onCancel={(evento) => {
+              evento.preventDefault();
+              cerrarModal();
+            }}
+            style={{
+              margin: 0,
+              width: "100vw",
+              height: "100vh",
+              maxWidth: "none",
+              maxHeight: "none",
+              boxSizing: "border-box",
+              padding: 0,
+              border: 0,
+            }}
+          >
             <button
               type="button"
+              className="fondoModalCerrar"
               onClick={cerrarModal}
               aria-label="Cerrar detalle de la letra"
-              style={{
-                position: "absolute",
-                inset: 0,
-                padding: 0,
-                border: 0,
-                background: "transparent",
-                cursor: "default",
-              }}
+              tabIndex={-1}
             />
             <div
               className="contenidoModal"
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Detalle de la letra ${letraSeleccionada.letra}`}
               style={{ position: "relative", zIndex: 1 }}
             >
               <button
@@ -542,7 +560,7 @@ function Aprender({ cambiarPagina }: Props) {
                 ›
               </button>
             </div>
-          </div>
+          </dialog>
         )}
     </div>
   );

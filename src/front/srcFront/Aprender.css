@@ -629,9 +629,6 @@ button.vistaPreviaLetra {
   cursor: pointer;
 }
 
-.fondoModal {
-  position: fixed;
-}
 
 .fondoModalCerrar {
   position: absolute;
@@ -644,10 +641,6 @@ button.vistaPreviaLetra {
   z-index: 0;
 }
 
-.contenidoModal {
-  position: relative;
-  z-index: 1;
-}
 
 .vistaPreviaLetra:focus-visible,
 .fondoModalCerrar:focus-visible {
