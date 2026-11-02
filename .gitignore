@@ -7,3 +7,4 @@ dist/
 *.pyc
 .coverage
 .DS_Store
+/reports/
