@@ -1,0 +1,30 @@
+
+name: Docker Check
+
+on:
+  push:
+    branches:
+      - fix/sonar-seguridad
+
+jobs:
+  docker-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar entorno de prueba
+        run: |
+          touch .env
+          echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)" >> .env
+
+      - name: Validar Docker Compose
+        run: docker compose config --quiet
+
+      - name: Construir imagen del backend
+        run: docker compose build backend
+
+      - name: Limpiar archivo temporal
+        if: always()
+        run: rm -f .env
