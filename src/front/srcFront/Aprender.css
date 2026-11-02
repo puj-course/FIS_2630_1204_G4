@@ -622,3 +622,35 @@
   outline:none;
   border-color:rgba(96,165,250,0.55);
 }
+
+button.vistaPreviaLetra {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.fondoModal {
+  position: fixed;
+}
+
+.fondoModalCerrar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  z-index: 0;
+}
+
+.contenidoModal {
+  position: relative;
+  z-index: 1;
+}
+
+.vistaPreviaLetra:focus-visible,
+.fondoModalCerrar:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

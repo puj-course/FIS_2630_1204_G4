@@ -324,9 +324,21 @@ function Aprender({ cambiarPagina }: Props) {
                     </span>
                   </div>
 
-                  <div
+                  <button
+                    type="button"
                     className="vistaPreviaLetra"
                     onClick={() => seleccionarLetra(letra)}
+                    aria-label={`Ver detalle de la letra ${letra.letra}`}
+                    style={{
+                      appearance: "none",
+                      background: "transparent",
+                      border: 0,
+                      padding: 0,
+                      color: "inherit",
+                      font: "inherit",
+                      textAlign: "inherit",
+                      cursor: "pointer",
+                    }}
                   >
                     {letra.ruta_imagen ? (
                       <img
@@ -338,7 +350,7 @@ function Aprender({ cambiarPagina }: Props) {
                         {letra.letra}
                       </span>
                     )}
-                  </div>
+                  </button>
 
                   <div className="contenidoTarjetaLetra">
                     <h3>Letra {letra.letra}</h3>
@@ -381,10 +393,26 @@ function Aprender({ cambiarPagina }: Props) {
         !errorCarga &&
         letrasBackend.length > 0 &&
         letraSeleccionada && (
-          <div className="fondoModal" onClick={cerrarModal}>
+          <div className="fondoModal">
+            <button
+              type="button"
+              onClick={cerrarModal}
+              aria-label="Cerrar detalle de la letra"
+              style={{
+                position: "absolute",
+                inset: 0,
+                padding: 0,
+                border: 0,
+                background: "transparent",
+                cursor: "default",
+              }}
+            />
             <div
               className="contenidoModal"
-              onClick={(evento) => evento.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Detalle de la letra ${letraSeleccionada.letra}`}
+              style={{ position: "relative", zIndex: 1 }}
             >
               <button
                 type="button"
