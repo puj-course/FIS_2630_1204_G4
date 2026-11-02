@@ -53,23 +53,18 @@ jobs:
         run: ruff check
 
       
+      
       - name: Preparar base de datos de pruebas
         run: |
-          # Crear las tablas principales.
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/schema.sql
 
-          # Crear la tabla de intentos.
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/intentos_reconocimiento.sql
 
-          # Relacionar los intentos con los resultados.
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/agregar_resultado_a_intentos.sql
 
-          # Cargar los datos de prueba.
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/seed.sql
 
-          # Comprobar que la tabla existe.
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "\d intentos_reconocimiento"
-
 
       - name: Crear carpeta de reportes
         run: mkdir -p reports
