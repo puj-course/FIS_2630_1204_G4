@@ -1,25 +1,80 @@
-name: Build
+
+name: SonarQube
+
 on:
   push:
     branches:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   sonarqube:
-    name: SonarQube
+    name: Analisis de calidad
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: signia_test
+          POSTGRES_USER: signia
+          POSTGRES_PASSWORD: signia_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U signia -d signia_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://signia:signia_ci@localhost:5432/signia_test
+
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Descargar codigo
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Cache SonarQube packages
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
+          python-version: "3.12"
+
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            libgirepository-2.0-dev \
+            pkg-config \
+            postgresql-client
+
+      - name: Instalar dependencias de Python
+        run: pip install -r requirements.txt
+
+      - name: Preparar base de datos de pruebas
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/schema.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/intentos_reconocimiento.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/agregar_resultado_a_intentos.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/seed.sql
+
+      - name: Generar reporte de cobertura
+        run: |
+          mkdir -p reports
+          python -m pytest src/tests \
+            --cov=app \
+            --cov-fail-under=80 \
+            --cov-report=xml:reports/cobertura.xml \
+            --cov-report=term
+
+      - name: Comprobar reporte
+        run: test -s reports/cobertura.xml
+
+      - name: Analizar codigo con SonarQube
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
