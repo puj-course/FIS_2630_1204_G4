@@ -37,6 +37,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      # CONFIGURACION DEL BACKEND
+
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
@@ -62,7 +64,7 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/agregar_resultado_a_intentos.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/seed.sql
 
-      - name: Generar reporte de cobertura
+      - name: Generar reporte de cobertura Python
         run: |
           mkdir -p reports
           python -m pytest src/tests \
@@ -71,8 +73,36 @@ jobs:
             --cov-report=xml:reports/cobertura.xml \
             --cov-report=term
 
-      - name: Comprobar reporte
+      - name: Comprobar reporte Python
         run: test -s reports/cobertura.xml
+
+      # CONFIGURACION DEL FRONTEND
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: src/front/package-lock.json
+
+      - name: Instalar dependencias del frontend
+        working-directory: src/front
+        run: npm ci
+
+      - name: Ejecutar pruebas React con cobertura
+        working-directory: src/front
+        run: npm run test:coverage
+
+      - name: Comprobar reporte de cobertura React
+        run: test -s src/front/coverage/lcov.info
+
+      - name: Verificar calidad del frontend
+        working-directory: src/front
+        run: |
+          npm run lint
+          npm run build
+
+      # ANALISIS FINAL DE SONARQUBE
 
       - name: Analizar codigo con SonarQube
         uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304
