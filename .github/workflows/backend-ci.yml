@@ -1,38 +1,55 @@
+
 name: Backend CI
 
-on: 
-    push:
-    pull_request:
+on:
+  push:
+  pull_request:
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Descargar el código del repo
-              uses: actions/checkout@v4
+  test:
+    runs-on: ubuntu-latest
 
-            - name: Instalar Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: "3.12"
+    steps:
+      - name: Descargar el codigo del repositorio
+        uses: actions/checkout@v4
 
-            - name: Instalar dependencias del sistema
-              run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libgirepository1.0-dev libgirepository-2.0-dev pkg-config
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-            - name: Instalar dependencias
-              run: pip install -r requirements.txt
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libgirepository1.0-dev \
+            libgirepository-2.0-dev \
+            pkg-config
 
+      - name: Instalar dependencias de Python
+        run: pip install -r requirements.txt
 
-            - name: Revisar estilo del codigo con ruff
-              run: ruff check
+      - name: Revisar estilo del codigo con Ruff
+        run: ruff check
 
-            # Se pensó en probar la integración con base de datos, pero se
-            # decide saltar en el CI porque no hay una base de datos
-            # disponible en este entorno. Crearla solo para esta prueba y
-            # destruirla después parece innecesario por ahora.
+      - name: Crear carpeta de reportes
+        run: mkdir -p reports
 
-            - name: Ejecutar pruebas
-              run: pytest --cov=app
+      - name: Ejecutar pruebas y generar reportes
+        run: |
+          pytest \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:reports/cobertura.xml \
+            --cov-report=html:reports/cobertura_html \
+            --junitxml=reports/resultados.xml
 
-
-        
+      - name: Guardar reportes de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas-backend
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 14
