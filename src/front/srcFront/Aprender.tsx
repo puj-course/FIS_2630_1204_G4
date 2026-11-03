@@ -246,8 +246,8 @@ function Aprender({ cambiarPagina }: Props) {
       </div>
 
       {cargando && (
-        <div className="estadoAprender" role="status">
-          <p>Cargando alfabeto...</p>
+        <div className="estadoAprender">
+          <p><output>Cargando alfabeto...</output></p>
         </div>
       )}
 
@@ -264,8 +264,8 @@ function Aprender({ cambiarPagina }: Props) {
       )}
 
       {!cargando && !errorCarga && letrasBackend.length === 0 && (
-        <div className="mensajeSinLetras" role="status">
-          <h2>No hay letras disponibles por el momento</h2>
+        <div className="mensajeSinLetras">
+          <h2><output>No hay letras disponibles por el momento</output></h2>
           <p>
             Cuando se agreguen letras al alfabeto, aparecerán en esta sección.
           </p>
@@ -292,9 +292,8 @@ function Aprender({ cambiarPagina }: Props) {
           {letrasFiltradas.length === 0 && (
             <div
               className="mensajeSinLetras mensajeSinResultados"
-              role="status"
             >
-              <h2>No se encontró ninguna letra</h2>
+              <h2><output>No se encontró ninguna letra</output></h2>
               <p>
                 {`No hay letras que coincidan con “${busqueda.trim()}”. `}
                 Borra la búsqueda para ver todo el alfabeto.

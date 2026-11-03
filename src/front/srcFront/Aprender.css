@@ -89,7 +89,6 @@
   border-radius:13px;
   background:linear-gradient(145deg,#182130,#111827);
   box-shadow:0 10px 25px rgba(0,0,0,0.18);
-  transition:transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;
 }
 .tarjetaLetra:hover {
   transform:translateY(-5px);
@@ -176,7 +175,6 @@
   font-size:12px;
   font-weight:600;
   cursor:pointer;
-  transition:background 0.2s ease,color 0.2s ease,border-color 0.2s ease,transform 0.2s ease;
 }
 .botonGuia {
   border:1px solid var(--borde);
@@ -313,7 +311,6 @@
   border-radius:18px;
   background:linear-gradient(145deg,var(--tarjeta-clara),var(--tarjeta));
   box-shadow:0 25px 70px rgba(0,0,0,0.55);
-  animation:aparecerModal 0.2s ease;
 }
 .modalLetra h2 {
   margin-bottom:5px;
@@ -336,7 +333,6 @@
   font-size:34px;
   line-height:1;
   cursor:pointer;
-  transition:color 0.2s ease,transform 0.2s ease;
 }
 .cerrarModal:hover {
   background:transparent;
@@ -389,7 +385,6 @@
   font-size:13px;
   font-weight:600;
   cursor:pointer;
-  transition:transform 0.2s ease,opacity 0.2s ease,box-shadow 0.2s ease;
 }
 .botonPracticar:hover {
   transform:translateY(-2px);
@@ -405,7 +400,6 @@
   font-size:13px;
   font-weight:600;
   cursor:pointer;
-  transition:transform 0.2s ease,opacity 0.2s ease;
 }
 .botonEditar:hover {
   transform:translateY(-2px);
@@ -448,7 +442,6 @@
   font-size:14px;
   font-weight:600;
   cursor:pointer;
-  transition:transform 0.2s ease,opacity 0.2s ease;
 }
 .accionesEdicion button:hover {
   transform:translateY(-2px);
@@ -460,7 +453,7 @@
   transform:none;
 }
 .botonCancelar {
-  background:#334155 !important;
+  background:#334155;
 }
 .mensaje-error {
   margin-top:12px;
@@ -646,4 +639,29 @@ button.vistaPreviaLetra {
 .fondoModalCerrar:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
+}
+/* Animaciones solo si el usuario no ha pedido reducir el movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  .tarjetaLetra {
+    transition: transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;
+  }
+  .botonGuia,
+.botonPracticarTarjeta {
+    transition: background 0.2s ease,color 0.2s ease,border-color 0.2s ease,transform 0.2s ease;
+  }
+  .modalLetra {
+    animation: aparecerModal 0.2s ease;
+  }
+  .cerrarModal {
+    transition: color 0.2s ease,transform 0.2s ease;
+  }
+  .botonPracticar {
+    transition: transform 0.2s ease,opacity 0.2s ease,box-shadow 0.2s ease;
+  }
+  .botonEditar {
+    transition: transform 0.2s ease,opacity 0.2s ease;
+  }
+  .accionesEdicion button {
+    transition: transform 0.2s ease,opacity 0.2s ease;
+  }
 }
