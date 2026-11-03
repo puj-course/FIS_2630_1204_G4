@@ -1,5 +1,5 @@
 import "./Aprender.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { obtenerSesion } from "./services/autenticacion";
 import {
   obtenerLetras,
@@ -37,6 +37,15 @@ function Aprender({ cambiarPagina }: Props) {
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const dialogoRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialogo = dialogoRef.current;
+    if (!dialogo || !letraSeleccionada || dialogo.open) return;
+
+    dialogo.showModal();
+    dialogo.querySelector<HTMLButtonElement>(".cerrarModal")?.focus();
+  }, [letraSeleccionada]);
 
   const sesion = obtenerSesion();
   const esAdministrador = sesion?.usuario.rol === "administrador";
@@ -237,8 +246,8 @@ function Aprender({ cambiarPagina }: Props) {
       </div>
 
       {cargando && (
-        <div className="estadoAprender" role="status">
-          <p>Cargando alfabeto...</p>
+        <div className="estadoAprender">
+          <p><output>Cargando alfabeto...</output></p>
         </div>
       )}
 
@@ -255,8 +264,8 @@ function Aprender({ cambiarPagina }: Props) {
       )}
 
       {!cargando && !errorCarga && letrasBackend.length === 0 && (
-        <div className="mensajeSinLetras" role="status">
-          <h2>No hay letras disponibles por el momento</h2>
+        <div className="mensajeSinLetras">
+          <h2><output>No hay letras disponibles por el momento</output></h2>
           <p>
             Cuando se agreguen letras al alfabeto, aparecerán en esta sección.
           </p>
@@ -283,9 +292,8 @@ function Aprender({ cambiarPagina }: Props) {
           {letrasFiltradas.length === 0 && (
             <div
               className="mensajeSinLetras mensajeSinResultados"
-              role="status"
             >
-              <h2>No se encontró ninguna letra</h2>
+              <h2><output>No se encontró ninguna letra</output></h2>
               <p>
                 {`No hay letras que coincidan con “${busqueda.trim()}”. `}
                 Borra la búsqueda para ver todo el alfabeto.
@@ -324,9 +332,21 @@ function Aprender({ cambiarPagina }: Props) {
                     </span>
                   </div>
 
-                  <div
+                  <button
+                    type="button"
                     className="vistaPreviaLetra"
                     onClick={() => seleccionarLetra(letra)}
+                    aria-label={`Ver detalle de la letra ${letra.letra}`}
+                    style={{
+                      appearance: "none",
+                      background: "transparent",
+                      border: 0,
+                      padding: 0,
+                      color: "inherit",
+                      font: "inherit",
+                      textAlign: "inherit",
+                      cursor: "pointer",
+                    }}
                   >
                     {letra.ruta_imagen ? (
                       <img
@@ -338,7 +358,7 @@ function Aprender({ cambiarPagina }: Props) {
                         {letra.letra}
                       </span>
                     )}
-                  </div>
+                  </button>
 
                   <div className="contenidoTarjetaLetra">
                     <h3>Letra {letra.letra}</h3>
@@ -381,10 +401,35 @@ function Aprender({ cambiarPagina }: Props) {
         !errorCarga &&
         letrasBackend.length > 0 &&
         letraSeleccionada && (
-          <div className="fondoModal" onClick={cerrarModal}>
+          <dialog
+            ref={dialogoRef}
+            className="fondoModal"
+            aria-label={`Detalle de la letra ${letraSeleccionada.letra}`}
+            onCancel={(evento) => {
+              evento.preventDefault();
+              cerrarModal();
+            }}
+            style={{
+              margin: 0,
+              width: "100vw",
+              height: "100vh",
+              maxWidth: "none",
+              maxHeight: "none",
+              boxSizing: "border-box",
+              padding: 0,
+              border: 0,
+            }}
+          >
+            <button
+              type="button"
+              className="fondoModalCerrar"
+              onClick={cerrarModal}
+              aria-label="Cerrar detalle de la letra"
+              tabIndex={-1}
+            />
             <div
               className="contenidoModal"
-              onClick={(evento) => evento.stopPropagation()}
+              style={{ position: "relative", zIndex: 1 }}
             >
               <button
                 type="button"
@@ -514,7 +559,7 @@ function Aprender({ cambiarPagina }: Props) {
                 ›
               </button>
             </div>
-          </div>
+          </dialog>
         )}
     </div>
   );
