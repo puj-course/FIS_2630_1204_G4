@@ -1,5 +1,12 @@
 # Componentes del backend — Sistema central SignIA
 
+# Componentes del backend — Sistema central SignIA
+
+## Diagrama
+
+<img width="1678" height="602" alt="image" src="https://github.com/user-attachments/assets/443248d1-3dea-46bb-83f7-948193628567" />
+
+
 ## Componentes
 
 | Componente | Módulos en el código |
