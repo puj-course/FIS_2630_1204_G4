@@ -123,7 +123,6 @@ def obtener_configuracion_correo() -> ConfiguracionCorreo:
             "La configuración de correo no es válida"
         ) from error
 
-    # La validación de la URL se delega a una función auxiliar.
     validar_url_recuperacion(partes, url, puerto_url)
 
     return ConfiguracionCorreo(
@@ -246,6 +245,13 @@ def enviar_correo_recuperacion(
             f"\x01auth=Bearer {token_microsoft}\x01\x01"
         )
 
+    # Contexto TLS con validación explícita del certificado del servidor.
+    contexto_tls = ssl.create_default_context(
+        purpose=ssl.Purpose.SERVER_AUTH
+    )
+    contexto_tls.verify_mode = ssl.CERT_REQUIRED
+    contexto_tls.check_hostname = True
+
     with smtplib.SMTP(
         configuracion.host,
         configuracion.puerto,
@@ -254,9 +260,7 @@ def enviar_correo_recuperacion(
 
         servidor.ehlo()
 
-        servidor.starttls(
-            context=ssl.create_default_context()
-        )
+        servidor.starttls(context=contexto_tls)
 
         servidor.ehlo()
 
