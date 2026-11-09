@@ -7,3 +7,5 @@ dist/
 *.pyc
 .coverage
 .DS_Store
+/reports/
+src/front/coverage/
