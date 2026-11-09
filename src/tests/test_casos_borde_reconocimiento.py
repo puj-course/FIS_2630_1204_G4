@@ -1,13 +1,9 @@
-
 import unittest
-from unittest.mock import patch
 from types import SimpleNamespace
-from app.vision.decoradores_reconocimiento import (
-    DecoradorMedicionTiempo,
-)
+from unittest.mock import patch
 
 from app.vision import letras_estaticas as letras
-
+from app.vision.decoradores_reconocimiento import DecoradorMedicionTiempo
 from app.vision.reconocimiento import (
     ReconocimientoEstatico,
     reconocer_mano,
