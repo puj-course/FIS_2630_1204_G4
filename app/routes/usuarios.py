@@ -24,6 +24,8 @@ from src.schemas.usuario import (
     UsuarioRegistroRespuesta,
 )
 
+MENSAJE_USUARIO_NO_EXISTE = "El usuario no existe"
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
@@ -111,7 +113,7 @@ def actualizar_rol(
     if usuario is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="El usuario no existe"
+            detail=MENSAJE_USUARIO_NO_EXISTE
         )
 
     return usuario
@@ -134,7 +136,7 @@ def desactivar(
     if usuario is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="El usuario no existe"
+            detail=MENSAJE_USUARIO_NO_EXISTE
         )
 
     return usuario
@@ -158,7 +160,7 @@ def reactivar(
     if usuario is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="El usuario no existe"
+            detail=MENSAJE_USUARIO_NO_EXISTE
         )
 
     return usuario
