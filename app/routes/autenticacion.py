@@ -18,7 +18,11 @@ from app.security import (
 )
 from app.services.autenticacion_service import CuentaBloqueadaError, autenticar_usuario
 from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario
-from src.schemas.autenticacion import CredencialesLogin, TokenRespuesta, UsuarioAutenticadoRespuesta
+from src.schemas.autenticacion import (
+    CredencialesLogin,
+    TokenRespuesta,
+    UsuarioAutenticadoRespuesta,
+)
 from src.schemas.usuario import UsuarioAutoRegistro, UsuarioRegistroRespuesta
 
 logger = logging.getLogger(__name__)
@@ -29,7 +33,24 @@ router = APIRouter(
 )
 
 
-@router.post("/login", response_model=TokenRespuesta)
+@router.post(
+    "/login",
+    response_model=TokenRespuesta,
+    responses={
+        401: {
+            "description": "Correo o contraseña incorrectos"
+        },
+        423: {
+            "description": "Cuenta bloqueada temporalmente por intentos fallidos"
+        },
+        429: {
+            "description": "Se ha superado el límite de solicitudes permitidas"
+        },
+        500: {
+            "description": "No fue posible iniciar sesión"
+        },
+    },
+)
 @limiter.limit("5/minute")
 def iniciar_sesion(request: Request, credenciales: CredencialesLogin):
     try:
@@ -37,6 +58,7 @@ def iniciar_sesion(request: Request, credenciales: CredencialesLogin):
             credenciales.correo,
             credenciales.contrasena
         )
+
     except CuentaBloqueadaError as error:
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -82,17 +104,31 @@ def iniciar_sesion(request: Request, credenciales: CredencialesLogin):
 
 @router.get(
     "/me",
-    response_model=UsuarioAutenticadoRespuesta
+    response_model=UsuarioAutenticadoRespuesta,
+    responses={
+        401: {
+            "description": "Credenciales ausentes, inválidas o expiradas"
+        },
+    },
 )
 def consultar_usuario_actual(
     usuario=Depends(obtener_usuario_actual)
 ):
     return usuario
 
+
 @router.post(
     "/registro",
     response_model=UsuarioRegistroRespuesta,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        409: {
+            "description": "El correo ya se encuentra registrado"
+        },
+        500: {
+            "description": "No fue posible registrar el usuario"
+        },
+    },
 )
 def autorregistrar_usuario(datos: UsuarioAutoRegistro):
     try:
@@ -124,7 +160,16 @@ def autorregistrar_usuario(datos: UsuarioAutoRegistro):
         "usuario": usuario
     }
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        401: {
+            "description": "Credenciales ausentes, inválidas o expiradas"
+        },
+    },
+)
 def cerrar_sesion(
     credenciales: HTTPAuthorizationCredentials = Depends(seguridad_bearer),
     _usuario: dict = Depends(obtener_usuario_actual)
@@ -140,6 +185,7 @@ def cerrar_sesion(
     )
 
     revocar_token(contenido["jti"], fecha_expiracion)
+
 
 router.include_router(router_recuperacion)
 router.include_router(router_restablecimiento)

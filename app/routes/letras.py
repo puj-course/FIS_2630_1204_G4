@@ -8,14 +8,26 @@ from app.services.letras_service import (
     obtener_letra_por_id,
     obtener_letras_registradas,
 )
-from src.schemas.letra import LetraActualizacion, LetraActualizacionRespuesta, LetraRespuesta
+from src.schemas.letra import (
+    LetraActualizacion,
+    LetraActualizacionRespuesta,
+    LetraRespuesta,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Letras"])
 
 
-@router.get("/letras", response_model=list[LetraRespuesta])
+@router.get(
+    "/letras",
+    response_model=list[LetraRespuesta],
+    responses={
+        500: {
+            "description": "No fue posible consultar las letras"
+        },
+    },
+)
 def consultar_letras():
     try:
         return obtener_letras_registradas()
@@ -31,7 +43,18 @@ def consultar_letras():
         ) from error
 
 
-@router.get("/letras/{id_letra}", response_model=LetraRespuesta)
+@router.get(
+    "/letras/{id_letra}",
+    response_model=LetraRespuesta,
+    responses={
+        404: {
+            "description": "La letra solicitada no existe"
+        },
+        500: {
+            "description": "No fue posible consultar la letra"
+        },
+    },
+)
 def consultar_letra(id_letra: int):
     try:
         letra = obtener_letra_por_id(id_letra)
@@ -54,9 +77,27 @@ def consultar_letra(id_letra: int):
 
     return letra
 
+
 @router.patch(
     "/letras/{id_letra}",
-    response_model=LetraActualizacionRespuesta
+    response_model=LetraActualizacionRespuesta,
+    responses={
+        400: {
+            "description": "Debe enviar al menos un campo para actualizar"
+        },
+        401: {
+            "description": "Credenciales ausentes o inválidas"
+        },
+        403: {
+            "description": "El usuario no tiene permisos de administrador"
+        },
+        404: {
+            "description": "La letra solicitada no existe"
+        },
+        500: {
+            "description": "No fue posible actualizar la letra"
+        },
+    },
 )
 def actualizar_letra(
     id_letra: int,
