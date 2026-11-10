@@ -16,7 +16,7 @@ jobs:
   docker-check:
     name: Validar Docker y contenedores
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Descargar repositorio
@@ -28,16 +28,33 @@ jobs:
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Preparar variables de prueba
+      - name: Crear archivo de entorno temporal para CI
+        shell: bash
         run: |
+          set -euo pipefail
+
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
+
           DB_PASSWORD="$(openssl rand -hex 24)"
+          APP_SECRET="$(openssl rand -hex 32)"
 
-          echo "POSTGRES_USER=signia_ci" >> "$GITHUB_ENV"
-          echo "POSTGRES_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
-          echo "POSTGRES_DB=signia" >> "$GITHUB_ENV"
-          echo "DATABASE_URL=postgresql://signia_ci:${DB_PASSWORD}@postgres:5432/signia" >> "$GITHUB_ENV"
+          {
+            printf '\n'
+            printf 'POSTGRES_USER=signia_ci\n'
+            printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASSWORD"
+            printf 'POSTGRES_DB=signia\n'
+            printf 'DATABASE_URL=postgresql://signia_ci:%s@postgres:5432/signia\n' "$DB_PASSWORD"
+            printf 'SECRET_KEY=%s\n' "$APP_SECRET"
+            printf 'JWT_SECRET_KEY=%s\n' "$APP_SECRET"
+          } >> .env
 
-      - name: Validar Docker Compose
+          chmod 600 .env
+
+      - name: Validar configuración de Docker Compose
         run: docker compose config --quiet
 
       - name: Construir imagen del backend
@@ -49,28 +66,26 @@ jobs:
       - name: Iniciar contenedores
         run: docker compose up -d --no-build
 
-      - name: Verificar estado de contenedores
+      - name: Verificar estado de los contenedores
         run: docker compose ps
 
-      - name: Comprobar API FastAPI
+      - name: Verificar respuesta del backend
         run: |
           curl --fail --silent --show-error \
-            --retry 15 \
-            --retry-delay 3 \
-            --retry-connrefused \
+            --retry 30 --retry-delay 3 --retry-connrefused \
             http://localhost:8000/health
 
-      - name: Comprobar frontend
+      - name: Verificar respuesta del frontend
         run: |
           curl --fail --silent --show-error \
-            --retry 15 \
-            --retry-delay 3 \
-            --retry-connrefused \
+            --retry 30 --retry-delay 3 --retry-connrefused \
             http://localhost:5173/ > /dev/null
 
-      - name: Mostrar logs y finalizar
+      - name: Mostrar registros y limpiar contenedores
         if: always()
         run: |
-          docker compose ps || true
-          docker compose logs --tail=100 || true
-          docker compose down --remove-orphans || true
+          if [ -f .env ]; then
+            docker compose ps || true
+            docker compose logs --tail=100 || true
+            docker compose down --remove-orphans || true
+          fi
