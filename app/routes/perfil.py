@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -16,7 +17,7 @@ router = APIRouter(
 
 @router.get("", response_model=PerfilRespuesta)
 def consultar_perfil(
-    usuario_actual: dict = Depends(obtener_usuario_actual)
+    usuario_actual: Annotated[dict, Depends(obtener_usuario_actual)],
 ):
     try:
         progreso = obtener_progreso_usuario(

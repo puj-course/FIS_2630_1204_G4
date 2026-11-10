@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.security import obtener_usuario_actual, requerir_administrador
+from app.services import usuarios_service as servicio_usuarios
 from app.services.progreso_service import UsuarioNoEncontradoError
 from app.services.usuarios_service import CorreoYaRegistradoError
 
@@ -527,6 +528,251 @@ class TestRegistroUsuarios(unittest.TestCase):
         respuesta = self.cliente.get("/usuarios/5/progreso")
 
         self.assertEqual(respuesta.status_code, 403)
-        
+
+class TestServicioUsuariosCobertura(unittest.TestCase):
+    """Pruebas unitarias de las operaciones del servicio de usuarios."""
+
+    def setUp(self):
+        # Simula la conexión a PostgreSQL.
+        parche_conexion = patch(
+            "app.services.usuarios_service.obtener_conexion"
+        )
+
+        self.obtener_conexion = parche_conexion.start()
+        self.addCleanup(parche_conexion.stop)
+
+        self.conexion = (
+            self.obtener_conexion.return_value
+            .__enter__.return_value
+        )
+
+        self.cursor = (
+            self.conexion.cursor.return_value
+            .__enter__.return_value
+        )
+
+    def test_crear_usuario_correctamente(self):
+        # Arrange
+        usuario_esperado = {
+            "id_usuario": 7,
+            "nombre": "Ana",
+            "correo": "ana@example.com",
+            "rol": "usuario",
+        }
+
+        self.cursor.fetchone.return_value = usuario_esperado
+
+        with patch(
+            "app.services.usuarios_service.generar_hash_contrasena",
+            return_value="hash-simulado",
+        ) as generar_hash:
+
+            # Act
+            resultado = servicio_usuarios.crear_usuario(
+                nombre=" Ana ",
+                correo=" ANA@EXAMPLE.COM ",
+                contrasena="Contrasena123",
+                rol="usuario",
+            )
+
+        # Assert
+        self.assertEqual(resultado, usuario_esperado)
+
+        generar_hash.assert_called_once_with(
+            "Contrasena123"
+        )
+
+        self.cursor.execute.assert_called_once()
+
+        consulta, parametros = self.cursor.execute.call_args.args
+
+        self.assertIn("INSERT INTO usuarios", consulta)
+
+        self.assertEqual(
+            parametros,
+            (
+                "Ana",
+                "ana@example.com",
+                "hash-simulado",
+                "usuario",
+            ),
+        )
+
+    def test_crear_usuario_rechaza_correo_duplicado(self):
+        # Arrange
+        from psycopg.errors import UniqueViolation
+
+        self.cursor.execute.side_effect = UniqueViolation(
+            "Correo duplicado"
+        )
+
+        with patch(
+            "app.services.usuarios_service.generar_hash_contrasena",
+            return_value="hash-simulado",
+        ):
+            # Act / Assert
+            with self.assertRaises(
+                servicio_usuarios.CorreoYaRegistradoError
+            ):
+                servicio_usuarios.crear_usuario(
+                    "Ana",
+                    "ana@example.com",
+                    "Contrasena123",
+                    "usuario",
+                )
+
+    def test_listar_usuarios_sin_filtro(self):
+        # Arrange
+        usuarios_esperados = [
+            {
+                "id_usuario": 1,
+                "nombre": "Ana",
+                "correo": "ana@example.com",
+            },
+            {
+                "id_usuario": 2,
+                "nombre": "Pedro",
+                "correo": "pedro@example.com",
+            },
+        ]
+
+        self.cursor.fetchall.return_value = usuarios_esperados
+
+        # Act
+        resultado = servicio_usuarios.listar_usuarios()
+
+        # Assert
+        self.assertEqual(resultado, usuarios_esperados)
+
+        self.cursor.execute.assert_called_once()
+
+        consulta = self.cursor.execute.call_args.args[0]
+
+        self.assertIn("SELECT", consulta)
+        self.assertIn("FROM usuarios", consulta)
+        self.assertIn("ORDER BY nombre", consulta)
+        self.assertNotIn("ILIKE", consulta)
+
+    def test_listar_usuarios_con_filtro(self):
+        # Arrange
+        usuarios_esperados = [
+            {
+                "id_usuario": 1,
+                "nombre": "Ana",
+                "correo": "ana@example.com",
+            }
+        ]
+
+        self.cursor.fetchall.return_value = usuarios_esperados
+
+        # Act
+        resultado = servicio_usuarios.listar_usuarios(
+            buscar="ana"
+        )
+
+        # Assert
+        self.assertEqual(resultado, usuarios_esperados)
+
+        self.cursor.execute.assert_called_once()
+
+        consulta, parametros = self.cursor.execute.call_args.args
+
+        self.assertIn("ILIKE", consulta)
+
+        self.assertEqual(
+            parametros,
+            ("%ana%", "%ana%"),
+        )
+
+    def test_cambiar_rol_usuario(self):
+        # Arrange
+        usuario_esperado = {
+            "id_usuario": 7,
+            "nombre": "Ana",
+            "correo": "ana@example.com",
+            "rol": "administrador",
+        }
+
+        self.cursor.fetchone.return_value = usuario_esperado
+
+        # Act
+        resultado = servicio_usuarios.cambiar_rol(
+            id_usuario=7,
+            nuevo_rol="administrador",
+        )
+
+        # Assert
+        self.assertEqual(resultado, usuario_esperado)
+
+        self.cursor.execute.assert_called_once()
+
+        consulta, parametros = self.cursor.execute.call_args.args
+
+        self.assertIn("UPDATE usuarios", consulta)
+        self.assertIn("SET rol = %s", consulta)
+
+        self.assertEqual(
+            parametros,
+            ("administrador", 7),
+        )
+
+    def test_desactivar_usuario(self):
+        # Arrange
+        usuario_esperado = {
+            "id_usuario": 7,
+            "nombre": "Ana",
+            "correo": "ana@example.com",
+            "rol": "usuario",
+            "activo": False,
+        }
+
+        self.cursor.fetchone.return_value = usuario_esperado
+
+        # Act
+        resultado = servicio_usuarios.desactivar_usuario(
+            id_usuario=7
+        )
+
+        # Assert
+        self.assertEqual(resultado, usuario_esperado)
+
+        self.cursor.execute.assert_called_once()
+
+        consulta, parametros = self.cursor.execute.call_args.args
+
+        self.assertIn("UPDATE usuarios", consulta)
+        self.assertIn("SET activo = FALSE", consulta)
+
+        self.assertEqual(parametros, (7,))
+
+    def test_reactivar_usuario(self):
+        # Arrange
+        usuario_esperado = {
+            "id_usuario": 7,
+            "nombre": "Ana",
+            "correo": "ana@example.com",
+            "rol": "usuario",
+            "activo": True,
+        }
+
+        self.cursor.fetchone.return_value = usuario_esperado
+
+        # Act
+        resultado = servicio_usuarios.reactivar_usuario(
+            id_usuario=7
+        )
+
+        # Assert
+        self.assertEqual(resultado, usuario_esperado)
+
+        self.cursor.execute.assert_called_once()
+
+        consulta, parametros = self.cursor.execute.call_args.args
+
+        self.assertIn("UPDATE usuarios", consulta)
+        self.assertIn("SET activo = TRUE", consulta)
+
+        self.assertEqual(parametros, (7,))
+
 if __name__ == "__main__":
     unittest.main()

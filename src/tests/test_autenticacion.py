@@ -412,6 +412,26 @@ class TestRutasAutenticacion(unittest.TestCase):
         self.assertEqual(respuesta.json(), self.usuario)
         obtener_usuario_simulado.assert_called_once_with(2)
 
+def test_revocar_token_registra_token_en_base():
+    from datetime import datetime, timezone
+    from unittest.mock import patch
+
+    from app.security import revocar_token
+
+    fecha = datetime(2026, 11, 9, tzinfo=timezone.utc)
+
+    with patch("app.security.obtener_conexion") as obtener_conexion:
+        revocar_token("jti-prueba", fecha)
+
+    conexion = obtener_conexion.return_value.__enter__.return_value
+    cursor = conexion.cursor.return_value.__enter__.return_value
+
+    cursor.execute.assert_called_once()
+
+    consulta, parametros = cursor.execute.call_args.args
+
+    assert "INSERT INTO tokens_revocados" in consulta
+    assert parametros == ("jti-prueba", fecha)
 
 if __name__ == "__main__":
     unittest.main()

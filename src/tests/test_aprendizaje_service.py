@@ -1,6 +1,7 @@
-import os
 import unittest
 from unittest.mock import patch
+
+import pytest
 
 from app.services.aprendizaje_service import evaluar_aprendizaje
 from conf.config import (
@@ -11,8 +12,12 @@ from conf.config import (
 
 class TestConfiguracionAprendizaje(unittest.TestCase):
     def setUp(self):
-        self.enterContext(patch.dict(os.environ))
-        os.environ.pop("APRENDIZAJE_MIN_ACIERTOS", None)
+        self.monkeypatch = pytest.MonkeyPatch()
+        self.addCleanup(self.monkeypatch.undo)
+        self.monkeypatch.delenv(
+            "APRENDIZAJE_MIN_ACIERTOS",
+            raising=False,
+        )
 
     def test_utiliza_tres_si_no_hay_configuracion(self):
         self.assertEqual(obtener_minimo_aciertos(), 3)
@@ -20,7 +25,10 @@ class TestConfiguracionAprendizaje(unittest.TestCase):
     def test_acepta_enteros_positivos(self):
         for valor in ("1", "3", "5", "10"):
             with self.subTest(valor=valor):
-                os.environ["APRENDIZAJE_MIN_ACIERTOS"] = valor
+                self.monkeypatch.setenv(
+                    "APRENDIZAJE_MIN_ACIERTOS",
+                    valor,
+                )
 
                 self.assertEqual(
                     obtener_minimo_aciertos(),
@@ -30,7 +38,10 @@ class TestConfiguracionAprendizaje(unittest.TestCase):
     def test_rechaza_configuracion_invalida(self):
         for valor in ("", "0", "-1", "2.5", "abc"):
             with self.subTest(valor=valor):
-                os.environ["APRENDIZAJE_MIN_ACIERTOS"] = valor
+                self.monkeypatch.setenv(
+                    "APRENDIZAJE_MIN_ACIERTOS",
+                    valor,
+                )
 
                 with self.assertRaises(ConfiguracionAprendizajeError):
                     obtener_minimo_aciertos()
@@ -38,11 +49,11 @@ class TestConfiguracionAprendizaje(unittest.TestCase):
 
 class TestServicioAprendizaje(unittest.TestCase):
     def setUp(self):
-        self.enterContext(
-            patch.dict(
-                os.environ,
-                {"APRENDIZAJE_MIN_ACIERTOS": "3"},
-            )
+        self.monkeypatch = pytest.MonkeyPatch()
+        self.addCleanup(self.monkeypatch.undo)
+        self.monkeypatch.setenv(
+            "APRENDIZAJE_MIN_ACIERTOS",
+            "3",
         )
 
         self.obtener_conexion = self.enterContext(
@@ -118,7 +129,10 @@ class TestServicioAprendizaje(unittest.TestCase):
                 )
 
     def test_respeta_un_minimo_configurado_diferente(self):
-        os.environ["APRENDIZAJE_MIN_ACIERTOS"] = "5"
+        self.monkeypatch.setenv(
+            "APRENDIZAJE_MIN_ACIERTOS",
+            "5",
+        )
         self.contar_aciertos.return_value = 3
 
         self.assertIsNone(self.evaluar())
@@ -145,7 +159,10 @@ class TestServicioAprendizaje(unittest.TestCase):
         )
 
     def test_configuracion_invalida_impide_acceder_a_la_base(self):
-        os.environ["APRENDIZAJE_MIN_ACIERTOS"] = "0"
+        self.monkeypatch.setenv(
+            "APRENDIZAJE_MIN_ACIERTOS",
+            "0",
+        )
 
         with self.assertRaises(ConfiguracionAprendizajeError):
             self.evaluar()
