@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -35,7 +36,7 @@ router = APIRouter(
     },
 )
 def consultar_historial(
-    usuario_actual: dict = Depends(obtener_usuario_actual),
+    usuario_actual: Annotated[dict, Depends(obtener_usuario_actual)],
 ):
     """Consulta el historial del usuario autenticado.
 

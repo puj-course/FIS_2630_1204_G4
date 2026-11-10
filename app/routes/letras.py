@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -102,7 +103,7 @@ def consultar_letra(id_letra: int):
 def actualizar_letra(
     id_letra: int,
     datos: LetraActualizacion,
-    _administrador: dict = Depends(requerir_administrador)
+    administrador: Annotated[dict, Depends(requerir_administrador)],
 ):
     cambios = datos.model_dump(exclude_unset=True)
 
