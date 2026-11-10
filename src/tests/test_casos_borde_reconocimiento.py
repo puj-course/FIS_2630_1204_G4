@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from app.vision import letras_estaticas as letras
+from app.vision import vocales
 from app.vision.decoradores_reconocimiento import DecoradorMedicionTiempo
 from app.vision.reconocimiento import (
     ReconocimientoEstatico,
@@ -485,6 +486,392 @@ class TestConsonantesEstaticas(unittest.TestCase):
 
                 self.assertIs(resultado, esperado)
 
+class TestCoberturaVocales(unittest.TestCase):
+
+    @staticmethod
+    def crear_mano():
+        return [
+            SimpleNamespace(x=0.0, y=0.0, z=0.0)
+            for _ in range(21)
+        ]
+
+    def test_distancia_3d(self):
+        p = SimpleNamespace(x=0, y=0, z=0)
+        q = SimpleNamespace(x=3, y=4, z=12)
+
+        self.assertEqual(vocales.distancia(p, q), 13)
+        self.assertEqual(vocales.distancia(p, p), 0)
+
+    def test_angulo_recto_llano_y_vector_nulo(self):
+        origen = SimpleNamespace(x=0, y=0, z=0)
+        derecha = SimpleNamespace(x=1, y=0, z=0)
+        arriba = SimpleNamespace(x=0, y=1, z=0)
+        izquierda = SimpleNamespace(x=-1, y=0, z=0)
+
+        self.assertAlmostEqual(
+            vocales.angulo(derecha, origen, arriba),
+            90,
+        )
+
+        self.assertAlmostEqual(
+            vocales.angulo(derecha, origen, izquierda),
+            180,
+        )
+
+        self.assertEqual(
+            vocales.angulo(origen, origen, arriba),
+            0,
+        )
+
+        self.assertEqual(
+            vocales.angulo(derecha, origen, origen),
+            0,
+        )
+
+    def test_tamano_y_distancias_relativas(self):
+        mano = self.crear_mano()
+
+        self.assertEqual(
+            vocales.tamano_mano(mano),
+            0.000001,
+        )
+
+        mano[9].y = 2.0
+        mano[1].y = 0.0
+        mano[2].y = 1.0
+
+        self.assertEqual(
+            vocales.tamano_mano(mano),
+            2.0,
+        )
+
+        self.assertAlmostEqual(
+            vocales.distancia_relativa(mano, 1, 2),
+            0.5,
+        )
+
+    def test_dedo_estirado_con_angulos_limite(self):
+        mano = self.crear_mano()
+
+        casos = [
+            ((160, 160), True),
+            ((145, 160), False),
+            ((160, 145), False),
+        ]
+
+        for angulos, esperado in casos:
+            with self.subTest(angulos=angulos):
+                with patch.object(
+                    vocales,
+                    "angulo",
+                    side_effect=angulos,
+                ):
+                    resultado = vocales.dedo_estirado(
+                        mano,
+                        "indice",
+                    )
+
+                self.assertIs(resultado, esperado)
+
+    def test_dedo_doblado_invierte_estado(self):
+        mano = self.crear_mano()
+
+        for estirado in (True, False):
+            with patch.object(
+                vocales,
+                "dedo_estirado",
+                return_value=estirado,
+            ):
+                resultado = vocales.dedo_doblado(
+                    mano,
+                    "medio",
+                )
+
+            self.assertIs(resultado, not estirado)
+
+    def test_pulgar_estirado_angulo_y_direccion(self):
+        mano = self.crear_mano()
+
+        casos = [
+            (160, -1, True),
+            (140, -1, False),
+            (160, 1, False),
+        ]
+
+        for ang, punta_y, esperado in casos:
+            with self.subTest(angulo=ang, punta_y=punta_y):
+                mano[3].y = 0
+                mano[4].y = punta_y
+
+                with patch.object(
+                    vocales,
+                    "angulo",
+                    return_value=ang,
+                ):
+                    resultado = vocales.pulgar_estirado(mano)
+
+                self.assertIs(resultado, esperado)
+
+    def test_funciones_de_dedos_largos(self):
+        mano = self.crear_mano()
+
+        funciones = [
+            (vocales.indice_estirado, "indice"),
+            (vocales.medio_estirado, "medio"),
+            (vocales.anular_estirado, "anular"),
+            (vocales.menique_estirado, "menique"),
+        ]
+
+        for funcion, nombre in funciones:
+            with self.subTest(dedo=nombre):
+                with patch.object(
+                    vocales,
+                    "dedo_estirado",
+                    return_value=True,
+                ) as evaluar:
+                    self.assertTrue(funcion(mano))
+                    evaluar.assert_called_once_with(
+                        mano,
+                        nombre,
+                    )
+
+    def test_dedos_juntos_compara_puntas_y_limite(self):
+        mano = self.crear_mano()
+
+        with patch.object(
+            vocales,
+            "distancia_relativa",
+            return_value=0.3,
+        ) as distancia:
+            self.assertTrue(
+                vocales.dedos_juntos(
+                    mano,
+                    "indice",
+                    "medio",
+                )
+            )
+
+            distancia.assert_called_once_with(
+                mano,
+                8,
+                12,
+            )
+
+        with patch.object(
+            vocales,
+            "distancia_relativa",
+            return_value=0.5,
+        ):
+            self.assertFalse(
+                vocales.dedos_juntos(
+                    mano,
+                    "indice",
+                    "medio",
+                )
+            )
+
+            self.assertTrue(
+                vocales.dedos_juntos(
+                    mano,
+                    "indice",
+                    "medio",
+                    limite=0.6,
+                )
+            )
+
+    def test_forma_circular_o_geometria(self):
+        mano = self.crear_mano()
+
+        # Establece una escala 2D de referencia de 1.
+        mano[0].x = -1.0
+
+        # Coloca las puntas próximas entre sí.
+        mano[4].y = 1.0
+        mano[8].y = 1.0
+        mano[12].y = 1.1
+        mano[16].y = 1.2
+        mano[20].y = 1.3
+
+        self.assertTrue(
+            vocales.forma_circular_o(mano)
+        )
+
+        # Separa el pulgar del índice.
+        mano[4].y = 2.0
+
+        self.assertFalse(
+            vocales.forma_circular_o(mano)
+        )
+
+        # Comprueba la protección frente a escala cero.
+        mano[4].y = 1.0
+        mano[0].x = 0.0
+
+        self.assertFalse(
+            vocales.forma_circular_o(mano)
+        )
+
+    def test_patrones_de_las_cinco_vocales(self):
+        mano = self.crear_mano()
+
+        pruebas = [
+            (
+                "A",
+                vocales.es_vocal_a,
+                True, True, False, False, False, True,
+            ),
+            (
+                "A no",
+                vocales.es_vocal_a,
+                True, False, False, False, False, False,
+            ),
+            (
+                "E",
+                vocales.es_vocal_e,
+                True, False, False, False, False, True,
+            ),
+            (
+                "E no",
+                vocales.es_vocal_e,
+                True, False, True, False, False, False,
+            ),
+            (
+                "I",
+                vocales.es_vocal_i,
+                True, False, False, False, True, True,
+            ),
+            (
+                "I no",
+                vocales.es_vocal_i,
+                True, False, False, False, False, False,
+            ),
+            (
+                "O",
+                vocales.es_vocal_o,
+                True, False, True, False, False, True,
+            ),
+            (
+                "O no",
+                vocales.es_vocal_o,
+                True, False, False, False, False, False,
+            ),
+            (
+                "U",
+                vocales.es_vocal_u,
+                True, False, False, True, True, True,
+            ),
+            (
+                "U no",
+                vocales.es_vocal_u,
+                True, False, False, False, True, False,
+            ),
+        ]
+
+        for (
+            nombre,
+            funcion,
+            doblados,
+            pulgar,
+            circular,
+            indice,
+            menique,
+            esperado,
+        ) in pruebas:
+            with self.subTest(nombre=nombre):
+                with (
+                    patch.object(
+                        vocales,
+                        "dedo_doblado",
+                        return_value=doblados,
+                    ),
+                    patch.object(
+                        vocales,
+                        "pulgar_estirado",
+                        return_value=pulgar,
+                    ),
+                    patch.object(
+                        vocales,
+                        "forma_circular_o",
+                        return_value=circular,
+                    ),
+                    patch.object(
+                        vocales,
+                        "indice_estirado",
+                        return_value=indice,
+                    ),
+                    patch.object(
+                        vocales,
+                        "menique_estirado",
+                        return_value=menique,
+                    ),
+                ):
+                    self.assertIs(
+                        funcion(mano),
+                        esperado,
+                    )
+
+    def test_reconocer_vocal_en_orden_y_sin_coincidencia(self):
+        mano = self.crear_mano()
+
+        for esperado in ("O", "U", "I", "A", "E", None):
+            with self.subTest(esperado=esperado):
+                estados = {
+                    "O": esperado == "O",
+                    "U": esperado == "U",
+                    "I": esperado == "I",
+                    "A": esperado == "A",
+                    "E": esperado == "E",
+                }
+
+                with (
+                    patch.object(
+                        vocales,
+                        "es_vocal_o",
+                        return_value=estados["O"],
+                    ),
+                    patch.object(
+                        vocales,
+                        "es_vocal_u",
+                        return_value=estados["U"],
+                    ),
+                    patch.object(
+                        vocales,
+                        "es_vocal_i",
+                        return_value=estados["I"],
+                    ),
+                    patch.object(
+                        vocales,
+                        "es_vocal_a",
+                        return_value=estados["A"],
+                    ),
+                    patch.object(
+                        vocales,
+                        "es_vocal_e",
+                        return_value=estados["E"],
+                    ),
+                ):
+                    self.assertEqual(
+                        vocales.reconocer_vocal(mano),
+                        esperado,
+                    )
+
+        # Comprueba que O tiene prioridad sobre U.
+        with (
+            patch.object(
+                vocales,
+                "es_vocal_o",
+                return_value=True,
+            ),
+            patch.object(
+                vocales,
+                "es_vocal_u",
+                return_value=True,
+            ),
+        ):
+            self.assertEqual(
+                vocales.reconocer_vocal(mano),
+                "O",
+            )
 
 if __name__ == "__main__":
     unittest.main()
