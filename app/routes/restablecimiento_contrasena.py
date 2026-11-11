@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.routing import APIRoute
 
-from app.services.restablecimiento_service import (
+from app.services.fachada_recuperacion_contrasena import (
+    FachadaRecuperacionContrasena,
     SolicitudRecuperacionInvalidaError,
-    restablecer_contrasena,
 )
 from src.schemas.restablecimiento import (
     RespuestaRestablecimiento,
@@ -15,6 +15,7 @@ from src.schemas.restablecimiento import (
 
 logger = logging.getLogger(__name__)
 NO_CACHE = {"Cache-Control": "no-store"}
+fachada = FachadaRecuperacionContrasena()
 
 
 class RutaRestablecimiento(APIRoute):
@@ -97,7 +98,7 @@ def confirmar_restablecimiento(
     respuesta: Response,
 ):
     try:
-        restablecer_contrasena(
+        fachada.restablecer_contrasena(
             datos.token.get_secret_value(),
             datos.nueva_contrasena.get_secret_value(),
         )
