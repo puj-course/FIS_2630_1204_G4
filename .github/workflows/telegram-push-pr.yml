@@ -1,0 +1,85 @@
+name: Telegram - Avisos de push y pull requests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    types: [opened, closed]
+  pull_request_review:
+    types: [submitted]
+
+permissions: {}
+
+jobs:
+  avisar:
+    name: Avisar en Telegram
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !github.event.deleted }}
+
+    steps:
+      - name: Enviar mensaje a Telegram
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EVENTO: ${{ github.event_name }}
+          ACCION: ${{ github.event.action }}
+          ACTOR: ${{ github.actor }}
+          # Datos del push
+          RAMA: ${{ github.ref_name }}
+          COMMITS: ${{ toJSON(github.event.commits) }}
+          COMPARACION: ${{ github.event.compare }}
+          # Datos del pull request y de su revision
+          PR_TITULO: ${{ github.event.pull_request.title }}
+          PR_NUMERO: ${{ github.event.pull_request.number }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          PR_ENLACE: ${{ github.event.pull_request.html_url }}
+          PR_MERGEADO: ${{ github.event.pull_request.merged }}
+          PR_MERGEADO_POR: ${{ github.event.pull_request.merged_by.login }}
+          PR_ORIGEN: ${{ github.event.pull_request.head.ref }}
+          PR_DESTINO: ${{ github.event.pull_request.base.ref }}
+          REV_ESTADO: ${{ github.event.review.state }}
+          REV_AUTOR: ${{ github.event.review.user.login }}
+          REV_ENLACE: ${{ github.event.review.html_url }}
+        run: |
+          case "$EVENTO" in
+            push)
+              TOTAL=$(printf '%s' "$COMMITS" | jq 'length')
+              LISTA=$(printf '%s' "$COMMITS" | jq -r '.[:10][] | "• " + (.message | split("\n")[0]) + " (" + .author.name + ")"')
+              [ -z "$LISTA" ] && LISTA="• (sin commits nuevos)"
+              [ "$TOTAL" -gt 10 ] && LISTA="$LISTA"$'\n'"… y $((TOTAL - 10)) más"
+              MENSAJE=$(printf '⬆️ Push\n\nRama: %s\nAutor: %s\nCommits (%s):\n%s\n\nEnlace: %s' \
+                "$RAMA" "$ACTOR" "$TOTAL" "$LISTA" "$COMPARACION")
+              ;;
+
+            pull_request)
+              if [ "$ACCION" = "opened" ]; then
+                ESTADO="🔀 Pull request abierto"
+              elif [ "$PR_MERGEADO" = "true" ]; then
+                ESTADO="✅ Pull request mergeado"
+              else
+                ESTADO="❌ Pull request cerrado sin merge"
+              fi
+              MENSAJE=$(printf '%s\n\nTítulo: %s\nNúmero: #%s\nAutor: %s\nRamas: %s → %s\nEnlace: %s' \
+                "$ESTADO" "$PR_TITULO" "$PR_NUMERO" "$PR_AUTOR" "$PR_ORIGEN" "$PR_DESTINO" "$PR_ENLACE")
+              if [ "$PR_MERGEADO" = "true" ]; then
+                MENSAJE="$MENSAJE"$'\n'"Mergeado por: $PR_MERGEADO_POR"
+              fi
+              ;;
+
+            pull_request_review)
+              case "$REV_ESTADO" in
+                approved)          ESTADO="👍 Revisión: aprobó el pull request" ;;
+                changes_requested) ESTADO="🛠️ Revisión: pidió cambios" ;;
+                *)                 ESTADO="💬 Revisión: dejó comentarios" ;;
+              esac
+              MENSAJE=$(printf '%s\n\nTítulo: %s\nNúmero: #%s\nRevisor: %s\nEnlace: %s' \
+                "$ESTADO" "$PR_TITULO" "$PR_NUMERO" "$REV_AUTOR" "$REV_ENLACE")
+              ;;
+          esac
+
+          MENSAJE="${MENSAJE:0:4000}"
+
+          curl --silent --show-error --fail-with-body \
+            --request POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MENSAJE}"
