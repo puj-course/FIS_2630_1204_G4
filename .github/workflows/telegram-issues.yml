@@ -1,0 +1,38 @@
+name: Telegram - Avisos de issues
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+
+permissions: {}
+
+jobs:
+  avisar:
+    name: Avisar la issue en Telegram
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enviar mensaje a Telegram
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ACCION: ${{ github.event.action }}
+          TITULO: ${{ github.event.issue.title }}
+          NUMERO: ${{ github.event.issue.number }}
+          AUTOR: ${{ github.event.issue.user.login }}
+          ENLACE: ${{ github.event.issue.html_url }}
+        run: |
+          case "$ACCION" in
+            opened)   ESTADO="🆕 Issue creada" ;;
+            closed)   ESTADO="✅ Issue cerrada" ;;
+            reopened) ESTADO="🔄 Issue reabierta" ;;
+            *)        ESTADO="Issue actualizada" ;;
+          esac
+
+          MENSAJE=$(printf '%s\n\nTítulo: %s\nNúmero: #%s\nAutor: %s\nEnlace: %s' \
+            "$ESTADO" "$TITULO" "$NUMERO" "$AUTOR" "$ENLACE")
+
+          curl --silent --show-error --fail-with-body \
+            --request POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MENSAJE}"
