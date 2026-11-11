@@ -25,7 +25,7 @@ services:
         env_file:
             - .env
         environment:
-            DATABASE_URL: "postgresql://neondb_owner:npg_VJeYk4P5pzht@ep-soft-silence-aw4yd7uo-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+            DATABASE_URL: ${DATABASE_URL:?DATABASE_URL no configurada}
         ports:
             - "8000:8000"
         depends_on:
