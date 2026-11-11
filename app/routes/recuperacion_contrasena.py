@@ -1,45 +1,19 @@
-import logging
-
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Response, status
 
-from app.services.correo_recuperacion_service import (
-    ConfiguracionCorreo,
-    ConfiguracionCorreoError,
-    enviar_correo_recuperacion,
-    obtener_configuracion_correo,
+from app.services.fachada_recuperacion_contrasena import (
+    FachadaRecuperacionContrasena,
+    RecuperacionNoDisponibleError,
 )
-from app.services.recuperacion_service import crear_solicitud_recuperacion
 from src.schemas.recuperacion import RespuestaRecuperacion, SolicitudRecuperacion
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
+fachada = FachadaRecuperacionContrasena()
 
+# La respuesta no revela si el correo pertenece a una cuenta.
 MENSAJE_RECUPERACION = (
     "Solicitud recibida. Si el correo está registrado, "
     "recibirás instrucciones para recuperar tu contraseña."
 )
-
-
-def procesar_solicitud_recuperacion(
-    correo: str,
-    configuracion: ConfiguracionCorreo
-) -> None:
-    try:
-        solicitud = crear_solicitud_recuperacion(correo)
-
-        if solicitud is not None:
-            enviar_correo_recuperacion(
-                correo=solicitud.correo,
-                token=solicitud.token,
-                fecha_expiracion=solicitud.fecha_expiracion,
-                configuracion=configuracion
-            )
-    except Exception as error:
-        # Solo se registra el tipo de error para evitar exponer datos del correo
-        logger.error(
-            "No fue posible procesar una recuperación de contraseña (%s)",
-            type(error).__name__
-        )
 
 
 @router.post(
@@ -52,19 +26,25 @@ def solicitar_recuperacion(
     tareas: BackgroundTasks,
     respuesta: Response
 ):
+    # Comprueba que el envio de correos esté configurado antes de aceptar
+    # la solicitud. La ruta convierte el error de la fachada en HTTP 503.
     try:
-        configuracion = obtener_configuracion_correo()
-    except ConfiguracionCorreoError as error:
+        configuracion = fachada.verificar_disponibilidad()
+    except RecuperacionNoDisponibleError as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="La recuperación de contraseña no está disponible temporalmente",
             headers={"Cache-Control": "no-store"}
         ) from error
 
+    # Programa la creación de la solicitud y el envio del enlace
+    # para despues de responder al cliente
     tareas.add_task(
-        procesar_solicitud_recuperacion,
+        fachada.procesar_solicitud,
         str(datos.correo),
         configuracion
     )
+
+    # Evita que la respuesta de recuperacion quede almacenada en cache
     respuesta.headers["Cache-Control"] = "no-store"
     return RespuestaRecuperacion(mensaje=MENSAJE_RECUPERACION)
