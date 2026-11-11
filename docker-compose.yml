@@ -25,7 +25,7 @@ services:
         env_file:
             - .env
         environment:
-            DATABASE_URL: "postgresql://${POSTGRES_USER:-signia}:${POSTGRES_PASSWORD:?Configura_POSTGRES_PASSWORD_en_.env}@postgres:5432/${POSTGRES_DB:-signia}"
+            DATABASE_URL: ${DATABASE_URL:?DATABASE_URL no configurada}
         ports:
             - "8000:8000"
         depends_on:

@@ -1,0 +1,53 @@
+
+name: Backend Code Metrics
+
+on:
+  push:
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-metrics:
+    name: Metricas del backend Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Radon
+        run: python -m pip install radon==6.0.1
+
+      - name: Generar las tres metricas
+        run: |
+          mkdir -p reports/metricas
+
+          radon cc app conf -s -a > reports/metricas/complejidad.txt
+
+          radon mi app conf -s > reports/metricas/mantenibilidad.txt
+
+          radon raw app conf -s > reports/metricas/lineas.txt
+
+      - name: Mostrar resultados
+        run: |
+          cat reports/metricas/complejidad.txt
+          cat reports/metricas/mantenibilidad.txt
+          cat reports/metricas/lineas.txt
+
+      - name: Guardar reportes
+        uses: actions/upload-artifact@v4
+        with:
+          name: metricas-backend
+          path: reports/metricas/
+          retention-days: 30
