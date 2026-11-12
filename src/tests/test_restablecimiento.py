@@ -19,7 +19,7 @@ CONTRASENA = "Nueva clave de prueba 2077!"
 
 class TestRutaRestablecimiento(unittest.TestCase):
     def setUp(self):
-        parche = patch("app.routes.restablecimiento_contrasena.restablecer_contrasena")
+        parche = patch("app.services.fachada_recuperacion_contrasena.restablecer_contrasena")
         self.restablecer = parche.start()
         self.addCleanup(parche.stop)
         aplicacion = FastAPI()
