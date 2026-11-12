@@ -63,7 +63,8 @@ jobs:
           dependencias = {}
 
           for modulo, ruta in modulos.items():
-              arbol = ast.parse(ruta.read_text(encoding="utf-8"), filename=str(ruta))
+              # utf-8-sig acepta archivos con y sin marca BOM (U+FEFF).
+              arbol = ast.parse(ruta.read_text(encoding="utf-8-sig"), filename=str(ruta))
               encontrados = set()
 
               for nodo in ast.walk(arbol):

@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
+from app.services import restablecimiento_service
 from app.services.correo_recuperacion_service import ConfiguracionCorreo, ConfiguracionCorreoError
 from app.services.fachada_recuperacion_contrasena import (
     FachadaRecuperacionContrasena,
@@ -9,7 +10,6 @@ from app.services.fachada_recuperacion_contrasena import (
     SolicitudRecuperacionInvalidaError,
 )
 from app.services.recuperacion_service import RecuperacionCreada
-from app.services import restablecimiento_service
 
 MODULO = "app.services.fachada_recuperacion_contrasena"
 
