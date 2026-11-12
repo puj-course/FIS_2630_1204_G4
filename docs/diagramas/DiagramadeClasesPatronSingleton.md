@@ -69,3 +69,54 @@ Representa el recurso administrado por el Singleton. El gestor puede crear y con
 | `DetectorMano(modo_video=True)` | Crea el detector según el modo requerido. |
 | `detectar(imagen, tiempo_actual=None)` | Realiza la detección de la mano sobre la imagen recibida. |
 | `cerrar() : None` | Libera los recursos utilizados por el detector. |
+
+### Cliente
+
+`vision_service` utiliza una instancia de `GestorDetectoresCompartido` para realizar las detecciones necesarias durante el reconocimiento.
+
+El módulo mantiene una referencia al gestor y la utiliza desde el procesamiento de imágenes. También utiliza el gestor cuando es necesario cerrar los detectores al finalizar el servicio.
+
+## Relaciones
+
+| **Relación** | **Tipo** | **Significado** |
+| --- | --- | --- |
+| `vision_service` → `GestorDetectoresCompartido` | Dependencia `«use»` | El servicio de visión utiliza la instancia compartida del gestor. |
+| `GestorDetectoresCompartido` → `GestorDetectores` | Generalización | El Singleton implementa el contrato definido por `GestorDetectores`. |
+| `GestorDetectoresCompartido` → `DetectorMano` | Composición, rol `detectores` | El gestor crea, conserva, reutiliza y cierra los detectores. |
+
+La multiplicidad desde `GestorDetectoresCompartido` hacia `DetectorMano` puede representarse como **1 a 0..2**, debido a que existe una única instancia del gestor y esta puede mantener los detectores necesarios para los diferentes modos de procesamiento.
+
+El patrón garantiza que exista un único `GestorDetectoresCompartido`. Esto no significa que exista un único `DetectorMano`, ya que el gestor puede administrar más de un detector según el modo requerido.
+
+## Funcionamiento del Singleton
+
+Cuando `vision_service` necesita realizar una detección, utiliza `GestorDetectoresCompartido()`. La creación pasa por `__new__()`, que comprueba si ya existe una instancia del gestor. Si todavía no existe, la crea; en las siguientes solicitudes devuelve la misma instancia.
+
+El gestor revisa después si ya existe un `DetectorMano` adecuado para la operación. Cuando existe, lo reutiliza, y cuando todavía no ha sido creado, genera uno nuevo y lo conserva dentro de `_detectores`. De esta manera, la creación y el cierre de estos recursos quedan concentrados en un mismo punto.
+
+## Pruebas
+
+Las pruebas de `test_gestor_detectores.py` comprueban el comportamiento del Singleton y la administración de los detectores.
+
+Entre los casos evaluados se verifica:
+
+- que varias llamadas a `GestorDetectoresCompartido()` devuelvan la misma instancia;
+- que la instancia continúe siendo única cuando se solicita desde diferentes hilos;
+- que los detectores existentes sean reutilizados;
+- que los detectores correspondientes a distintos modos se mantengan separados;
+- que `cerrar()` libere los detectores administrados;
+- que los detectores puedan volver a crearse después de ser cerrados.
+
+Estas pruebas permiten comprobar tanto la existencia de una única instancia del gestor como el manejo de los recursos que administra.
+
+## Elementos omitidos
+
+| **Omitido** | **Motivo** |
+| --- | --- |
+| MediaPipe `HandLandmarker` | Es utilizado internamente por `DetectorMano`, pero no participa directamente en la estructura del patrón Singleton. |
+| Estrategias de reconocimiento | Utilizan los resultados de la detección, pero pertenecen al proceso de reconocimiento y no al Singleton. |
+| Historial de movimiento | Forma parte del procesamiento de señas con movimiento y no de la administración de detectores. |
+| Reglas de reconocimiento de letras | Se ejecutan después de detectar la mano y no intervienen en la creación de la instancia compartida. |
+| OpenCV | Se utiliza durante el procesamiento de imágenes, pero no participa directamente en el patrón. |
+
+El diagrama se concentra únicamente en las clases y módulos necesarios para mostrar cómo se crea una única instancia de `GestorDetectoresCompartido` y cómo esta administra los objetos `DetectorMano`.
