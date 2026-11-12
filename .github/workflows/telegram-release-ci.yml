@@ -1,0 +1,68 @@
+name: Telegram - Avisos de releases y CI/CD
+
+on:
+  release:
+    types: [published]
+  workflow_run:
+    workflows: ["Backend CI", "Frontend CI", "SonarQube"]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  avisar:
+    name: Avisar en Telegram
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' || contains(fromJSON('["success","failure","timed_out"]'), github.event.workflow_run.conclusion) }}
+
+    steps:
+      - name: Enviar mensaje a Telegram
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EVENTO: ${{ github.event_name }}
+          # Datos del release
+          REL_TAG: ${{ github.event.release.tag_name }}
+          REL_NOMBRE: ${{ github.event.release.name }}
+          REL_AUTOR: ${{ github.event.release.author.login }}
+          REL_PRERELEASE: ${{ github.event.release.prerelease }}
+          REL_ENLACE: ${{ github.event.release.html_url }}
+          # Datos de la ejecucion del CI/CD
+          CI_NOMBRE: ${{ github.event.workflow_run.name }}
+          CI_RESULTADO: ${{ github.event.workflow_run.conclusion }}
+          CI_RAMA: ${{ github.event.workflow_run.head_branch }}
+          CI_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_TITULO: ${{ github.event.workflow_run.display_title }}
+          CI_AUTOR: ${{ github.event.workflow_run.actor.login }}
+          CI_ENLACE: ${{ github.event.workflow_run.html_url }}
+        run: |
+          case "$EVENTO" in
+            release)
+              TIPO="Release"
+              [ "$REL_PRERELEASE" = "true" ] && TIPO="Pre-release"
+              MENSAJE=$(printf '🚀 %s publicado\n\nVersión: %s\nNombre: %s\nAutor: %s\nEnlace: %s' \
+                "$TIPO" "$REL_TAG" "${REL_NOMBRE:-$REL_TAG}" "$REL_AUTOR" "$REL_ENLACE")
+              ;;
+
+            workflow_run)
+              if [ "$CI_RESULTADO" = "success" ]; then
+                ESTADO="✅ CI/CD: salió bien"
+                RESULTADO="ÉXITO"
+              elif [ "$CI_RESULTADO" = "timed_out" ]; then
+                ESTADO="❌ CI/CD: FALLÓ"
+                RESULTADO="FALLO (se agotó el tiempo)"
+              else
+                ESTADO="❌ CI/CD: FALLÓ"
+                RESULTADO="FALLO"
+              fi
+              MENSAJE=$(printf '%s\n\nWorkflow: %s\nResultado: %s\nRama: %s\nCommit: %s (%s)\nAutor: %s\nEnlace: %s' \
+                "$ESTADO" "$CI_NOMBRE" "$RESULTADO" "$CI_RAMA" "${CI_SHA:0:7}" "$CI_TITULO" "$CI_AUTOR" "$CI_ENLACE")
+              ;;
+          esac
+
+          MENSAJE="${MENSAJE:0:4000}"
+
+          curl --silent --show-error --fail-with-body \
+            --request POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MENSAJE}"

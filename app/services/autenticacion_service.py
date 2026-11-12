@@ -2,8 +2,15 @@ from datetime import datetime, timedelta, timezone
 
 from psycopg.rows import dict_row
 from pwdlib import PasswordHash
-from pwdlib.exceptions import UnknownHashError
 
+from app.services.cadena_autenticacion import (
+    # Se reexporta para las rutas y las pruebas
+    CuentaBloqueadaError,  # noqa: F401
+    ManejadorContrasena,
+    ManejadorCuentaNoBloqueada,
+    ManejadorUsuarioExistente,
+    SolicitudAutenticacion,
+)
 from conf.database import obtener_conexion
 
 password_hash = PasswordHash.recommended()
@@ -49,9 +56,6 @@ def obtener_usuario_por_id(id_usuario: int):
             )
 
             return cursor.fetchone()
-
-class CuentaBloqueadaError(Exception):
-    pass
 
 
 LIMITE_INTENTOS_FALLIDOS = 5
@@ -99,38 +103,20 @@ def reiniciar_intentos_fallidos(id_usuario: int):
             )
 
 def autenticar_usuario(correo: str, contrasena: str):
-    usuario = obtener_usuario_por_correo(correo)
-
-    if usuario is None:
-        return None
-    
-    if usuario["bloqueado_hasta"] is not None:
-        if usuario["bloqueado_hasta"] > datetime.now(timezone.utc):
-            raise CuentaBloqueadaError(
-                "La cuenta está bloqueada temporalmente"
-            )
-        
-    try:
-        contrasena_correcta = password_hash.verify(
-            contrasena,
-            usuario["contrasena_hash"]
+    cadena = ManejadorUsuarioExistente(obtener_usuario_por_correo)
+    cadena.establecer_siguiente(
+        ManejadorCuentaNoBloqueada()
+    ).establecer_siguiente(
+        ManejadorContrasena(
+            password_hash,
+            registrar_intento_fallido,
+            reiniciar_intentos_fallidos
         )
-    except UnknownHashError:
-        registrar_intento_fallido(usuario["id_usuario"])
-        return None
+    )
 
-    if not contrasena_correcta:
-        registrar_intento_fallido(usuario["id_usuario"])
-        return None
-
-    reiniciar_intentos_fallidos(usuario["id_usuario"])
-
-    return {
-        "id_usuario": usuario["id_usuario"],
-        "nombre": usuario["nombre"],
-        "correo": usuario["correo"],
-        "rol": usuario["rol"]
-    }
+    return cadena.manejar(
+        SolicitudAutenticacion(correo=correo, contrasena=contrasena)
+    )
 
 
 def generar_hash_contrasena(contrasena: str):
