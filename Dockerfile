@@ -8,10 +8,11 @@ RUN apt-get update && apt-get install -y \
     libcairo2-dev \
     libgirepository-2.0-dev \
     libgl1 \
+    libegl1 \
+    libgles2 \
     libglib2.0-0 \
     curl \
     && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt requirements-recuperacion.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
