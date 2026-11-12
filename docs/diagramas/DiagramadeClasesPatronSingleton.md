@@ -23,3 +23,10 @@ Archivos de código relacionados:
 | **Singleton** | `GestorDetectoresCompartido` | Controla que exista una única instancia del gestor y administra los detectores disponibles. |
 | **Contrato** | `GestorDetectores` | Define las operaciones que debe ofrecer un gestor de detectores. |
 | **Recurso administrado** | `DetectorMano` | Realiza la detección de la mano utilizando MediaPipe. |
+
+## Notación
+
+- **`«utility»`** se utiliza para representar `vision_service`, ya que corresponde a un módulo de Python que expone funciones y no a una clase.
+- **`«abstract»`** se utiliza para representar `GestorDetectores`, debido a que define el comportamiento que debe cumplir el gestor.
+- **`«singleton»`** identifica a `GestorDetectoresCompartido` como la clase encargada de mantener una única instancia del gestor.
+- `DetectorMano` es una clase normal y representa el recurso administrado por el Singleton.
