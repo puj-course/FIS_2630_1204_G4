@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.routes.recuperacion_contrasena import (
     MENSAJE_RECUPERACION,
-    procesar_solicitud_recuperacion,
+    fachada,
     router,
     solicitar_recuperacion,
 )
@@ -40,7 +40,7 @@ class TestRutaRecuperacion(unittest.TestCase):
             ("enviar", "enviar_correo_recuperacion", None)
         ):
             parche = patch(
-                f"app.routes.recuperacion_contrasena.{funcion}",
+                f"app.services.fachada_recuperacion_contrasena.{funcion}",
                 return_value=resultado
             )
             setattr(self, atributo, parche.start())
@@ -164,14 +164,14 @@ class TestRutaRecuperacion(unittest.TestCase):
 
         self.assertEqual(respuesta.mensaje, MENSAJE_RECUPERACION)
         self.assertEqual(len(tareas.tasks), 1)
-        self.assertIs(tareas.tasks[0].func, procesar_solicitud_recuperacion)
+        self.assertEqual(tareas.tasks[0].func, fachada.procesar_solicitud)
         self.crear.assert_not_called()
         self.enviar.assert_not_called()
 
     def test_error_de_base_de_datos_no_revela_datos_sensibles(self):
         self.crear.side_effect = RuntimeError("Detalle privado de conexión")
 
-        with self.assertLogs("app.routes.recuperacion_contrasena", level="ERROR") as logs:
+        with self.assertLogs("app.services.fachada_recuperacion_contrasena", level="ERROR") as logs:
             respuesta = self.cliente.post(
                 "/auth/recuperar-contrasena",
                 json={"correo": "persona@example.com"}
@@ -187,7 +187,7 @@ class TestRutaRecuperacion(unittest.TestCase):
         secreto = f"{self.solicitud.correo} {self.solicitud.token} {token_microsoft}"
         self.enviar.side_effect = RuntimeError(secreto)
 
-        with self.assertLogs("app.routes.recuperacion_contrasena", level="ERROR") as logs:
+        with self.assertLogs("app.services.fachada_recuperacion_contrasena", level="ERROR") as logs:
             respuesta = self.cliente.post(
                 "/auth/recuperar-contrasena",
                 json={"correo": "persona@example.com"}
