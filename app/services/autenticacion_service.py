@@ -4,7 +4,6 @@ from psycopg.rows import dict_row
 from pwdlib import PasswordHash
 
 from app.services.cadena_autenticacion import (
-    CuentaBloqueadaError,  # Se reexporta para las rutas y las pruebas
     ManejadorContrasena,
     ManejadorCuentaNoBloqueada,
     ManejadorUsuarioExistente,
