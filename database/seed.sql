@@ -22,34 +22,45 @@ VALUES
     )
 ON CONFLICT (correo) DO NOTHING;
 
--- Letras de prueba
+-- Abecedario en Lengua de Señas Colombiana con sus imágenes
 INSERT INTO letras (
     letra,
     descripcion,
-    ruta_imagen,
-    creada_por
+    ruta_imagen
 )
-SELECT
-    datos.letra,
-    datos.descripcion,
-    datos.ruta_imagen,
-    usuario.id_usuario
-FROM usuarios AS usuario
-CROSS JOIN (
-    VALUES
-        (
-            'A',
-            'Representación de prueba para la letra A.',
-            'assets/alfabeto/a.png'
-        ),
-        (
-            'B',
-            'Representación de prueba para la letra B.',
-            'assets/alfabeto/b.png'
-        )
-) AS datos(letra, descripcion, ruta_imagen)
-WHERE usuario.correo = 'admin.prueba@signia.local'
-ON CONFLICT (letra) DO NOTHING;
+VALUES
+    ('A', 'Seña de la letra A en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA A.jpg'),
+    ('B', 'Seña de la letra B en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA B.jpg'),
+    ('C', 'Seña de la letra C en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA C.jpg'),
+    ('D', 'Seña de la letra D en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA D.jpg'),
+    ('E', 'Seña de la letra E en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA E.jpg'),
+    ('F', 'Seña de la letra F en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA F.jpg'),
+    ('G', 'Seña de la letra G en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA G.jpg'),
+    ('H', 'Seña de la letra H en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA H.jpg'),
+    ('I', 'Seña de la letra I en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA I.jpg'),
+    ('J', 'Seña de la letra J en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA J.jpg'),
+    ('K', 'Seña de la letra K en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA K.jpg'),
+    ('L', 'Seña de la letra L en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA L.jpg'),
+    ('M', 'Seña de la letra M en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA M.jpg'),
+    ('N', 'Seña de la letra N en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA N.jpg'),
+    ('Ñ', 'Seña de la letra Ñ en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA Ñ.jpg'),
+    ('O', 'Seña de la letra O en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA O.jpg'),
+    ('P', 'Seña de la letra P en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA P.jpg'),
+    ('Q', 'Seña de la letra Q en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA Q.jpg'),
+    ('R', 'Seña de la letra R en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA R.jpg'),
+    ('S', 'Seña de la letra S en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA S.jpg'),
+    ('T', 'Seña de la letra T en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA T.jpg'),
+    ('U', 'Seña de la letra U en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA U.jpg'),
+    ('V', 'Seña de la letra V en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA V.jpg'),
+    ('W', 'Seña de la letra W en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA W.jpg'),
+    ('X', 'Seña de la letra X en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA X.jpg'),
+    ('Y', 'Seña de la letra Y en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA Y.jpg'),
+    ('Z', 'Seña de la letra Z en Lengua de Señas Colombiana.', '/assets/alfabeto/LETRA Z.jpg')
+
+ON CONFLICT (letra) DO UPDATE SET
+    descripcion = EXCLUDED.descripcion,
+    ruta_imagen = EXCLUDED.ruta_imagen;
+
 
 -- Sesión de reconocimiento de prueba
 INSERT INTO sesiones_reconocimiento (

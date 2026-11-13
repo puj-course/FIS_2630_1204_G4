@@ -12,6 +12,8 @@ services:
             - postgres_data:/var/lib/postgresql/data
             - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
             - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+            - ./database/migrations/intentos_reconocimiento.sql:/docker-entrypoint-initdb.d/03-intentos.sql
+            - ./database/migrations/agregar_resultado_a_intentos.sql:/docker-entrypoint-initdb.d/04-intentos-resultado.sql
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-signia} -d ${POSTGRES_DB:-signia}"]
             interval: 5s
