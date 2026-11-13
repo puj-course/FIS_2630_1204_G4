@@ -4,6 +4,9 @@ from psycopg.rows import dict_row
 from pwdlib import PasswordHash
 
 from app.services.cadena_autenticacion import (
+    CuentaBloqueadaError as CuentaBloqueadaError,
+)
+from app.services.cadena_autenticacion import (
     ManejadorContrasena,
     ManejadorCuentaNoBloqueada,
     ManejadorUsuarioExistente,
