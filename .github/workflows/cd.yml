@@ -113,18 +113,20 @@ jobs:
         run: docker compose pull backend frontend
 
       - name: Desplegar la nueva versión
-        run: docker compose up -d --no-build --remove-orphans
+        run: |
+          docker compose up -d --no-build --remove-orphans \
+            --wait --wait-timeout 180
 
       - name: Verificar el backend
         run: |
           curl --fail --silent --show-error \
-            --retry 30 --retry-delay 3 --retry-connrefused \
+            --retry 30 --retry-delay 3 --retry-all-errors \
             http://localhost:8000/health
 
       - name: Verificar el frontend
         run: |
           curl --fail --silent --show-error \
-            --retry 30 --retry-delay 3 --retry-connrefused \
+            --retry 30 --retry-delay 3 --retry-all-errors \
             http://localhost:5173/ > /dev/null
 
       - name: Mostrar contenedores y red de Docker Compose
