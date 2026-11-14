@@ -1,0 +1,83 @@
+name: CD - Publicar imágenes en Docker Hub
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+# Evita que dos publicaciones de SignIA se ejecuten al mismo tiempo. Ademas, una ejecucion nueva no cancela la que ya esta en curso
+concurrency:
+  group: cd-signia
+  cancel-in-progress: false
+#nombre de las imagenes
+env:
+  SIGNIA_TAG: ${{ github.ref_name }}
+  IMAGEN_BACKEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-backend
+  IMAGEN_FRONTEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-frontend
+
+jobs:
+  pruebas:
+    name: Pruebas del backend
+    uses: ./.github/workflows/backend-ci.yml
+
+  publicar:
+    name: Construir y publicar imágenes
+    #Al momento de que termine correctamente el job de pruebas
+    needs: pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar configuración de Docker Hub
+        run: |
+          if [ -z "${{ vars.DOCKERHUB_USUARIO }}" ]; then
+            echo "::error::Falta la variable DOCKERHUB_USUARIO del repositorio"
+            exit 1
+          fi
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Iniciar sesión en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USUARIO }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Construir y publicar imagen del backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGEN_BACKEND }}:${{ env.SIGNIA_TAG }}
+            ${{ env.IMAGEN_BACKEND }}:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Construir y publicar imagen del frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/front
+          file: ./src/front/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGEN_FRONTEND }}:${{ env.SIGNIA_TAG }}
+            ${{ env.IMAGEN_FRONTEND }}:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Resumen de la publicación
+        run: |
+          {
+            echo "### Imágenes publicadas"
+            echo "- \`${IMAGEN_BACKEND}:${SIGNIA_TAG}\`"
+            echo "- \`${IMAGEN_FRONTEND}:${SIGNIA_TAG}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
