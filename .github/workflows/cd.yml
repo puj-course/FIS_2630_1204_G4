@@ -1,4 +1,4 @@
-name: CD - Publicar imágenes en Docker Hub
+name: CD - Publicar y desplegar SignIA
 
 on:
   push:
@@ -8,11 +8,10 @@ on:
 permissions:
   contents: read
 
-# Evita que dos publicaciones de SignIA se ejecuten al mismo tiempo. Ademas, una ejecucion nueva no cancela la que ya esta en curso
 concurrency:
   group: cd-signia
   cancel-in-progress: false
-#nombre de las imagenes
+
 env:
   SIGNIA_TAG: ${{ github.ref_name }}
   IMAGEN_BACKEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-backend
@@ -25,7 +24,6 @@ jobs:
 
   publicar:
     name: Construir y publicar imágenes
-    #Al momento de que termine correctamente el job de pruebas
     needs: pruebas
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -81,3 +79,70 @@ jobs:
             echo "- \`${IMAGEN_BACKEND}:${SIGNIA_TAG}\`"
             echo "- \`${IMAGEN_FRONTEND}:${SIGNIA_TAG}\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  desplegar:
+    name: Desplegar con Docker Compose en WSL
+    needs: publicar
+    runs-on: [self-hosted, linux, signia-wsl]
+    timeout-minutes: 20
+
+    env:
+      COMPOSE_PROJECT_NAME: fis_2630_1204_g4
+      SIGNIA_IMAGEN_BACKEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-backend
+      SIGNIA_IMAGEN_FRONTEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-frontend
+
+    steps:
+      - name: Descargar la versión publicada
+        uses: actions/checkout@v4
+
+      - name: Preparar el archivo de entorno del despliegue
+        env:
+          ARCHIVO_ENTORNO: ${{ vars.SIGNIA_ENV_ARCHIVO }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$ARCHIVO_ENTORNO" ] || [ ! -f "$ARCHIVO_ENTORNO" ]; then
+            echo "::error::No se encontró el archivo de entorno indicado en SIGNIA_ENV_ARCHIVO"
+            exit 1
+          fi
+
+          cp "$ARCHIVO_ENTORNO" .env
+          chmod 600 .env
+
+      - name: Descargar las imágenes de Docker Hub
+        run: docker compose pull backend frontend
+
+      - name: Desplegar la nueva versión
+        run: docker compose up -d --no-build --remove-orphans
+
+      - name: Verificar el backend
+        run: |
+          curl --fail --silent --show-error \
+            --retry 30 --retry-delay 3 --retry-connrefused \
+            http://localhost:8000/health
+
+      - name: Verificar el frontend
+        run: |
+          curl --fail --silent --show-error \
+            --retry 30 --retry-delay 3 --retry-connrefused \
+            http://localhost:5173/ > /dev/null
+
+      - name: Mostrar contenedores y red de Docker Compose
+        run: |
+          docker compose ps
+          echo "Contenedores conectados a signia_red:"
+          docker network inspect signia_red \
+            --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{println}}{{end}}'
+
+      - name: Resumen del despliegue
+        run: |
+          {
+            echo "### Despliegue ${SIGNIA_TAG}"
+            echo "- Backend: \`${SIGNIA_IMAGEN_BACKEND}:${SIGNIA_TAG}\` (healthy)"
+            echo "- Frontend: \`${SIGNIA_IMAGEN_FRONTEND}:${SIGNIA_TAG}\`"
+            echo "- Red: \`signia_red\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Eliminar el archivo de entorno
+        if: always()
+        run: rm -f .env
