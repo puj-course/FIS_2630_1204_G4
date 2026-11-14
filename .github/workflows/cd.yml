@@ -96,13 +96,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Preparar el archivo de entorno del despliegue
-        env:
-          ARCHIVO_ENTORNO: ${{ vars.SIGNIA_ENV_ARCHIVO }}
         run: |
           set -euo pipefail
 
-          if [ -z "$ARCHIVO_ENTORNO" ] || [ ! -f "$ARCHIVO_ENTORNO" ]; then
-            echo "::error::No se encontró el archivo de entorno indicado en SIGNIA_ENV_ARCHIVO"
+          ARCHIVO_ENTORNO="$HOME/signia-deploy/.env"
+
+          if [ ! -f "$ARCHIVO_ENTORNO" ]; then
+            echo "::error::No existe ~/signia-deploy/.env en la máquina del runner"
             exit 1
           fi
 
