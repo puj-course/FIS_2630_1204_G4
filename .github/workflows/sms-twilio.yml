@@ -52,9 +52,11 @@ jobs:
           CI_RESULTADO: ${{ github.event.workflow_run.conclusion }}
           CI_RAMA: ${{ github.event.workflow_run.head_branch }}
           MANUAL: ${{ github.event.inputs.mensaje }}
-        # Texto corto y sin tildes ni emojis: así cabe en un solo segmento
-        # SMS (160 caracteres GSM-7) y cuesta un único mensaje.
+        # La cuenta de prueba de Twilio no permite texto propio: el SMS
+        # se envía con una plantilla predefinida. El detalle del evento
+        # queda en el log de esta ejecución y en Telegram.
         run: |
+          PLANTILLA="sms_event_notifications"
           case "$EVENTO" in
             pull_request)
               TEXTO="SignIA: PR #${PR_NUMERO} mergeado en ${PR_DESTINO} por ${PR_AUTOR}" ;;
