@@ -29,7 +29,7 @@ Trabajamos en sprints de una semana. Cada ceremonia de Scrum quedó registrada c
 | Sprint Planning | 14 |
 | Daily Scrum | 37 |
 | Sprint Review | 10 |
-| Sprint Retrospective | 10 |
+| Sprint Retrospective | 12 |
 
 Cada Sprint Planning tiene la duración del sprint, el Sprint Goal, el Sprint Backlog, los entregables y los criterios de aceptación. Las historias de usuario se escriben con la plantilla de HU y se dividen en sub-issues (tasks) que se asignan a un integrante. El seguimiento se hace en el tablero del proyecto `FIS_2630_1204_G4` en GitHub Projects.
 
