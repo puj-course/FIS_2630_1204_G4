@@ -102,7 +102,7 @@ SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Co
 
 Resumen del postmortem en las cinco categorías que usamos en las retrospectivas del equipo.
 
-![Retrospectiva estrella del postmortem de SignIA](img/postmortem-estrella.png)
+<img width="1920" height="1200" alt="Subtítulo" src="https://github.com/user-attachments/assets/e0deff19-0925-48e7-aa2c-6fa3a9b73f47" />
 
 ## Lecciones aprendidas
 
