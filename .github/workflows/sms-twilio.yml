@@ -107,7 +107,7 @@ jobs:
               --user "${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}" \
               --data-urlencode "From=${TWILIO_FROM}" \
               --data-urlencode "To=${DESTINO}" \
-              --data-urlencode "Body=${TEXTO}" \
+              --data-urlencode "Body=${PLANTILLA}" \
               "$URL")
 
             CODIGO=$(echo "$RESPUESTA" | tail -n1)
