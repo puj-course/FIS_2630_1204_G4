@@ -67,6 +67,7 @@ jobs:
                 TEXTO="SignIA: ${CI_NOMBRE} OK en ${CI_RAMA}"
               else
                 TEXTO="SignIA: FALLO ${CI_NOMBRE} en ${CI_RAMA} (${CI_RESULTADO})"
+                PLANTILLA="sms_internal_alerts"
               fi ;;
             workflow_dispatch)
               TEXTO="SignIA: ${MANUAL}" ;;
