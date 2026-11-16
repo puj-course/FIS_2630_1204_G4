@@ -119,8 +119,3 @@ La cobertura no es pareja entre carpetas. Los servicios (95,3 %) y las rutas (93
 - `app/vision/prototype/main.py` tiene 0 % y aporta 104 de las 258 líneas sin cubrir del proyecto. Es el prototipo inicial que abre la cámara en una ventana con OpenCV y no lo usa la API.
 - `letras_movimiento.py` (22,6 %), `movimientos.py` (44,4 %) y `detector.py` (40 %) dependen de MediaPipe y de imágenes reales de la cámara, que son más difíciles de simular en una prueba.
 
-Sin el prototipo, la cobertura del backend sería del 90,6 % (1.490 de 1.644 líneas) y la de `app/vision` del 77,6 %.
-
-La cobertura tampoco dice si la funcionalidad está disponible en la aplicación. Las rutas de recuperación de contraseña tienen pruebas que pasan, pero `app/main.py` no registra esas rutas y en la aplicación real responden 404. Las pruebas no lo detectaron porque cada una arma su propia aplicación con el router.
-
----
