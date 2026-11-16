@@ -1,270 +1,115 @@
-# API de SignIA - contrato Frontend / Backend
+# API del backend de SignIA
 
-Esto sale de la HU #35 ("Definir el soporte del backend para las vistas iniciales de SignIA"). La idea es dejar claro qué le pide cada vista al backend, para que frontend y backend puedan avanzar en paralelo sin pisarse. No es la implementación real ni el sistema de auth, eso lo dejamos para las HUs que vienen después (abajo detallo qué queda fuera).
+## Descripción general
 
-## 1. Lo que ya hay
+El backend de SignIA está desarrollado con FastAPI y recibe las solicitudes que realiza la plataforma para administrar usuarios, consultar las letras del alfabeto LSC, practicar y guardar resultados. Este documento describe las rutas que aparecen en el código de la rama `develop` revisada, principalmente en `app/main.py` y `app/routes/`. La documentación interactiva de cada esquema se puede consultar en `http://localhost:8000/docs` cuando el servicio está en ejecución.
 
-Antes de inventar nada nuevo, esto es lo que ya corre en el repo:
+Las rutas protegidas reciben un token en la cabecera `Authorization: Bearer <token>`. Los endpoints administrativos requieren que el usuario tenga el rol `administrador`. Las respuestas pueden incluir errores de validación `422`, además de los errores particulares que se indican en cada ruta.
 
-| Método | Ruta      | Qué hace                                                               | Dónde está               |
-| ------ | --------- | ---------------------------------------------------------------------- | ------------------------ |
-| GET    | `/health` | Chequeo de que el backend está vivo                                    | directo en `app/main.py` |
-| GET    | `/letras` | Trae el alfabeto LSC registrado (para la vista de referencia/práctica) | `app/routes/letras.py`   |
+## Estado y autenticación
 
-Todo lo demás en este documento es propuesta, y trato de seguir el mismo estilo que ya usaron en `letras` para no inventar un patrón nuevo a mitad de proyecto.
+| Método | Ruta | Función | Acceso |
+|---|---|---|---|
+| GET | `/health` | Comprueba que el backend responde | Público |
+| POST | `/auth/registro` | Crea una cuenta con rol `usuario` | Público |
+| POST | `/auth/login` | Valida las credenciales y devuelve un JWT | Público |
+| GET | `/auth/me` | Consulta los datos de la cuenta autenticada | Autenticado |
+| POST | `/auth/logout` | Revoca el token utilizado en la sesión | Autenticado |
+| POST | `/auth/recuperar-contrasena` | Solicita la recuperación de contraseña por correo | Público |
+| POST | `/auth/restablecer-contrasena` | Restablece la contraseña con un token de recuperación | Público |
 
-## 2. Qué necesita cada vista
+Las dos rutas de recuperación se incorporan desde `app/routes/autenticacion.py` mediante los routers de recuperación y restablecimiento, de manera que también reciben el prefijo `/auth`.
 
-- Inicio: nada obligatorio, es básicamente estática. A futuro capaz conviene saber si hay sesión activa para cambiar el botón de "Iniciar sesión" por "Ir a práctica", pero eso no es parte de esta HU.
-- Registro: crear una cuenta, con `POST /auth/registro`.
-- Login: validar credenciales y devolver algo de sesión, con `POST /auth/login`.
-- Perfil: ver y editar los datos del usuario logueado. `GET /perfil` y `PUT /perfil`.
-- Práctica: consultar el alfabeto (ya existe con `/letras`) y guardar el resultado de cada intento. Para eso, `POST /practica/sesiones` y `GET /practica/progreso`.
+En el inicio de sesión se envían `correo` y `contrasena`. Cuando las credenciales son correctas, la respuesta contiene `access_token`, `token_type` y los datos básicos del usuario. El login tiene un límite de cinco solicitudes por minuto mediante SlowAPI, además del control de intentos fallidos y bloqueo temporal de cuentas que realiza el servicio de autenticación.
 
-## 3. Endpoints propuestos
+Para registrarse se envían `nombre`, `correo` y `contrasena`, cuya longitud admitida en el esquema es de 12 a 200 caracteres. El correo no puede repetirse. La recuperación de contraseña requiere una configuración válida del servicio de correo para procesar solicitudes.
 
-### 3.1 Auth (`app/routes/auth.py`)
+## Usuarios y administración
 
-#### `POST /auth/registro`
+| Método | Ruta | Función |
+|---|---|---|
+| POST | `/usuarios` | Registra usuarios con el rol indicado |
+| GET | `/usuarios` | Lista usuarios; admite el parámetro opcional `buscar` |
+| PATCH | `/usuarios/{id_usuario}/rol` | Cambia el rol de una cuenta |
+| PATCH | `/usuarios/{id_usuario}/desactivar` | Desactiva una cuenta |
+| PATCH | `/usuarios/{id_usuario}/reactivar` | Reactiva una cuenta |
+| GET | `/usuarios/{id_usuario}/progreso` | Consulta el resumen de progreso de un usuario |
 
-Crea el usuario. Request (`RegistroSolicitud`):
+Estas seis rutas requieren permisos de administrador. El backend también impide que el administrador cambie su propio rol o desactive su propia cuenta mediante las rutas correspondientes.
 
-```json
-{
-  "nombre": "Oscar Martínez",
-  "correo": "oscar@example.com",
-  "contrasena": "algo-seguro-123"
-}
-```
+## Alfabeto LSC y perfil
 
-Responde 201 con `UsuarioRespuesta`:
+| Método | Ruta | Función | Acceso |
+|---|---|---|---|
+| GET | `/letras` | Lista letras registradas y activas | Público |
+| GET | `/letras/{id_letra}` | Obtiene una letra por identificador | Público |
+| PATCH | `/letras/{id_letra}` | Actualiza la descripción o la ruta de imagen | Administrador |
+| GET | `/perfil` | Devuelve los datos del usuario y un resumen de su progreso | Autenticado |
 
-```json
-{
-  "id_usuario": 1,
-  "nombre": "Oscar Martínez",
-  "correo": "oscar@example.com",
-  "fecha_registro": "2026-08-27T10:00:00"
-}
-```
+`GET /perfil` devuelve los datos de la cuenta y un objeto `progreso`, con totales de letras, intentos, aciertos y el porcentaje de avance. Las imágenes del alfabeto se sirven mediante la ruta estática `/assets` configurada en `app/main.py`.
 
-409 si el correo ya existe, 500 si se cae la base de datos (mismo patrón que ya usa `letras.py`, no hay que reinventar nada acá).
+## Sesiones, resultados e intentos
 
-#### `POST /auth/login`
+| Método | Ruta | Función |
+|---|---|---|
+| GET | `/sesiones` | Consulta las sesiones del usuario |
+| POST | `/sesiones` | Inicia una sesión de reconocimiento |
+| PATCH | `/sesiones/{id_sesion}/finalizar` | Finaliza una sesión propia |
+| POST | `/resultados` | Registra un resultado dentro de una sesión activa |
+| GET | `/resultados/sesion/{id_sesion}` | Consulta los resultados de una sesión propia |
+| GET | `/intentos` | Consulta los intentos del usuario |
+| GET | `/historial` | Consulta las sesiones con sus resultados |
 
-Request (`LoginSolicitud`):
+Estas rutas requieren autenticación. La consulta de intentos permite filtrar por `id_letra` y `id_sesion`, ambos opcionales y positivos. El historial devuelve sesiones activas, finalizadas y canceladas, incluso si todavía no tienen resultados.
 
-```json
-{
-  "correo": "oscar@example.com",
-  "contrasena": "algo-seguro-123"
-}
-```
-
-Responde 200 con `LoginRespuesta`:
-
-```json
-{
-  "token": "jwt-o-similar",
-  "usuario": {
-    "id_usuario": 1,
-    "nombre": "Oscar Martínez",
-    "correo": "oscar@example.com"
-  }
-}
-```
-
-401 si las credenciales no coinciden.
-
-Ojo: lo de JWT es una recomendación nomás, todavía no está decidido en firme. Es lo que más se usa con FastAPI y evita tener que guardar sesiones en el server, pero la implementación real (hash de la contraseña con `passlib`/`bcrypt`, armar y validar el token) queda para más adelante.
-
-### 3.2 Perfil (`app/routes/perfil.py`)
-
-#### `GET /perfil`
-
-Requiere estar logueado. Devuelve (`PerfilRespuesta`):
+Para `POST /resultados`, la petición incluye los campos siguientes:
 
 ```json
 {
-  "id_usuario": 1,
-  "nombre": "Oscar Martínez",
-  "correo": "oscar@example.com",
-  "fecha_registro": "2026-08-27T10:00:00",
-  "letras_practicadas": 12,
-  "porcentaje_acierto": 78.5
+  "id_sesion": 1,
+  "id_letra_objetivo": 1,
+  "id_letra_detectada": 1,
+  "confianza": 0.9
 }
 ```
 
-#### `PUT /perfil`
+Este ejemplo utiliza identificadores ilustrativos que deben existir en la base de datos. El servicio comprueba que la sesión esté activa, pertenezca al usuario y que ambas letras estén registradas. Calcula si la respuesta fue correcta, guarda resultado e intento en una misma transacción y, cuando corresponde, solicita la evaluación automática del aprendizaje.
 
-Actualiza lo que se pueda editar. Request (`PerfilActualizacionSolicitud`):
+## Registro y consulta de reconocimiento
 
-```json
-{
-  "nombre": "Oscar Eduardo Martínez"
-}
+Además del flujo por sesiones, el proyecto conserva estas rutas:
+
+| Método | Ruta | Función |
+|---|---|---|
+| GET | `/resultados-reconocimiento` | Consulta los resultados de reconocimiento del usuario |
+| POST | `/resultados-reconocimiento` | Crea una sesión finalizada y registra un resultado |
+| DELETE | `/resultados-reconocimiento` | Elimina los resultados de reconocimiento del usuario |
+
+La petición de `POST /resultados-reconocimiento` contiene `id_letra_objetivo`, `letra_detectada` y `confianza`. **Estos endpoints y los de `/resultados` tienen flujos distintos.** En el código revisado, la integración que guarda el intento y evalúa el aprendizaje se encuentra en `app/services/resultados_service.py`, utilizado por `POST /resultados`. No se debe asumir que las dos rutas registran exactamente la misma información.
+
+## Progreso y aprendizaje
+
+| Método | Ruta | Función |
+|---|---|---|
+| POST | `/progreso` | Marca una letra como aprendida para el usuario |
+| GET | `/progreso` | Consulta el progreso registrado |
+| GET | `/progreso/letras` | Consulta el estado de todas las letras activas |
+| PATCH | `/progreso/{id_letra}` | Actualiza el estado de aprendizaje de una letra |
+
+Todas requieren autenticación. En `POST /progreso` se envía `{"id_letra": 1}`. En la actualización del estado se envía `{"dominada": true}` o `{"dominada": false}`. El aprendizaje automático por aciertos del flujo de resultados se documenta con mayor detalle en [aprendizaje-por-intentos.md](aprendizaje-por-intentos.md).
+
+## Reconocimiento visual
+
+El endpoint `POST /vision/reconocer` recibe una imagen JPEG o PNG en Base64 y responde con la letra encontrada, o `null` cuando no se identifica ninguna. Permite los modos `estatica` y `movimiento`, y admite un `id_secuencia` opcional para relacionar fotogramas. Su contrato y los límites de entrada se detallan en [endpoint-vision.md](endpoint-vision.md).
+
+## Códigos de respuesta y comprobación
+
+Según la operación, el backend utiliza respuestas como `200` (consulta correcta), `201` (registro creado), `202` (solicitud de recuperación aceptada), `204` (cierre de sesión), `400` (entrada incorrecta), `401` (autenticación inválida), `403` (sin permisos), `404` (recurso inexistente), `409` (conflicto), `422` (validación), `423` (cuenta bloqueada), `429` (límite de solicitudes), `500` (error interno) y `503` (recuperación no disponible).
+
+Se puede comprobar el estado del servicio con:
+
+```bash
+curl http://localhost:8000/health
 ```
 
-Responde 200 con el mismo esquema de `GET /perfil`. 401 si no hay sesión válida.
-
-### 3.3 Práctica (`app/routes/practica.py`)
-
-#### `POST /practica/sesiones`
-
-Guarda el resultado de un intento sobre una letra puntual. Request (`PracticaSolicitud`):
-
-```json
-{
-  "id_letra": 3,
-  "acierto": true
-}
-```
-
-Responde 201 (`PracticaRespuesta`):
-
-```json
-{
-  "id_sesion": 45,
-  "id_letra": 3,
-  "acierto": true,
-  "fecha": "2026-08-27T10:15:00"
-}
-```
-
-#### `GET /practica/progreso`
-
-Resumen de progreso del usuario logueado, letra por letra (`ProgresoRespuesta`, lista):
-
-```json
-[
-  {
-    "id_letra": 3,
-    "letra": "C",
-    "intentos": 8,
-    "aciertos": 6
-  }
-]
-```
-
-401 si no hay sesión, 500 siguiendo el mismo patrón que `letras_service.py`.
-
-## 4. Esquemas Pydantic
-
-Copiando el estilo de `src/schemas/letra.py`:
-
-```python
-# src/schemas/usuario.py
-from datetime import datetime
-from pydantic import BaseModel
-
-
-class RegistroSolicitud(BaseModel):
-    nombre: str
-    correo: str
-    contrasena: str
-
-
-class LoginSolicitud(BaseModel):
-    correo: str
-    contrasena: str
-
-
-class UsuarioRespuesta(BaseModel):
-    id_usuario: int
-    nombre: str
-    correo: str
-    fecha_registro: datetime
-
-
-class LoginRespuesta(BaseModel):
-    token: str
-    usuario: UsuarioRespuesta
-
-
-class PerfilRespuesta(UsuarioRespuesta):
-    letras_practicadas: int
-    porcentaje_acierto: float
-
-
-class PerfilActualizacionSolicitud(BaseModel):
-    nombre: str | None = None
-```
-
-```python
-# src/schemas/practica.py
-from datetime import datetime
-from pydantic import BaseModel
-
-
-class PracticaSolicitud(BaseModel):
-    id_letra: int
-    acierto: bool
-
-
-class PracticaRespuesta(BaseModel):
-    id_sesion: int
-    id_letra: int
-    acierto: bool
-    fecha: datetime
-
-
-class ProgresoRespuesta(BaseModel):
-    id_letra: int
-    letra: str
-    intentos: int
-    aciertos: int
-```
-
-## 5. Cómo quedarían organizadas las rutas
-
-Mismo patrón que ya tiene `letras`: router, luego service, luego `conf/database.py`. Sin capa de `controllers/` por ahora; si en algún momento crece mucho la lógica se puede meter después.
-
-```
-app/
-├── main.py                      # acá se registran los routers nuevos
-├── routes/
-│   ├── letras.py                # ya existe
-│   ├── auth.py                  # nuevo, /auth/registro y /auth/login
-│   ├── perfil.py                # nuevo, GET/PUT /perfil
-│   └── practica.py              # nuevo, /practica/sesiones y /practica/progreso
-└── services/
-    ├── letras_service.py        # ya existe
-    ├── auth_service.py          # nuevo
-    ├── perfil_service.py        # nuevo
-    └── practica_service.py      # nuevo
-
-src/schemas/
-├── letra.py                     # ya existe
-├── usuario.py                   # nuevo
-└── practica.py                  # nuevo
-```
-
-Y en `app/main.py` solo hay que agregar:
-
-```python
-from app.routes.auth import router as auth_router
-from app.routes.perfil import router as perfil_router
-from app.routes.practica import router as practica_router
-
-app.include_router(auth_router)
-app.include_router(perfil_router)
-app.include_router(practica_router)
-```
-
-## 6. Tablas que van a hacer falta (solo como referencia)
-
-Para que todo esto funcione en serio se van a necesitar tablas `usuarios` y `sesiones_practica`. El diseño del esquema no es parte de esta HU, lo menciono nada más para que quien implemente `auth_service.py` / `practica_service.py` sepa que primero tiene que resolver eso.
-
-## 7. Qué queda fuera de esta HU
-
-No es que se nos haya olvidado, es que decidimos dejarlo para después:
-
-- La implementación real de los endpoints (eso va en las HUs de implementación, ligado a los issues de vistas #52-#55).
-- Decidir JWT vs. sesiones en serio, acá solo dejamos la recomendación.
-- Hashing y validación de contraseñas.
-- El diseño detallado de las tablas.
-- Reconocimiento por cámara / MediaPipe, que es el issue #58 y va por separado.
-
-## 8. Config
-
-El backend ya lee `DATABASE_URL` desde un `.env` (revisar `conf/database.py` y `.env.example`). No hace falta ninguna variable nueva para lo que está en este documento. Cuando se meta JWT sí va a hacer falta agregar algo como `JWT_SECRET` en ese mismo `.env`.
+Para probar las rutas protegidas y ver los esquemas completos, se recomienda utilizar la documentación de FastAPI en `/docs`, con credenciales de prueba.

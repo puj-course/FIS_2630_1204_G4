@@ -1,5 +1,9 @@
 # Aprendizaje de letras mediante intentos exitosos
 
+## Alcance de la implementación
+
+Este documento describe la evaluación automática que realiza el flujo de `POST /resultados`. El proyecto conserva otra ruta, `POST /resultados-reconocimiento`, cuyo servicio tiene un recorrido distinto y no se debe asumir que aplica automáticamente esta misma evaluación.
+
 ## Historia de usuario
 
 HU #37 — Determinar letras aprendidas mediante cantidad de intentos exitosos.
@@ -49,7 +53,7 @@ prioridad sobre el valor del archivo .env.
 
 ## Flujo automático
 
-1. El servicio de resultados valida la sesión, su propietario y las letras.
+1. El servicio de `POST /resultados` valida la sesión, su propietario y las letras.
 2. Guarda el resultado y su intento dentro de la misma transacción.
 3. Confirma esa transacción.
 4. Si el resultado es correcto, solicita la evaluación del aprendizaje.

@@ -1,239 +1,47 @@
-# Funcionalidades implementadas del Backend
+# Funcionalidades del backend de SignIA
 
 ## Descripción general
 
-El backend contiene los servicios necesarios para gestionar
-usuarios, autenticación, información del alfabeto LSC, recuperación de
-contraseña, perfil de usuario y procesamiento de información relacionada
-con visión computacional.
+El backend de SignIA administra la información de los usuarios, el alfabeto de la Lengua de Señas Colombiana, las sesiones de práctica y el progreso de aprendizaje. También recibe las imágenes enviadas para reconocimiento visual y conserva los resultados que se registran durante las prácticas. Las funcionalidades descritas corresponden a los archivos presentes en la rama `develop` revisada.
 
-La arquitectura utiliza una separación entre rutas y servicios, donde
-las rutas reciben las solicitudes HTTP y delegan la lógica de negocio a
-los servicios correspondientes.
+## Autenticación y cuentas
 
-------------------------------------------------------------------------
+Las rutas de `app/routes/autenticacion.py` permiten el autorregistro de usuarios, el inicio de sesión, la consulta de la cuenta autenticada y el cierre de sesión. El acceso se controla con tokens JWT, y el cierre de sesión guarda la revocación correspondiente. El proceso de inicio de sesión aplica un límite de solicitudes por IP y contempla el bloqueo temporal de una cuenta después de intentos fallidos.
 
-# Autenticación
+También se encuentran implementadas las solicitudes de recuperación y restablecimiento de contraseña. El sistema genera solicitudes temporales, utiliza un token para el enlace de recuperación y administra el envío por correo desde los servicios correspondientes. Para utilizar ese flujo se requiere configurar el método de envío.
 
-## Inicio de sesión
+## Administración de usuarios
 
-Endpoint:
+Los administradores pueden registrar usuarios con un rol, consultar el listado, buscar cuentas, cambiar roles, desactivar usuarios y reactivarlos. También pueden consultar el resumen de progreso de una cuenta. Estas acciones se encuentran en `app/routes/usuarios.py` y requieren la validación del rol administrativo.
 
-POST /auth/login
+## Letras y perfil
 
-Permite que un usuario registrado pueda iniciar sesión utilizando su
-correo y contraseña.
+El módulo de letras permite consultar el alfabeto registrado, obtener la información de una letra y actualizar su descripción o ruta de imagen cuando quien realiza el cambio es un administrador. El backend también publica los recursos de imágenes mediante `/assets`.
 
-Proceso:
+Cada usuario autenticado puede consultar su perfil, que reúne nombre, correo, rol y un resumen de aprendizaje. Ese resumen permite conocer el número de letras trabajadas, las aprendidas y el porcentaje de progreso.
 
-1.  Recibe las credenciales del usuario.
-2.  Valida la información mediante el servicio de autenticación.
-3.  Genera un token JWT si las credenciales son correctas.
-4.  Retorna el token y la información básica del usuario.
+## Sesiones de reconocimiento e historial
 
-------------------------------------------------------------------------
+El sistema permite iniciar sesiones, consultar las sesiones propias y finalizarlas. Para registrar resultados en una sesión activa, se verifica que la sesión pertenezca al usuario y que las letras indicadas existan. Después se guarda la respuesta y se calcula si coincide con la letra objetivo. También están disponibles las consultas de resultados por sesión, de intentos con filtros y del historial de reconocimiento del usuario.
 
-## Registro de usuarios
+El proyecto conserva un segundo grupo de rutas bajo `/resultados-reconocimiento`, que permite registrar un resultado creando una sesión finalizada, consultar los resultados propios y eliminarlos. Este flujo debe distinguirse del registro de resultados en una sesión activa, porque su implementación es diferente.
 
-Endpoint:
+## Aprendizaje y progreso
 
-POST /auth/registro
+El backend guarda el estado de las letras del usuario y permite consultar o modificar el progreso. En el flujo de `POST /resultados`, cada registro correcto también genera un intento y desencadena la evaluación del aprendizaje. La regla predeterminada requiere tres aciertos acumulados para una letra, aunque puede configurarse por medio de `APRENDIZAJE_MIN_ACIERTOS`.
 
-Permite que un usuario pueda registrarse en el sistema.
+Los aciertos se consultan por usuario y letra, incluso cuando corresponden a distintas sesiones. El servicio marca la letra como aprendida cuando se alcanza el mínimo, sin duplicar el registro. La lógica se encuentra en `app/services/aprendizaje_service.py` y `app/repositories/aprendizaje_repository.py`.
 
-Características:
+## Reconocimiento visual
 
--   Crea usuarios con rol usuario.
--   Valida que el correo no esté registrado.
--   Retorna la información del usuario creado.
+La ruta `POST /vision/reconocer` recibe una imagen codificada en Base64. El servicio comprueba su tamaño y formato, utiliza OpenCV para decodificarla y delega en el módulo de visión la detección de la mano y el reconocimiento. Existen dos modalidades: una para letras estáticas y otra para letras que requieren movimiento, esta última utiliza una secuencia de fotogramas cuando se proporciona su identificador.
 
-------------------------------------------------------------------------
+La detección se administra mediante un gestor compartido de detectores y el reconocimiento selecciona una estrategia según el modo solicitado. El código también mide y registra el tiempo de algunas operaciones de reconocimiento. La respuesta informa la letra encontrada o indica que no pudo reconocerse una letra.
 
-## Consulta de usuario autenticado
+## Seguridad y organización del código
 
-Endpoint:
+La autenticación utiliza JWT y contraseñas almacenadas mediante hash. Las rutas revisan el usuario autenticado y aplican permisos cuando corresponde. El proyecto separa sus endpoints en `app/routes/`, la lógica de las operaciones en `app/services/`, los esquemas de entrada y salida en `src/schemas/` y la conexión con PostgreSQL en `conf/database.py`.
 
-GET /auth/me
+## Verificación
 
-Permite consultar la información del usuario actualmente autenticado
-mediante un token JWT válido.
-
-------------------------------------------------------------------------
-
-# Gestión de usuarios
-
-## Registro administrativo de usuarios
-
-Endpoint:
-
-POST /usuarios
-
-Permite a un administrador registrar nuevos usuarios dentro del sistema.
-
-Características:
-
--   Requiere permisos administrativos.
--   Permite definir el rol del usuario.
--   Valida correos existentes.
-
-------------------------------------------------------------------------
-
-# Módulo de letras LSC
-
-El módulo de letras permite gestionar la información almacenada del
-alfabeto de Lengua de Señas Colombiana.
-
-------------------------------------------------------------------------
-
-## Consultar letras registradas
-
-Endpoint:
-
-GET /letras
-
-Obtiene todas las letras disponibles en la base de datos.
-
-La respuesta incluye información como:
-
--   Identificador de la letra.
--   Letra.
--   Descripción.
--   Información visual asociada.
-
-------------------------------------------------------------------------
-
-## Consultar una letra específica
-
-Endpoint:
-
-GET /letras/{id_letra}
-
-Permite consultar la información de una letra específica mediante su
-identificador.
-
-------------------------------------------------------------------------
-
-## Actualizar información de una letra
-
-Endpoint:
-
-PATCH /letras/{id_letra}
-
-Permite actualizar información de una letra.
-
-Características:
-
--   Disponible únicamente para administradores.
--   Permite actualizar campos específicos.
--   Valida que exista información para modificar.
-
-------------------------------------------------------------------------
-
-# Perfil de usuario
-
-## Consulta de perfil
-
-Endpoint:
-
-GET /perfil
-
-Permite consultar la información personal y progreso del usuario
-autenticado.
-
-Incluye:
-
--   Identificador del usuario.
--   Nombre.
--   Correo.
--   Rol.
--   Progreso dentro del sistema.
-
-------------------------------------------------------------------------
-
-# Recuperación de contraseña
-
-El sistema cuenta con un flujo de recuperación de contraseña mediante
-correo electrónico.
-
-------------------------------------------------------------------------
-
-## Solicitar recuperación
-
-Endpoint:
-
-POST /recuperar-contrasena
-
-Permite solicitar instrucciones para recuperar una contraseña.
-
-Proceso:
-
-1.  El usuario envía su correo.
-2.  Se genera una solicitud de recuperación.
-3.  Se crea un token temporal.
-4.  Se envían instrucciones mediante correo electrónico.
-
-Características:
-
--   La respuesta no revela si el correo existe por motivos de seguridad.
--   Las solicitudes tienen tiempo de expiración.
--   Se evita generar múltiples solicitudes en poco tiempo.
-
-------------------------------------------------------------------------
-
-# Restablecimiento de contraseña
-
-Endpoint:
-
-POST /restablecer-contrasena
-
-Permite establecer una nueva contraseña utilizando un token válido.
-
-Características:
-
--   Valida la vigencia del token.
--   Verifica la confirmación de contraseña.
--   Actualiza la contraseña almacenada.
--   Informa cuando la actualización fue exitosa.
-
-------------------------------------------------------------------------
-
-# Seguridad
-
-El backend implementa mecanismos de seguridad para proteger información
-sensible.
-
-Incluye:
-
--   Autenticación mediante JWT.
--   Validación de usuarios autenticados.
--   Control de permisos administrativos.
--   Manejo seguro de tokens de recuperación.
-
-------------------------------------------------------------------------
-
-# Procesamiento visual
-
-El backend cuenta con un módulo de visión computacional integrado
-mediante servicios.
-
-Sus responsabilidades incluyen:
-
--   Comunicación con el módulo visual.
--   Procesamiento de solicitudes relacionadas con reconocimiento.
--   Separación entre lógica visual y endpoints.
-
-Tecnologías utilizadas:
-
--   OpenCV.
--   MediaPipe.
-
-------------------------------------------------------------------------
-
-# Funcionalidades pendientes
-
-Actualmente algunas funcionalidades continúan en desarrollo:
-
--   Integración completa del reconocimiento visual con la interfaz del
-    usuario.
--   Ampliación del reconocimiento del alfabeto LSC.
--   Nuevas funcionalidades relacionadas con progreso y aprendizaje.
+La API publica su documentación en `http://localhost:8000/docs`. Las pruebas automatizadas del backend están en `src/tests/` y el workflow `backend-ci.yml` ejecuta Ruff y pytest con cobertura. Los endpoints exactos se pueden consultar en [api.md](api.md), y el funcionamiento del reconocimiento en [endpoint-vision.md](endpoint-vision.md).
