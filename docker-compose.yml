@@ -1,4 +1,3 @@
-
 services:
     postgres:
         image: postgres:16
@@ -19,8 +18,11 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+        networks:
+            - signia_red
 
     backend:
+        image: ${SIGNIA_IMAGEN_BACKEND:-signia-backend}:${SIGNIA_TAG:-dev}
         build:
             context: .
             dockerfile: Dockerfile
@@ -38,8 +40,11 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+        networks:
+            - signia_red
 
     frontend:
+        image: ${SIGNIA_IMAGEN_FRONTEND:-signia-frontend}:${SIGNIA_TAG:-dev}
         build:
             context: ./src/front
             dockerfile: Dockerfile
@@ -53,6 +58,13 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+        networks:
+            - signia_red
+
+networks:
+    signia_red:
+        name: signia_red
+        driver: bridge
 
 volumes:
     postgres_data:
