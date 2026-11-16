@@ -95,6 +95,12 @@ SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Co
 
 ---
 
+## Retrospectiva estrella
+
+Resumen del postmortem en las cinco categorías que usamos en las retrospectivas del equipo.
+
+![Retrospectiva estrella del postmortem de SignIA](img/postmortem-estrella.png)
+
 ## Lecciones aprendidas
 
 - Cuando una tarea tenía responsable y fecha se cerraba en el sprint. Las que no tenían responsable, como #498, pasaron de un sprint a otro.
