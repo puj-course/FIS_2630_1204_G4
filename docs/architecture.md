@@ -11,244 +11,66 @@ Esta separación permite mantener el código organizado y facilitar la incorpora
 
 ------------------------------------------------------------------------
 
-# Estructura del backend
+## Estructura principal
 
-``` text
+```text
 app/
 ├── main.py
 ├── security.py
+├── limiter.py
 ├── routes/
 ├── services/
+├── repositories/
 └── vision/
-
 conf/
-└── database.py
-
+├── config.py
+├── database.py
+└── logging_config.py
 src/
-└── schemas/
-
+├── schemas/
+└── tests/
 database/
 ├── schema.sql
 ├── seed.sql
-└── README.md
+└── migrations/
 ```
 
-------------------------------------------------------------------------
+`app/main.py` crea la aplicación FastAPI, registra los routers, configura CORS y el control de solicitudes, publica los recursos de `/assets` y libera los detectores al cerrar el servidor. También expone `GET /health` para comprobar que el backend responde.
 
-# Componentes principales
+## Rutas y servicios
 
-## app/
+Los archivos de `app/routes/` definen las entradas de la API. En la versión revisada están presentes las rutas de autenticación, usuarios, letras, perfil, visión, sesiones, resultados, resultados de reconocimiento, intentos, progreso e historial. Los routers de recuperación y restablecimiento de contraseña se incluyen desde el router de autenticación.
 
-Contiene la implementación principal del backend y la lógica necesaria
-para el funcionamiento de la API.
+La lógica principal se ubica en `app/services/`. Allí se encuentran los servicios de usuarios, autenticación, recuperación de contraseña, letras, perfil, visión, sesiones, resultados, intentos, historial, progreso y aprendizaje. Por ejemplo, `resultados_service.py` comprueba la sesión y registra el resultado y el intento, mientras que `aprendizaje_service.py` evalúa si el usuario alcanzó el mínimo de aciertos.
 
-## main.py
+La carpeta `app/repositories/` contiene el repositorio utilizado para contar aciertos y registrar aprendizajes. Otras consultas SQL se realizan actualmente desde servicios del backend con ayuda de `conf/database.py`, por lo que no debe describirse toda la persistencia como si estuviera implementada en repositorios independientes.
 
-Archivo principal de ejecución del backend.
+## Esquemas, configuración y base de datos
 
-Responsabilidades:
+Los esquemas de `src/schemas/` validan los datos recibidos y las respuestas de los endpoints. Incluyen modelos de autenticación, usuarios, letras, visión, sesiones, resultados, progreso, intentos e historial.
 
--   Crear la aplicación FastAPI.
--   Registrar las rutas disponibles.
--   Configurar elementos generales del sistema.
+La conexión con PostgreSQL se realiza mediante Psycopg en `conf/database.py` y utiliza `DATABASE_URL`. `conf/config.py` consulta la configuración del mínimo de aciertos, mientras que `conf/logging_config.py` organiza los registros de la aplicación. Las tablas, sus restricciones y las migraciones se encuentran en `database/`. Para ver el detalle puede consultarse [database.md](database.md).
 
-------------------------------------------------------------------------
+## Reconocimiento visual
 
-# Routes
+El flujo comienza en `app/routes/vision.py`, continúa en `app/services/vision_service.py` y llega a `app/vision/`. Primero se valida y decodifica la imagen con OpenCV, después se utiliza el detector de mano y finalmente se selecciona el reconocimiento estático o el reconocimiento con movimiento. El modo estático revisa las consonantes y, cuando no encuentra una coincidencia, las vocales. El modo con movimiento utiliza el historial de fotogramas de la secuencia enviada.
 
-Ubicación:
+Dentro del módulo se encuentran `detector.py`, `gestor_detectores.py`, `reconocimiento.py`, `estrategia_reconocimiento.py`, `letras_estaticas.py`, `letras_movimiento.py`, `vocales.py` y `decoradores_reconocimiento.py`. El directorio `models/` contiene el modelo utilizado por el detector.
 
-app/routes/
+## Organización mediante patrones
 
-Contiene los endpoints disponibles para la comunicación con el cliente.
+En el backend pueden identificarse las siguientes decisiones de diseño:
 
-Las rutas reciben solicitudes HTTP, validan la información recibida y
-delegan el procesamiento a los servicios correspondientes.
+- **Strategy:** `ReconocimientoEstatico` y `ReconocimientoMovimiento` comparten el contrato de `EstrategiaReconocimiento`.
+- **Singleton:** `GestorDetectoresCompartido` administra y reutiliza los detectores dentro de un proceso de la aplicación.
+- **Decorator:** `DecoradorMedicionTiempo` envuelve el reconocimiento para registrar su duración.
+- **Chain of Responsibility:** `cadena_autenticacion.py` divide la comprobación del usuario, el bloqueo y la contraseña en varios manejadores.
+- **Facade:** `FachadaRecuperacionContrasena` reúne operaciones relacionadas con el flujo de recuperación de contraseña.
 
-## autenticacion.py
+Los patrones Facade y Observer utilizados en algunos componentes React pertenecen al frontend y no se incluyen aquí como implementación del backend.
 
-Gestiona los procesos relacionados con autenticación:
+## Seguridad y ejecución
 
--   Registro de usuarios.
--   Inicio de sesión.
--   Generación de tokens.
+`app/security.py` se encarga de crear y verificar tokens JWT, consultar el usuario autenticado, exigir permisos administrativos y gestionar tokens revocados. La ruta de login utiliza un límite de solicitudes definido con SlowAPI. El servidor se inicia con `uvicorn app.main:app`, y cuando se ejecuta mediante Docker Compose trabaja junto al frontend y PostgreSQL.
 
-## usuarios.py
-
-Contiene operaciones relacionadas con la gestión de usuarios.
-
-## letras.py
-
-Gestiona el módulo del alfabeto LSC:
-
--   Consulta de letras registradas.
--   Consulta de información específica.
--   Actualización de información.
-
-## perfil.py
-
-Gestiona la información del perfil del usuario y su progreso.
-
-## recuperacion_contrasena.py
-
-Controla la solicitud de recuperación de contraseña.
-
-## restablecimiento_contrasena.py
-
-Permite establecer una nueva contraseña después de validar la solicitud
-de recuperación.
-
-------------------------------------------------------------------------
-
-# Services
-
-Ubicación:
-
-app/services/
-
-Contiene la lógica de negocio del sistema.
-
-Las rutas utilizan estos servicios para realizar operaciones y evitar
-incluir lógica directamente dentro de los endpoints.
-
-## autenticacion_service.py
-
-Implementa la lógica relacionada con autenticación y validación de
-usuarios.
-
-## usuarios_service.py
-
-Contiene operaciones relacionadas con usuarios y persistencia.
-
-## letras_service.py
-
-Gestiona la consulta y actualización de información del alfabeto LSC.
-
-## perfil_service.py
-
-Gestiona la información del perfil y progreso del usuario.
-
-## recuperacion_service.py
-
-Maneja la creación de solicitudes de recuperación de contraseña.
-
-## restablecimiento_service.py
-
-Realiza la actualización de contraseña después de validar el token de
-recuperación.
-
-## correo_recuperacion_service.py
-
-Gestiona el envío de correos utilizados en el proceso de recuperación.
-
-## microsoft_oauth_service.py
-
-Gestiona la autenticación requerida para utilizar Microsoft Graph.
-
-## vision_service.py
-
-Permite utilizar el módulo de computación visual desde la arquitectura
-del backend.
-
-Este servicio actúa como intermediario entre la API y el módulo de
-visión.
-
-------------------------------------------------------------------------
-
-# Módulo de visión
-
-Ubicación:
-
-app/vision/
-
-Contiene la lógica relacionada con procesamiento y reconocimiento
-mediante visión computacional.
-
-## detector.py
-
-Gestiona la detección de manos utilizando MediaPipe.
-
-## reconocimiento.py
-
-Contiene la lógica encargada del reconocimiento visual.
-
-## vocales.py
-
-Implementa las reglas utilizadas para identificar posiciones
-correspondientes a vocales en Lengua de Señas Colombiana.
-
-## models/
-
-Contiene los modelos utilizados por MediaPipe.
-
-Actualmente contiene:
-
-hand_landmarker.task
-
-## prototype/
-
-Contiene el prototipo inicial de ejecución mediante cámara.
-
-------------------------------------------------------------------------
-
-# Schemas
-
-Ubicación:
-
-src/schemas/
-
-Contiene los modelos de validación utilizados por la API mediante
-Pydantic.
-
-Responsabilidades:
-
--   Definir estructuras de entrada.
--   Validar datos recibidos.
--   Definir estructuras de respuesta.
-
-------------------------------------------------------------------------
-
-# Configuración
-
-Ubicación:
-
-conf/
-
-Contiene archivos relacionados con configuración del backend.
-
-Actualmente incluye:
-
-database.py
-
-Este archivo administra la conexión con la base de datos PostgreSQL.
-
-------------------------------------------------------------------------
-
-# Base de datos
-
-Ubicación:
-
-database/
-
-Contiene archivos relacionados con la estructura inicial de la base de
-datos.
-
-Incluye:
-
--   Definición de tablas.
--   Datos iniciales.
--   Documentación del esquema.
-
-------------------------------------------------------------------------
-
-# Seguridad
-
-Archivo:
-
-app/security.py
-
-Contiene funcionalidades relacionadas con seguridad del sistema:
-
--   Creación de tokens JWT.
--   Validación de usuarios autenticados.
--   Control de permisos administrativos.
+La estructura completa de endpoints se encuentra en [api.md](api.md) y los pasos para ejecutar el backend en [installation_backend.md](installation_backend.md).
