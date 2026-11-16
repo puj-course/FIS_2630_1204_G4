@@ -10,13 +10,13 @@ No se cuentan los commits ni los pull requests de los monitores del curso, porqu
 
 ## Equipo y roles
 
-| Integrante | Rol en Scrum | Usuario de GitHub |
-|---|---|---|
-| Isabel Gutiérrez | Scrum Master | `Isabelsgp` |
-| Juan Diego Arévalo | Product Owner y QA Lead | `Juan123839` |
-| Juan Pablo Vanegas | Sprint Planner | `juanpvanegasvelandia02-ship-it` |
-| David Vallejo | Configuration Manager | `David-wallpaper` |
-| Óscar Martínez Mantilla | DevOps Engineer | `martinezm-oe` |
+| Integrante                | Rol en Scrum            | Usuario de GitHub                  |
+| ------------------------- | ----------------------- | ---------------------------------- |
+| Isabel Gutiérrez         | Scrum Master            | `Isabelsgp`                      |
+| Juan Diego Arévalo       | Product Owner y QA Lead | `Juan123839`                     |
+| Juan Pablo Vanegas        | Sprint Planner          | `juanpvanegasvelandia02-ship-it` |
+| David Vallejo             | Configuration Manager   | `David-wallpaper`                |
+| Óscar Martínez Mantilla | DevOps Engineer         | `martinezm-oe`                   |
 
 ---
 
@@ -24,12 +24,12 @@ No se cuentan los commits ni los pull requests de los monitores del curso, porqu
 
 Trabajamos en sprints de una semana. Cada ceremonia de Scrum quedó registrada como un issue en el repositorio, con las plantillas de `.github/ISSUE_TEMPLATE/` (`sprint-planning.yml`, `daily.yml`, `user-story.yml` y `sub-issue.yml`):
 
-| Ceremonia | Issues registrados |
-|---|---|
-| Sprint Planning | 14 |
-| Daily Scrum | 37 |
-| Sprint Review | 10 |
-| Sprint Retrospective | 12 |
+| Ceremonia            | Issues registrados |
+| -------------------- | ------------------ |
+| Sprint Planning      | 14                 |
+| Daily Scrum          | 37                 |
+| Sprint Review        | 10                 |
+| Sprint Retrospective | 12                 |
 
 Cada Sprint Planning tiene la duración del sprint, el Sprint Goal, el Sprint Backlog, los entregables y los criterios de aceptación. Las historias de usuario se escriben con la plantilla de HU y se dividen en sub-issues (tasks) que se asignan a un integrante. El seguimiento se hace en el tablero del proyecto `FIS_2630_1204_G4` en GitHub Projects.
 
@@ -39,12 +39,12 @@ Las entregas del curso fueron en la semana 7 (Entrega 1), la semana 12 (Entrega 
 
 ## Milestones
 
-| Milestone | Objetivo | Issues | HU | Issues abiertas | Avance |
-|---|---|---|---|---|---|
-| M0 - Planeación y Base del Proyecto | Repositorio, historias de usuario, Product Backlog, arquitectura inicial y documentación base | 28 | 5 | 0 | 100 % |
-| M1 - Base Multiusuario de SignIA | Base funcional multiusuario con frontend, backend y base de datos integrados | 21 | 4 | 0 | 100 % |
-| M2 - Módulo de Aprendizaje y Contenido LSC | Consultar y aprender las letras del alfabeto LSC con imágenes, descripciones y navegación a la práctica | 61 | 15 | 0 | 100 % |
-| M3 - Reconocimiento y Práctica de Señas | Flujo principal de reconocimiento y práctica, presentado en la Entrega 2 | 43 | 7 | 0 | 100 % |
+| Milestone                                   | Objetivo                                                                                                   | Issues | HU | Issues abiertas | Avance |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | -- | --------------- | ------ |
+| M0 - Planeación y Base del Proyecto        | Repositorio, historias de usuario, Product Backlog, arquitectura inicial y documentación base             | 28     | 5  | 0               | 100 %  |
+| M1 - Base Multiusuario de SignIA            | Base funcional multiusuario con frontend, backend y base de datos integrados                               | 21     | 4  | 0               | 100 %  |
+| M2 - Módulo de Aprendizaje y Contenido LSC | Consultar y aprender las letras del alfabeto LSC con imágenes, descripciones y navegación a la práctica | 61     | 15 | 0               | 100 %  |
+| M3 - Reconocimiento y Práctica de Señas   | Flujo principal de reconocimiento y práctica, presentado en la Entrega 2                                  | 43     | 7  | 0               | 100 %  |
 
 Los cuatro milestones tienen todos sus issues cerrados.
 
@@ -52,22 +52,22 @@ Los cuatro milestones tienen todos sus issues cerrados.
 
 ## Sprints
 
-| Sprint | Fechas | Sprint Goal |
-|---|---|---|
-| 1 | 10 al 14 de agosto | Crear y organizar el repositorio para trabajar con Scrum (labels, README, wiki) |
-| 2 | 17 al 22 de agosto | Taller 1: actores, roles, historias de usuario, criterios de aceptación y mockups |
-| 3 | 24 al 30 de agosto | Base funcional: integración inicial de frontend, backend y PostgreSQL, registro e inicio de sesión |
-| 4 | 31 de agosto al 7 de septiembre | Primera versión con autenticación, cámara activa y detección de la mano con MediaPipe |
-| 5 | 7 al 14 de septiembre | Integrar el reconocimiento de señas con la plataforma y guardar sesiones y resultados |
-| 6 | 14 al 21 de septiembre | Reconocimiento de vocales conectado al aprendizaje y registro del progreso |
-| 7 | 21 al 28 de septiembre | Completar la experiencia de aprendizaje: nuevas letras, estado de aprendizaje y progreso |
-| 8 | 28 de septiembre al 5 de octubre | Mejorar la precisión del reconocimiento y registrar aciertos e intentos automáticamente |
-| 9 | 5 al 12 de octubre | Consolidación técnica para la Entrega 2: arquitectura, patrón GoF, pruebas y GitHub Actions |
-| 10 | 12 al 19 de octubre | Cerrar lo pendiente del Sprint 9 y dejar listo el sistema para la Entrega 2 |
-| 11 | 20 al 23 de octubre | Corregir los diagramas de arquitectura y de dominio según las observaciones del profesor |
-| 12 | 27 al 30 de octubre | Terminar los diagramas pendientes y revisar calidad y rendimiento con SonarQube y JMeter |
-| 13 | 3 al 6 de noviembre | Cerrar la HU #44 (diagramas en Visual Paradigm) y el diagrama del patrón Facade |
-| 14 | 9 al 13 de noviembre | Preparar la Entrega 3: producto final, CI/CD, notificaciones, reporte ágil, postmortem y pitch |
+| Sprint | Fechas                           | Sprint Goal                                                                                          |
+| ------ | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1      | 10 al 14 de agosto               | Crear y organizar el repositorio para trabajar con Scrum (labels, README, wiki)                      |
+| 2      | 17 al 22 de agosto               | Taller 1: actores, roles, historias de usuario, criterios de aceptación y mockups                   |
+| 3      | 24 al 30 de agosto               | Base funcional: integración inicial de frontend, backend y PostgreSQL, registro e inicio de sesión |
+| 4      | 31 de agosto al 7 de septiembre  | Primera versión con autenticación, cámara activa y detección de la mano con MediaPipe            |
+| 5      | 7 al 14 de septiembre            | Integrar el reconocimiento de señas con la plataforma y guardar sesiones y resultados               |
+| 6      | 14 al 21 de septiembre           | Reconocimiento de vocales conectado al aprendizaje y registro del progreso                           |
+| 7      | 21 al 28 de septiembre           | Completar la experiencia de aprendizaje: nuevas letras, estado de aprendizaje y progreso             |
+| 8      | 28 de septiembre al 5 de octubre | Mejorar la precisión del reconocimiento y registrar aciertos e intentos automáticamente            |
+| 9      | 5 al 12 de octubre               | Consolidación técnica para la Entrega 2: arquitectura, patrón GoF, pruebas y GitHub Actions       |
+| 10     | 12 al 19 de octubre              | Cerrar lo pendiente del Sprint 9 y dejar listo el sistema para la Entrega 2                          |
+| 11     | 20 al 23 de octubre              | Corregir los diagramas de arquitectura y de dominio según las observaciones del profesor            |
+| 12     | 27 al 30 de octubre              | Terminar los diagramas pendientes y revisar calidad y rendimiento con SonarQube y JMeter             |
+| 13     | 3 al 6 de noviembre              | Cerrar la HU #44 (diagramas en Visual Paradigm) y el diagrama del patrón Facade                     |
+| 14     | 9 al 13 de noviembre             | Preparar la Entrega 3: producto final, CI/CD, notificaciones, reporte ágil, postmortem y pitch      |
 
 Para contar issues, pull requests y commits por sprint, los días que quedan entre un sprint y el siguiente se suman al sprint anterior. Los días del 14 al 16 de noviembre cuentan dentro del Sprint 14.
 
@@ -79,23 +79,23 @@ El Sprint 11 no tiene commits porque se dedicó a corregir los diagramas en Visu
 
 En total hay 56 historias de usuario: 55 cerradas y 1 abierta (#564, instalar y entender SignIA sin depender del equipo).
 
-| Sprint | HU cerradas | Issues cerrados (HU, tasks y ceremonias) | HU que se cerraron |
-|---|---|---|---|
-| 1 | 0 | 0 | |
-| 2 | 0 | 12 | |
-| 3 | 0 | 20 | |
-| 4 | 12 | 47 | #25, #28, #29, #33, #70, #71, #101, #109, #122, #123, #124, #133 |
-| 5 | 8 | 46 | #24, #125, #142, #148, #152, #163, #173, #198 |
-| 6 | 6 | 33 | #228, #234, #241, #253, #257, #267 |
-| 7 | 6 | 39 | #243, #289, #296, #303, #310, #320 |
-| 8 | 7 | 46 | #316, #359, #365, #370, #378, #383, #390 |
-| 9 | 1 | 8 | #426 |
-| 10 | 1 | 6 | #421 |
-| 11 | 0 | 10 | |
-| 12 | 2 | 21 | #31, #430 |
-| 13 | 0 | 7 | |
-| 14 | 12 | 66 | #479, #531, #535, #540, #547, #554, #559, #569, #582, #592, #606, #615 |
-| **Total** | **55** | **361** | |
+| Sprint          | HU cerradas  | Issues cerrados (HU, tasks y ceremonias) | HU que se cerraron                                                     |
+| --------------- | ------------ | ---------------------------------------- | ---------------------------------------------------------------------- |
+| 1               | 0            | 0                                        |                                                                        |
+| 2               | 0            | 12                                       |                                                                        |
+| 3               | 0            | 20                                       |                                                                        |
+| 4               | 12           | 47                                       | #25, #28, #29, #33, #70, #71, #101, #109, #122, #123, #124, #133       |
+| 5               | 8            | 46                                       | #24, #125, #142, #148, #152, #163, #173, #198                          |
+| 6               | 6            | 33                                       | #228, #234, #241, #253, #257, #267                                     |
+| 7               | 6            | 39                                       | #243, #289, #296, #303, #310, #320                                     |
+| 8               | 7            | 46                                       | #316, #359, #365, #370, #378, #383, #390                               |
+| 9               | 1            | 8                                        | #426                                                                   |
+| 10              | 1            | 6                                        | #421                                                                   |
+| 11              | 0            | 10                                       |                                                                        |
+| 12              | 2            | 21                                       | #31, #430                                                              |
+| 13              | 0            | 7                                        |                                                                        |
+| 14              | 12           | 66                                       | #479, #531, #535, #540, #547, #554, #559, #569, #582, #592, #606, #615 |
+| **Total** | **55** | **361**                            |                                                                        |
 
 En promedio se cerraron 3,9 HU por sprint (55 HU en 14 sprints) y 25,8 issues por sprint.
 
@@ -107,37 +107,37 @@ Los sprints 1 a 3 no cierran HU porque se usaron para organizar el repositorio, 
 
 Los commits se cuentan en todas las ramas, sin contar los commits de merge.
 
-| Sprint | David | Juan Diego | Óscar | Isabel | Juan Pablo | Total |
-|---|---|---|---|---|---|---|
-| 1 | 4 | 0 | 1 | 4 | 1 | 10 |
-| 2 | 9 | 14 | 1 | 9 | 4 | 37 |
-| 3 | 16 | 15 | 1 | 2 | 2 | 36 |
-| 4 | 28 | 8 | 9 | 8 | 4 | 57 |
-| 5 | 77 | 4 | 9 | 10 | 5 | 105 |
-| 6 | 26 | 20 | 40 | 10 | 4 | 100 |
-| 7 | 37 | 26 | 27 | 10 | 21 | 121 |
-| 8 | 31 | 6 | 30 | 10 | 23 | 100 |
-| 9 | 8 | 2 | 0 | 0 | 6 | 16 |
-| 10 | 4 | 6 | 1 | 6 | 4 | 21 |
-| 11 | 0 | 0 | 0 | 0 | 0 | 0 |
-| 12 | 19 | 2 | 0 | 0 | 0 | 21 |
-| 13 | 1 | 1 | 0 | 0 | 5 | 7 |
-| 14 | 35 | 17 | 12 | 11 | 4 | 79 |
+| Sprint          | David         | Juan Diego    | Óscar        | Isabel       | Juan Pablo   | Total         |
+| --------------- | ------------- | ------------- | ------------- | ------------ | ------------ | ------------- |
+| 1               | 4             | 0             | 1             | 4            | 1            | 10            |
+| 2               | 9             | 14            | 1             | 9            | 4            | 37            |
+| 3               | 16            | 15            | 1             | 2            | 2            | 36            |
+| 4               | 28            | 8             | 9             | 8            | 4            | 57            |
+| 5               | 77            | 4             | 9             | 10           | 5            | 105           |
+| 6               | 26            | 20            | 40            | 10           | 4            | 100           |
+| 7               | 37            | 26            | 27            | 10           | 21           | 121           |
+| 8               | 31            | 6             | 30            | 10           | 23           | 100           |
+| 9               | 8             | 2             | 0             | 0            | 6            | 16            |
+| 10              | 4             | 6             | 1             | 6            | 4            | 21            |
+| 11              | 0             | 0             | 0             | 0            | 0            | 0             |
+| 12              | 19            | 2             | 0             | 0            | 0            | 21            |
+| 13              | 1             | 1             | 0             | 0            | 5            | 7             |
+| 14              | 35            | 17            | 12            | 11           | 4            | 79            |
 | **Total** | **295** | **121** | **131** | **80** | **83** | **710** |
 
-En promedio hubo 50,7 commits por sprint y 142 commits por integrante en todo el proyecto.
+En promedio hubo 50,7 commits por sprint.
 
 ---
 
 ## Participación del equipo
 
 | Integrante | Commits | Sprints con commits (de 14) | HU asignadas | Issues cerrados asignados | PR mergeados | Revisiones de PR |
-|---|---|---|---|---|---|---|
-| David | 295 | 13 | 22 | 127 | 111 | 77 |
-| Juan Diego | 121 | 12 | 21 | 111 | 46 | 100 |
-| Óscar | 131 | 10 | 12 | 57 | 19 | 3 |
-| Isabel | 80 | 10 | 12 | 64 | 14 | 4 |
-| Juan Pablo | 83 | 12 | 13 | 78 | 28 | 1 |
+| ---------- | ------- | --------------------------- | ------------ | ------------------------- | ------------ | ---------------- |
+| David      | 295     | 13                          | 22           | 127                       | 111          | 77               |
+| Juan Diego | 121     | 12                          | 21           | 111                       | 46           | 100              |
+| Óscar     | 131     | 10                          | 12           | 57                        | 19           | 3                |
+| Isabel     | 80      | 10                          | 12           | 64                        | 14           | 4                |
+| Juan Pablo | 83      | 12                          | 13           | 78                        | 28           | 1                |
 
 En total se mergearon 218 pull requests y se hicieron 185 revisiones, 182 de ellas aprobaciones.
 
@@ -178,13 +178,13 @@ Cada cambio se puede seguir desde la historia de usuario hasta la versión:
 
 Ejemplo con la HU de notificaciones por SMS:
 
-| Paso | Dónde |
-|---|---|
-| HU | #615 Notificar al equipo por SMS los eventos críticos del proyecto |
-| Rama | `feature/sms-twilio` |
-| Commits | `✨ feat(sms): agregar workflow de avisos por SMS con Twilio #615` y `📝 docs(sms): documentar la integración de SMS con Twilio #615` |
-| Pull request | #616, aprobado por David y mergeado en `develop` |
-| Cierre | `github-actions[bot]` cerró el issue #615 al mergear el PR |
+| Paso         | Dónde                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| HU           | #615 Notificar al equipo por SMS los eventos críticos del proyecto                                                                        |
+| Rama         | `feature/sms-twilio`                                                                                                                     |
+| Commits      | `✨ feat(sms): agregar workflow de avisos por SMS con Twilio #615` y `📝 docs(sms): documentar la integración de SMS con Twilio #615` |
+| Pull request | #616, aprobado por David y mergeado en `develop`                                                                                         |
+| Cierre       | `github-actions[bot]` cerró el issue #615 al mergear el PR                                                                              |
 
 ---
 
