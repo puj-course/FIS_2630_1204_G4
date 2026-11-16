@@ -52,9 +52,11 @@ jobs:
           CI_RESULTADO: ${{ github.event.workflow_run.conclusion }}
           CI_RAMA: ${{ github.event.workflow_run.head_branch }}
           MANUAL: ${{ github.event.inputs.mensaje }}
-        # Texto corto y sin tildes ni emojis: así cabe en un solo segmento
-        # SMS (160 caracteres GSM-7) y cuesta un único mensaje.
+        # La cuenta de prueba de Twilio no permite texto propio: el SMS
+        # se envía con una plantilla predefinida. El detalle del evento
+        # queda en el log de esta ejecución y en Telegram.
         run: |
+          PLANTILLA="sms_event_notifications"
           case "$EVENTO" in
             pull_request)
               TEXTO="SignIA: PR #${PR_NUMERO} mergeado en ${PR_DESTINO} por ${PR_AUTOR}" ;;
@@ -65,11 +67,13 @@ jobs:
                 TEXTO="SignIA: ${CI_NOMBRE} OK en ${CI_RAMA}"
               else
                 TEXTO="SignIA: FALLO ${CI_NOMBRE} en ${CI_RAMA} (${CI_RESULTADO})"
+                PLANTILLA="sms_internal_alerts"
               fi ;;
             workflow_dispatch)
               TEXTO="SignIA: ${MANUAL}" ;;
           esac
           echo "texto=${TEXTO:0:150}" >> "$GITHUB_OUTPUT"
+          echo "plantilla=${PLANTILLA}" >> "$GITHUB_OUTPUT"
 
       - name: Enviar SMS por la API de Twilio
         env:
@@ -79,6 +83,7 @@ jobs:
           # Uno o varios números separados por coma, formato +57XXXXXXXXXX
           TWILIO_TO: ${{ secrets.TWILIO_TO }}
           TEXTO: ${{ steps.mensaje.outputs.texto }}
+          PLANTILLA: ${{ steps.mensaje.outputs.plantilla }}
         run: |
           set -euo pipefail
 
@@ -102,7 +107,7 @@ jobs:
               --user "${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}" \
               --data-urlencode "From=${TWILIO_FROM}" \
               --data-urlencode "To=${DESTINO}" \
-              --data-urlencode "Body=${TEXTO}" \
+              --data-urlencode "Body=${PLANTILLA}" \
               "$URL")
 
             CODIGO=$(echo "$RESPUESTA" | tail -n1)
@@ -111,7 +116,7 @@ jobs:
             if [ "$CODIGO" = "201" ]; then
               SID=$(echo "$CUERPO" | jq -r '.sid')
               ESTADO=$(echo "$CUERPO" | jq -r '.status')
-              echo "SMS enviado a ${OCULTO} | sid=${SID} | estado=${ESTADO}"
+              echo "SMS enviado a ${OCULTO} | plantilla=${PLANTILLA} | sid=${SID} | estado=${ESTADO}"
               echo "- ${OCULTO}: \`${SID}\` (${ESTADO})" >> "$GITHUB_STEP_SUMMARY"
             else
               MENSAJE_ERROR=$(echo "$CUERPO" | jq -r '.message // "sin detalle"')

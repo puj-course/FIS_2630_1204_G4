@@ -11,7 +11,7 @@ Con esto cubrimos el criterio de integración con un servicio SMS: el proveedor 
 
 ## Qué se avisa por SMS
 
-| Evento                                              | Mensaje                                                   |
+| Evento                                              | Detalle que queda en el log de Actions                                                   |
 | --------------------------------------------------- | --------------------------------------------------------- |
 | Se mergea un pull request en `develop` o `main` | `SignIA: PR #N mergeado en develop por usuario`         |
 | Se publica un release                               | `SignIA: release vX.Y.Z publicado`                      |
@@ -21,7 +21,7 @@ Con esto cubrimos el criterio de integración con un servicio SMS: el proveedor 
 
 Solo mandamos por SMS estos eventos porque cada mensaje gasta saldo de Twilio. Los pushes, issues y revisiones siguen llegando por Telegram.
 
-Los textos son cortos y sin tildes para que cada uno quepa en un solo SMS de 160 caracteres.
+La cuenta de prueba de Twilio no deja escribir el texto del SMS, solo usar plantillas predefinidas. Por eso el SMS que llega al celular es una plantilla de Twilio: `sms_internal_alerts` cuando falla un workflow y `sms_event_notifications` para el resto de eventos. El detalle de la tabla queda en el log de la ejecución en Actions y en Telegram. Si la cuenta se actualiza a pago, basta con volver a mandar el texto en el parámetro `Body`.
 
 ## Cómo funciona
 
@@ -59,7 +59,7 @@ Los nombres tienen que quedar exactamente así, porque el workflow los lee con e
 ### 3. Probar el envío
 
 1. En Actions → SMS - Avisos con Twilio → Run workflow, lanzar una ejecución manual. Este botón solo aparece cuando el archivo ya está en `main`.
-2. Revisar que el workflow termine en verde y que el log tenga una línea como `SMS enviado a ***XXXX | sid=SM... | estado=queued`.
+2. Revisar que el workflow termine en verde y que el log tenga una línea como `SMS enviado a ***XXXX | plantilla=sms_event_notifications | sid=SM... | estado=queued`.
 3. Confirmar que el SMS llegó al celular.
 
 ## Evidencia
