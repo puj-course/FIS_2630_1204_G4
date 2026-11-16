@@ -1,0 +1,108 @@
+
+# Postmortem de SignIA
+
+## Objetivo
+
+Este documento revisa cómo nos fue con SignIA desde el 10 de agosto hasta el 16 de noviembre de 2026, tanto en lo técnico como en la forma de trabajar. Para cada problema buscamos la causa raíz y dejamos una acción concreta para no repetirlo.
+
+Las fuentes son las retrospectivas de los sprints (issues #14 a #528 y sus comentarios), los Sprint Planning y Review, el historial de Git y los pull requests. Los números del proyecto están en el [reporte de metodología ágil](reporte-agil.md).
+
+---
+
+## Resumen del proyecto
+
+SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Colombiana (LSC) y practicarlo con la cámara. El usuario consulta cada letra, practica frente a la cámara, el sistema reconoce la seña con MediaPipe y guarda los intentos, los aciertos y el progreso.
+
+| Dato                    | Valor                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| Duración               | 14 sprints de una semana (10 de agosto al 16 de noviembre de 2026)                 |
+| Historias de usuario    | 55 cerradas de 56                                                                  |
+| Pull requests mergeados | 218                                                                                |
+| Entregas                | Semana 7, semana 12 y semana 16 (sustentación final el 17 de noviembre)           |
+| Stack                   | React + TypeScript, FastAPI, PostgreSQL, MediaPipe, Docker Compose, GitHub Actions |
+
+---
+
+## Qué salió bien
+
+### En lo técnico
+
+- El flujo principal funciona de punta a punta. Registro, inicio de sesión, módulo Aprender, práctica con cámara, reconocimiento de letras estáticas y con movimiento, registro de intentos, letras aprendidas por número de aciertos e historial.
+- Automatizamos casi todo el ciclo de desarrollo. Al final quedaron workflows de CI para backend y frontend, validación de Docker, análisis con SonarQube, métricas de código, CD con publicación en Docker Hub y despliegue con Docker Compose, cierre automático de issues y avisos por Telegram y SMS.
+- Las pruebas del backend tienen un mínimo de cobertura obligatorio. El workflow de Backend CI falla si la cobertura baja del 80 % (`--cov-fail-under=80`).
+- Aplicamos patrones de diseño: Facade en la recuperación de contraseña, Chain of Responsibility en la autenticación y Observer en la práctica del frontend.
+
+### En el proceso
+
+- Registramos las ceremonias en GitHub con plantillas propias: 14 Sprint Planning, 37 Daily, 10 Sprint Review y 12 Sprint Retrospective.
+- Los cambios pasaron por pull request con revisión. De 185 revisiones, 182 fueron aprobaciones, y `main` solo recibe cambios desde `develop`.
+- Las retrospectivas mejoraron con el tiempo. Las primeras tenían respuestas cortas ("todo", "nada"). Desde el Sprint 11 cada retrospectiva trae el resultado del sprint, el formato comenzar / más de / seguir / menos de / dejar de hacer y una tabla de acciones con responsable. Además, las acciones se revisaban en el sprint siguiente: en la retrospectiva del Sprint 12 aparece cumplida la acción 3 del Sprint 11 (revisar el código antes de diagramar).
+
+---
+
+## Qué salió mal
+
+### En el proceso
+
+| #  | Problema                                   | Evidencia                                                                                                                                                                                                            |
+| -- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1 | Dos sprints casi sin resultados            | Sprint 9: la retrospectiva dice "no se pudo realizar casi nada" (1 HU cerrada, 16 commits). Sprint 11: no se completó ninguna tarea de la HU #44 y el Sprint Goal no se cumplió.                                   |
+| P2 | Una HU se arrastró cuatro sprints         | La HU #44 (#479, diagramas en Visual Paradigm) empezó en el Sprint 11 y se cerró en el 14. La sub-issue #498 pasó de sprint en sprint sin responsable.                                                            |
+| P3 | Trabajo duplicado y falta de comunicación | En la retrospectiva del Sprint 5 se habla de "duplicaciones de trabajo para una misma HU ya implementada". La comunicación aparece como lo que hay que mejorar en las retrospectivas de los sprints 1, 2, 5, 6 y 8. |
+| P4 | Participación desigual al principio       | En las retrospectivas de los sprints 3 y 4 se pide repartir mejor el trabajo y las contribuciones de cada persona. En los sprints 1 a 3 algunos integrantes tienen 1 o 2 commits por sprint.                         |
+| P5 | Trazabilidad incompleta                    | 25 de las 56 HU no tienen milestone. Hay números de HU repetidos (dos HU #15) y en el Sprint Backlog del Sprint 13 se escribió "#44", que GitHub enlazó a otro issue.                                             |
+| P6 | Retrospectivas con poco análisis          | No hay retrospectiva de los sprints 10 y 14, y la del Sprint 2 (#48) quedó titulada como "Sprint Retrospective 1". Hasta el Sprint 9 muchas respuestas son "todo" o "nada", sin decir qué pasó ni por qué.       |
+| P7 | Tareas para el último día                | Lo dicen las retrospectivas de los sprints 5, 6 y 11 ("hacer las tareas en tiempo", "dejar las tareas para el último día").                                                                                        |
+
+### En lo técnico
+
+| #  | Problema                                               | Evidencia                                                                                                                                                                                                                                                                                   |
+| -- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1 | El sistema no se levantaba completo con Docker Compose | `docker-compose.yml` existe desde el 18 de septiembre, pero el workflow que lo valida (`docker-check.yml`) se agregó el 2 de noviembre. Entre el 10 y el 12 de noviembre hubo que corregir la carga de las migraciones, las librerías del reconocimiento de manos y `DATABASE_URL`. |
+| T2 | Un cambio de comportamiento rompió pruebas existentes | Al agregar el bloqueo de cuenta, entre el 26 y el 30 de septiembre hubo cuatro commits `fix(test)` para corregir las pruebas de login, contraseña incorrecta, hash y restablecimiento.                                                                                                   |
+| T3 | Diagramas rehechos                                     | El profesor pidió corregir el diagrama de contenedores (tenía el navegador y la cámara como contenedores) y el de componentes (mostraba pasos de un flujo y no componentes). El diagrama del patrón Observer se empezó como C4 y hubo que rehacerlo como diagrama de clases.           |
+| T4 | Calidad y despliegue automatizados muy tarde           | SonarQube llegó el 29 de octubre, las métricas el 10 de noviembre y el CD el 13 de noviembre, en las últimas tres semanas del proyecto.                                                                                                                                                  |
+| T5 | Endpoint de recuperación de contraseña sin registrar | Las rutas de recuperación existen y tienen pruebas, pero `app/main.py` no las incluye, así que en la aplicación real responden 404. Las pruebas no lo detectaron porque cada una monta su propia aplicación con el router.                                                            |
+| T6 | Límite de Twilio descubierto en el primer envío real | La cuenta de prueba solo acepta plantillas predefinidas. El primer SMS automático falló con HTTP 400 y hubo que cambiar el workflow para enviar el nombre de la plantilla.                                                                                                                |
+
+---
+
+## Causas raíz
+
+| Problemas  | Causa raíz                                                                                                                                                                                                                                                                                                                                                           |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1, P2, P7 | Las HU grandes no se partían en tareas de un día y varias sub-issues quedaban sin responsable desde el Sprint Planning. Las tareas pequeñas, como la validación #498, quedaban sin dueño y los bloqueos se veían el último día, cuando ya no había tiempo. En el Sprint 11 además se comprometió más trabajo del que cabía en un sprint de cuatro días. |
+| P3, P4     | Al principio no había una regla para tomar tareas: nadie revisaba el tablero antes de empezar algo ni avisaba en el grupo, y así dos personas terminaron trabajando en la misma HU. El reparto de tareas tampoco se revisaba sprint a sprint, hasta que se señaló en las retrospectivas de los sprints 3 y 4.                                                     |
+| P5         | Crear la HU, ponerle milestone y enlazarla era un paso manual que dependía de quien la creara, y nadie lo revisaba.                                                                                                                                                                                                                                                  |
+| P6         | La plantilla de retrospectiva solo tenía tres preguntas abiertas y no pedía datos del sprint, así que era fácil contestar "todo bien".                                                                                                                                                                                                                            |
+| T1, T4     | Montamos la automatización cuando las funcionalidades ya estaban construidas. Entre el 18 de septiembre y el 2 de noviembre ningún workflow levantaba el sistema con Docker, y varios errores del entorno solo salieron en el Sprint 14, al preparar el despliegue.                                                                                                 |
+| T2         | El bloqueo de cuenta cambió cómo responde el login, y las pruebas que dependían de ese comportamiento se actualizaron en commits posteriores.                                                                                                                                                                                                                      |
+| T3         | Empezamos a diagramar sin acordar el tipo de diagrama ni la notación, y sin contrastar antes con el código real del backend.                                                                                                                                                                                                                                        |
+| T5         | Solo había pruebas unitarias de cada ruta. No había una prueba que revisara qué rutas expone la aplicación completa (`app.main`).                                                                                                                                                                                                                               |
+| T6         | No leímos las condiciones de la cuenta de prueba antes de integrar. La prueba manual desde la consola de Twilio funcionó porque la consola usa plantillas por defecto.                                                                                                                                                                                              |
+
+---
+
+## Acciones de mejora
+
+| Prioridad | Acción                                                                                                                                     | Cómo corrige el problema                                                              | Problemas  | Responsable                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------- | ---------------------------- |
+| 1         | Partir cada HU en sub-issues de máximo un día y asignar responsable y fecha a todas en el Sprint Planning                                 | Ninguna tarea queda sin dueño y el avance se ve día a día                           | P1, P2, P7 | Sprint Planner               |
+| 2         | Hacer un chequeo de avance a mitad de cada sprint con el tablero de GitHub Projects                                                         | Los bloqueos aparecen cuando todavía hay tiempo de mover tareas o reducir el alcance  | P1, P2     | Scrum Master                 |
+| 3         | Antes de empezar una tarea, moverla a "In progress" en el tablero y avisar en el grupo                                                      | Evita que dos personas trabajen en la misma HU y deja claro qué tiene cada uno        | P3, P4     | Todo el equipo               |
+| 4         | Crear los workflows de CI, Docker y SonarQube en el primer sprint de desarrollo                                                             | Los errores de entorno y de calidad aparecen en el mismo PR que los causa              | T1, T4     | DevOps Engineer              |
+| 5         | Pedir que el PR que cambia un comportamiento traiga sus pruebas actualizadas y que los checks pasen antes de mergear                        | Ningún cambio entra a `develop` dejando pruebas rotas                               | T2         | Configuration Manager        |
+| 6         | Agregar una prueba sobre `app.main` que revise que todas las rutas documentadas existen                                                   | Detecta un router sin registrar, como el de recuperación de contraseña               | T5         | QA Lead                      |
+| 7         | Escribir en cada sub-issue de diagrama el tipo y la notación, y revisar el código antes de dibujar                                        | Se evita rehacer diagramas por notación o por no reflejar el sistema real             | T3         | Encargado de la HU           |
+| 8         | Usar una plantilla de retrospectiva con resultado del sprint y tabla de acciones (la de los sprints 11 a 13) y hacerla en todos los sprints | Cada retrospectiva deja causas y acciones que se pueden revisar en el sprint siguiente | P6         | Scrum Master                 |
+| 9         | Revisar al crear cada HU que tenga milestone, labels y que su número sea único                                                            | La trazabilidad queda completa desde el inicio                                         | P5         | Product Owner                |
+| 10        | Leer los límites del plan o la cuenta de prueba antes de integrar un servicio externo                                                      | Se evitan sorpresas como la de las plantillas de Twilio                                | T6         | Encargado de la integración |
+
+---
+
+## Lecciones aprendidas
+
+- Cuando una tarea tenía responsable y fecha se cerraba en el sprint. Las que no tenían responsable, como #498, pasaron de un sprint a otro.
+- El CI de backend lo tuvimos desde el Sprint 6 y nos avisó de pruebas rotas en el momento. Docker, SonarQube y el CD llegaron al final, y por eso en el último sprint tuvimos que corregir varios problemas a la vez.
+- Las pruebas de la recuperación de contraseña pasan, pero la ruta no existe en la aplicación real. Además de probar cada ruta por separado, hay que probar la aplicación completa.
+- Las retrospectivas sirven cuando se escriben con datos y acciones concretas. Las de los sprints 11 a 13 fueron las primeras que dejaron acciones con responsable, y en la del Sprint 12 ya aparece cumplida una de las acciones del Sprint 11.
