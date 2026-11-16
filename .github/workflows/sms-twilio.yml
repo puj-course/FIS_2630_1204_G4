@@ -83,6 +83,7 @@ jobs:
           # Uno o varios números separados por coma, formato +57XXXXXXXXXX
           TWILIO_TO: ${{ secrets.TWILIO_TO }}
           TEXTO: ${{ steps.mensaje.outputs.texto }}
+          PLANTILLA: ${{ steps.mensaje.outputs.plantilla }}
         run: |
           set -euo pipefail
 
@@ -115,7 +116,7 @@ jobs:
             if [ "$CODIGO" = "201" ]; then
               SID=$(echo "$CUERPO" | jq -r '.sid')
               ESTADO=$(echo "$CUERPO" | jq -r '.status')
-              echo "SMS enviado a ${OCULTO} | sid=${SID} | estado=${ESTADO}"
+              echo "SMS enviado a ${OCULTO} | plantilla=${PLANTILLA} | sid=${SID} | estado=${ESTADO}"
               echo "- ${OCULTO}: \`${SID}\` (${ESTADO})" >> "$GITHUB_STEP_SUMMARY"
             else
               MENSAJE_ERROR=$(echo "$CUERPO" | jq -r '.message // "sin detalle"')
