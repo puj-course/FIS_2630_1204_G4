@@ -29,7 +29,7 @@ SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Co
 - El flujo principal funciona de punta a punta. Registro, inicio de sesión, módulo Aprender, práctica con cámara, reconocimiento de letras estáticas y con movimiento, registro de intentos, letras aprendidas por número de aciertos e historial.
 - Automatizamos casi todo el ciclo de desarrollo. Al final quedaron workflows de CI para backend y frontend, validación de Docker, análisis con SonarQube, métricas de código, CD con publicación en Docker Hub y despliegue con Docker Compose, cierre automático de issues y avisos por Telegram y SMS.
 - Las pruebas del backend tienen un mínimo de cobertura obligatorio. El workflow de Backend CI falla si la cobertura baja del 80 % (`--cov-fail-under=80`).
-- Aplicamos patrones de diseño: Facade en la recuperación de contraseña, Chain of Responsibility en la autenticación y Observer en la práctica del frontend.
+- Aplicamos patrones de diseño: Observer, Facade y Factory Method en la práctica (Entrega 2), y Facade en la recuperación de contraseña y Chain of Responsibility en la autenticación (entrega final).
 
 ### En el proceso
 
@@ -60,7 +60,8 @@ SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Co
 | T1 | Diagramas rehechos                                     | El profesor pidió corregir el diagrama de contenedores (tenía el navegador y la cámara como contenedores) y el de componentes (mostraba pasos de un flujo y no componentes). El diagrama del patrón Observer se empezó como C4 y hubo que rehacerlo como diagrama de clases. |
 | T2 | Calidad y despliegue automatizados muy tarde           | SonarQube llegó el 29 de octubre, las métricas el 10 de noviembre y el CD el 13 de noviembre, en las últimas tres semanas del proyecto.                                                                                                                                        |
 | T3 | Endpoint de recuperación de contraseña sin registrar | Las rutas de recuperación existen y tienen pruebas, pero `app/main.py` no las incluye, así que en la aplicación real responden 404. Las pruebas no lo detectaron porque cada una monta su propia aplicación con el router.                                                  |
-| T4 | Límite de Twilio descubierto en el primer envío real | La cuenta de prueba solo acepta plantillas predefinidas. El primer SMS automático falló con HTTP 400 y hubo que cambiar el workflow para enviar el nombre de la plantilla.                                                                                                      |
+| T4 | Límite de Twilio descubierto en el primer envío real | La cuenta de prueba solo acepta plantillas predefinidas. El primer SMS automático falló con HTTP 400 y hubo que cambiar el workflow para enviar el nombre de la plantilla. |
+| T5 | El despliegue depende de un runner local | El job de despliegue corre en un runner self-hosted en WSL: si ese equipo está apagado, el job queda en cola. Además, el tag `v1` no siguió el patrón `v*.*.*`, así que el CD no se ejecutó y no se publicaron imágenes. |
 
 ---
 
@@ -75,7 +76,9 @@ SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Co
 | T1         | Empezamos a diagramar sin acordar el tipo de diagrama ni la notación, y sin contrastar antes con el código real del backend.                                                                                                                                                                                                                                        |
 | T2         | Montamos la automatización cuando las funcionalidades ya estaban construidas. SonarQube, las métricas y el CD llegaron en las últimas tres semanas, cuando ya no había tiempo de corregir con calma lo que encontraban.                                                                                                                                           |
 | T3         | Solo había pruebas unitarias de cada ruta. No había una prueba que revisara qué rutas expone la aplicación completa (`app.main`).                                                                                                                                                                                                                               |
-| T4         | No leímos las condiciones de la cuenta de prueba antes de integrar. La prueba manual desde la consola de Twilio funcionó porque la consola usa plantillas por defecto.                                                                                                                                                                                              |
+| T4         | No leímos las condiciones de la cuenta de prueba antes de integrar. La prueba manual desde la consola de Twilio funcionó porque la consola usa plantillas por defecto.                                                                                        
+
+| T5         | No teníamos un servidor propio para desplegar, así que el despliegue quedó atado al equipo de un integrante. La convención de versiones (`vX.Y.Z`) no estaba escrita antes de crear el primer tag, y el workflow solo se activa con ese formato. |
 
 ---
 
@@ -92,7 +95,7 @@ SignIA es una plataforma web para aprender el alfabeto de la Lengua de Señas Co
 | 7         | Usar una plantilla de retrospectiva con resultado del sprint y tabla de acciones (la de los sprints 11 a 13) y hacerla en todos los sprints | Cada retrospectiva deja causas y acciones que se pueden revisar en el sprint siguiente | P6         | Scrum Master                 |
 | 8         | Revisar al crear cada HU que tenga milestone, labels y que su número sea único                                                            | La trazabilidad queda completa desde el inicio                                         | P5         | Product Owner                |
 | 9         | Leer los límites del plan o la cuenta de prueba antes de integrar un servicio externo                                                      | Se evitan sorpresas como la de las plantillas de Twilio                                | T4         | Encargado de la integración |
-
+| 10        | Documentar la convención de tags `vX.Y.Z` en el README y, a futuro, desplegar en un servidor o servicio en la nube | Cualquier integrante crea tags que activan el CD, y el despliegue no depende de que un equipo esté encendido | T5         | DevOps Engineer              |
 ---
 
 ## Retrospectiva estrella
