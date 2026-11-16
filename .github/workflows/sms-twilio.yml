@@ -73,6 +73,7 @@ jobs:
               TEXTO="SignIA: ${MANUAL}" ;;
           esac
           echo "texto=${TEXTO:0:150}" >> "$GITHUB_OUTPUT"
+          echo "plantilla=${PLANTILLA}" >> "$GITHUB_OUTPUT"
 
       - name: Enviar SMS por la API de Twilio
         env:
