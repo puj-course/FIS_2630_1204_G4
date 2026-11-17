@@ -4,19 +4,22 @@ on:
   push:
     tags:
       - "v*.*.*"
-
+#solo puede leer el repositorio.
 permissions:
   contents: read
 
+# Si se crean dos tags seguidos, los despliegues se encolan:
+# nunca corren al mismo tiempo ni se cancela uno que ya empezo.
 concurrency:
   group: cd-signia
   cancel-in-progress: false
 
+#Tag 
 env:
   SIGNIA_TAG: ${{ github.ref_name }}
   IMAGEN_BACKEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-backend
   IMAGEN_FRONTEND: ${{ vars.DOCKERHUB_USUARIO }}/signia-frontend
-
+#pruebas
 jobs:
   pruebas:
     name: Pruebas del backend
@@ -108,7 +111,7 @@ jobs:
 
           cp "$ARCHIVO_ENTORNO" .env
           chmod 600 .env
-
+   # Descarga de Docker Hub las imagenes de la version del tag
       - name: Descargar las imágenes de Docker Hub
         run: docker compose pull backend frontend
 

@@ -1,5 +1,5 @@
 FROM python:3.12-slim
-
+# Carpeta de trabajo dentro del contenedor; los COPY y el CMD se ejecutan desde aquí.
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -19,7 +19,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY conf/ ./conf/
 COPY src/ ./src/
-
+# Documenta el puerto en el que escucha el backend.
+# El puerto se publica realmente en docker-compose.yml.
 EXPOSE 8000
 
 CMD [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000" ]
