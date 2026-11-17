@@ -10,7 +10,7 @@ import {
   consultarEstadoLetras,
   type EstadoAprendizaje,
 } from "./services/progreso";
-import { ErrorApi } from "./services/api";
+import { ErrorApi, URL_BASE_API } from "./services/api";
 
 interface Props {
   cambiarPagina: (
@@ -19,7 +19,7 @@ interface Props {
   ) => void;
 }
 
-const API_URL = "http://localhost:8000";
+const API_URL = URL_BASE_API;
 
 function Aprender({ cambiarPagina }: Props) {
   const [letrasBackend, setLetrasBackend] = useState<LetraBackend[]>([]);

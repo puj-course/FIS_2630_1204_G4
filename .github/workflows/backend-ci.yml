@@ -4,6 +4,7 @@ name: Backend CI
 on:
   push:
   pull_request:
+  workflow_call:
 
 jobs:
   test:

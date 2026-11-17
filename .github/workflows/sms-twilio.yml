@@ -1,0 +1,129 @@
+name: SMS - Avisos con Twilio
+
+# Envía SMS al equipo por medio de la API de Twilio cuando ocurren
+# los eventos más importantes del proyecto. Complementa los avisos
+# de Telegram: el SMS se reserva para eventos críticos porque cada
+# mensaje consume saldo de la cuenta de Twilio.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop, main]
+  release:
+    types: [published]
+  workflow_run:
+    workflows: ["Backend CI", "SonarQube", "CD - Publicar y desplegar SignIA"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      mensaje:
+        description: "Mensaje de prueba"
+        required: false
+        default: "Prueba de integracion SMS de SignIA"
+
+permissions: {}
+
+jobs:
+  avisar:
+    name: Enviar SMS con Twilio
+    runs-on: ubuntu-latest
+    # Solo se envía SMS para: PR mergeados, releases, ejecución manual,
+    # fallos del CI en cualquier rama y resultado del CD.
+    if: >-
+      ${{
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+        github.event_name == 'release' ||
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_run' &&
+          (github.event.workflow_run.conclusion == 'failure' ||
+           github.event.workflow_run.name == 'CD - Publicar y desplegar SignIA'))
+      }}
+
+    steps:
+      - name: Construir el mensaje
+        id: mensaje
+        env:
+          EVENTO: ${{ github.event_name }}
+          PR_NUMERO: ${{ github.event.pull_request.number }}
+          PR_DESTINO: ${{ github.event.pull_request.base.ref }}
+          PR_AUTOR: ${{ github.event.pull_request.merged_by.login }}
+          REL_TAG: ${{ github.event.release.tag_name }}
+          CI_NOMBRE: ${{ github.event.workflow_run.name }}
+          CI_RESULTADO: ${{ github.event.workflow_run.conclusion }}
+          CI_RAMA: ${{ github.event.workflow_run.head_branch }}
+          MANUAL: ${{ github.event.inputs.mensaje }}
+        # La cuenta de prueba de Twilio no permite texto propio: el SMS
+        # se envía con una plantilla predefinida. El detalle del evento
+        # queda en el log de esta ejecución y en Telegram.
+        run: |
+          PLANTILLA="sms_event_notifications"
+          case "$EVENTO" in
+            pull_request)
+              TEXTO="SignIA: PR #${PR_NUMERO} mergeado en ${PR_DESTINO} por ${PR_AUTOR}" ;;
+            release)
+              TEXTO="SignIA: release ${REL_TAG} publicado" ;;
+            workflow_run)
+              if [ "$CI_RESULTADO" = "success" ]; then
+                TEXTO="SignIA: ${CI_NOMBRE} OK en ${CI_RAMA}"
+              else
+                TEXTO="SignIA: FALLO ${CI_NOMBRE} en ${CI_RAMA} (${CI_RESULTADO})"
+                PLANTILLA="sms_internal_alerts"
+              fi ;;
+            workflow_dispatch)
+              TEXTO="SignIA: ${MANUAL}" ;;
+          esac
+          echo "texto=${TEXTO:0:150}" >> "$GITHUB_OUTPUT"
+          echo "plantilla=${PLANTILLA}" >> "$GITHUB_OUTPUT"
+
+      - name: Enviar SMS por la API de Twilio
+        env:
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_FROM: ${{ secrets.TWILIO_FROM }}
+          # Uno o varios números separados por coma, formato +57XXXXXXXXXX
+          TWILIO_TO: ${{ secrets.TWILIO_TO }}
+          TEXTO: ${{ steps.mensaje.outputs.texto }}
+          PLANTILLA: ${{ steps.mensaje.outputs.plantilla }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$TWILIO_ACCOUNT_SID" ] || [ -z "$TWILIO_AUTH_TOKEN" ] || \
+             [ -z "$TWILIO_FROM" ] || [ -z "$TWILIO_TO" ]; then
+            echo "::error::Faltan secrets de Twilio (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM, TWILIO_TO)"
+            exit 1
+          fi
+
+          URL="https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json"
+          FALLOS=0
+
+          IFS=',' read -ra DESTINOS <<< "$TWILIO_TO"
+          for DESTINO in "${DESTINOS[@]}"; do
+            DESTINO="$(echo "$DESTINO" | tr -d '[:space:]')"
+            # Solo se muestran los últimos 4 dígitos en el log
+            OCULTO="***${DESTINO: -4}"
+
+            RESPUESTA=$(curl --silent --show-error \
+              --write-out '\n%{http_code}' \
+              --user "${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}" \
+              --data-urlencode "From=${TWILIO_FROM}" \
+              --data-urlencode "To=${DESTINO}" \
+              --data-urlencode "Body=${PLANTILLA}" \
+              "$URL")
+
+            CODIGO=$(echo "$RESPUESTA" | tail -n1)
+            CUERPO=$(echo "$RESPUESTA" | sed '$d')
+
+            if [ "$CODIGO" = "201" ]; then
+              SID=$(echo "$CUERPO" | jq -r '.sid')
+              ESTADO=$(echo "$CUERPO" | jq -r '.status')
+              echo "SMS enviado a ${OCULTO} | plantilla=${PLANTILLA} | sid=${SID} | estado=${ESTADO}"
+              echo "- ${OCULTO}: \`${SID}\` (${ESTADO})" >> "$GITHUB_STEP_SUMMARY"
+            else
+              MENSAJE_ERROR=$(echo "$CUERPO" | jq -r '.message // "sin detalle"')
+              echo "::error::No se pudo enviar SMS a ${OCULTO} (HTTP ${CODIGO}): ${MENSAJE_ERROR}"
+              FALLOS=$((FALLOS + 1))
+            fi
+          done
+
+          echo "Texto enviado: ${TEXTO}"
+          [ "$FALLOS" -eq 0 ]

@@ -16,7 +16,8 @@ from app.security import (
     revocar_token,
     seguridad_bearer,
 )
-from app.services.autenticacion_service import CuentaBloqueadaError, autenticar_usuario
+from app.services.autenticacion_service import autenticar_usuario
+from app.services.cadena_autenticacion import CuentaBloqueadaError
 from app.services.usuarios_service import CorreoYaRegistradoError, crear_usuario
 from src.schemas.autenticacion import (
     CredencialesLogin,

@@ -1,4 +1,3 @@
-
 services:
     postgres:
         image: postgres:16
@@ -12,13 +11,18 @@ services:
             - postgres_data:/var/lib/postgresql/data
             - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
             - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+            - ./database/migrations/intentos_reconocimiento.sql:/docker-entrypoint-initdb.d/03-intentos.sql
+            - ./database/migrations/agregar_resultado_a_intentos.sql:/docker-entrypoint-initdb.d/04-intentos-resultado.sql
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-signia} -d ${POSTGRES_DB:-signia}"]
             interval: 5s
             timeout: 5s
             retries: 5
+        networks:
+            - signia_red
 
     backend:
+        image: ${SIGNIA_IMAGEN_BACKEND:-signia-backend}:${SIGNIA_TAG:-dev}
         build:
             context: .
             dockerfile: Dockerfile
@@ -36,8 +40,11 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+        networks:
+            - signia_red
 
     frontend:
+        image: ${SIGNIA_IMAGEN_FRONTEND:-signia-frontend}:${SIGNIA_TAG:-dev}
         build:
             context: ./src/front
             dockerfile: Dockerfile
@@ -51,6 +58,13 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+        networks:
+            - signia_red
+
+networks:
+    signia_red:
+        name: signia_red
+        driver: bridge
 
 volumes:
     postgres_data:

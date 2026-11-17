@@ -2,42 +2,43 @@
 
 ## Objetivo
 
-Permitir que otros componentes envíen una imagen al backend y
-obtengan el resultado del reconocimiento de vocales.
-
-Esta implementación corresponde a la issue #151. La captura de
-cámara y el envío continuo desde el frontend quedan fuera de su alcance.
+El endpoint permite enviar una imagen al backend para reconocer una letra del alfabeto LSC a partir de la mano detectada. La implementación actual permite seleccionar entre reconocimiento estático y reconocimiento con movimiento. El procesamiento se realiza en `app/routes/vision.py`, `app/services/vision_service.py` y `app/vision/`.
 
 ## Ruta
 
+```http
 POST /vision/reconocer
-
 Content-Type: application/json
+```
 
-## Entrada
+La solicitud no exige un token de autenticación en el código de la ruta revisada.
 
-La petición debe incluir el campo obligatorio imagen_base64.
+## Datos de entrada
 
 ```json
 {
-  "imagen_base64": "<contenido de una imagen codificada en Base64>"
+  "imagen_base64": "<imagen en Base64>",
+  "modo": "estatica"
 }
 ```
 
-El valor mostrado es ilustrativo y debe reemplazarse por el contenido
-real de una imagen.
+`imagen_base64` es obligatorio y contiene una imagen JPEG o PNG en Base64, sin el prefijo `data:image/...;base64,`. El texto codificado puede contener hasta 7.000.000 de caracteres y la imagen decodificada no puede superar 5 MiB. El valor de `modo` es `estatica` o `movimiento` y, si se omite, el backend utiliza `estatica`.
 
-Condiciones:
+Para analizar una secuencia con movimiento se puede enviar también `id_secuencia`, que debe tener formato UUID:
 
-- Se admiten archivos JPEG y PNG.
-- Debe enviarse Base64 sin el prefijo data:image/...;base64,.
-- El archivo decodificado no puede superar 5 MiB.
-- El texto Base64 no puede superar 7.000.000 de caracteres.
-- No se admite una cadena vacía.
+```json
+{
+  "imagen_base64": "<fotograma en Base64>",
+  "modo": "movimiento",
+  "id_secuencia": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+El mismo identificador debe acompañar los fotogramas de una misma secuencia. Cuando no se proporciona, el servicio no conserva un historial de fotogramas para ese intento. El historial se mantiene en memoria dentro del proceso del backend, por lo que no constituye almacenamiento permanente en PostgreSQL.
 
 ## Respuestas
 
-### Vocal reconocida — HTTP 200
+Cuando reconoce una letra, el backend puede responder:
 
 ```json
 {
@@ -46,9 +47,7 @@ Condiciones:
 }
 ```
 
-La letra reconocida puede ser A, E, I, O o U.
-
-### Sin mano detectada — HTTP 200
+Si no detecta una mano:
 
 ```json
 {
@@ -57,65 +56,25 @@ La letra reconocida puede ser A, E, I, O o U.
 }
 ```
 
-### Mano sin vocal reconocida — HTTP 200
+Si detecta una mano pero no encuentra una coincidencia:
 
 ```json
 {
   "letra": null,
-  "mensaje": "No se reconoció una vocal"
+  "mensaje": "No se reconoció una letra"
 }
 ```
 
-### Errores
-
-| Código | Situación |
-|---|---|
-| 400 | Base64 inválido, formato no admitido, archivo superior a 5 MiB o imagen que no puede decodificarse. |
-| 422 | La petición incumple el esquema, por ejemplo, falta imagen_base64 o su longitud está fuera de los límites. |
-| 500 | Ocurre un fallo interno al cargar el detector o procesar el reconocimiento. |
-
-Los errores 400 y 500 incluyen un campo detail con el mensaje.
-Los errores de validación 422 incluyen los detalles de los campos inválidos.
+Estas situaciones se devuelven con HTTP `200`. Un Base64 incorrecto o una imagen no admitida puede generar `400`, mientras que una validación del esquema produce `422`. Cuando ocurre un error interno del reconocimiento, el endpoint devuelve `500`.
 
 ## Funcionamiento
 
-La ruta recibe el JSON y llama a procesar_imagen_base64.
-El servicio convierte el Base64 a una imagen BGR de OpenCV.
-DetectorMano obtiene los puntos de la mano con MediaPipe.
-reconocer_mano utiliza las reglas existentes de reconocer_vocal.
+Primero se revisa el tamaño y formato del archivo. OpenCV transforma los bytes recibidos en una imagen, después el gestor compartido obtiene la detección de la mano con MediaPipe. Si no encuentra ninguna mano, devuelve el mensaje correspondiente. En caso contrario, selecciona el reconocimiento según `modo`: las letras estáticas se procesan con sus reglas de posición de dedos y las letras con movimiento se analizan utilizando el historial de fotogramas.
 
-Cada petición se procesa en modo IMAGE, sin requerir un tiempo
-enviado por el consumidor. No se utiliza un historial de estabilización
-entre peticiones y se procesa la primera mano detectada.
+El reconocimiento está organizado mediante Strategy y el decorador de medición de tiempo registra la duración de la operación. El resultado de este endpoint **no guarda automáticamente una sesión o un resultado en PostgreSQL**: el registro de la práctica corresponde a las rutas de resultados descritas en [api.md](api.md).
 
-El detector se carga en su primer uso y se reutiliza. Un bloqueo
-evita utilizarlo simultáneamente desde varias peticiones.
-Los detectores se cierran al apagar el backend.
+## Prueba y comprobación
 
-## Ejecución local
+Con el backend iniciado, se puede abrir `http://localhost:8000/docs` y buscar `POST /vision/reconocer`. Desde allí se envía un JSON con una imagen real codificada en Base64 y se verifica la respuesta. Los datos escritos arriba son ejemplos y la cadena `<imagen en Base64>` no es una imagen válida.
 
-Desde la raíz del proyecto, con el entorno virtual y las dependencias
-configurados:
-
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-La documentación interactiva está disponible en:
-
-http://127.0.0.1:8000/docs
-
-En Swagger, abrir la sección Visión y seleccionar
-POST /vision/reconocer.
-
-## Casos de comprobación
-
-| Caso | Resultado esperado |
-|---|---|
-| Imagen negra sin manos | HTTP 200, letra null y mensaje de mano no detectada. |
-| Fotografía de la seña A utilizada en la prueba manual | HTTP 200 y letra A. |
-| Texto Base64 inválido | HTTP 400. |
-| Petición sin imagen_base64 | HTTP 422. |
-
-El resultado de reconocimiento depende de la imagen y de las reglas
-del módulo visual; una imagen válida no garantiza reconocer una vocal.
+Las pruebas del procesamiento visual se encuentran en `src/tests/`, incluyendo los casos del servicio de visión y las validaciones de entrada.

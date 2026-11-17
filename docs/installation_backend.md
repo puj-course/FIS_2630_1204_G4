@@ -1,222 +1,115 @@
-# Instalación y configuración del Backend
+# Instalación y ejecución del backend de SignIA
 
 ## Descripción general
 
-Este documento explica los pasos necesarios para configurar y ejecutar
-el backend de SignIA en un entorno local.
+El backend de SignIA está desarrollado con Python 3.12 y FastAPI. Utiliza PostgreSQL para guardar los datos, y OpenCV y MediaPipe para el reconocimiento de manos. En esta guía se describen dos formas de ponerlo en funcionamiento: ejecutarlo directamente con Python o levantarlo junto con los demás servicios mediante Docker Compose.
 
-El backend está desarrollado utilizando FastAPI con Python y utiliza
-PostgreSQL como sistema de persistencia. Además, integra módulos
-adicionales para autenticación, recuperación de contraseña y
-procesamiento mediante visión computacional.
+## Requisitos previos
 
-------------------------------------------------------------------------
+Para trabajar con el código se necesita Python 3.12, un gestor de paquetes como `pip` y una instancia de PostgreSQL accesible. Para utilizar la versión en contenedores se necesita Docker con el complemento Docker Compose. Las dependencias Python están declaradas en `requirements.txt`, que incluye `requirements-recuperacion.txt`. `requirements.lock.txt` contiene una lista de versiones fijadas disponible en el proyecto.
 
-# Requisitos previos
+## Entorno virtual e instalación
 
-Antes de iniciar la configuración del proyecto es necesario contar con:
+Desde la carpeta raíz del repositorio, en Linux o WSL:
 
--   Git.
--   Python 3.12.
--   PostgreSQL.
--   pip o uv como gestor de dependencias.
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
 
-Se recomienda utilizar un entorno virtual para evitar conflictos entre
-dependencias.
+En Windows PowerShell, con Python 3.12 instalado:
 
-------------------------------------------------------------------------
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
 
-# Configuración del entorno virtual
+La instalación de las dependencias de visión puede necesitar bibliotecas del sistema según la distribución de Linux. El Dockerfile contiene las dependencias de sistema utilizadas en la imagen del backend y puede servir como referencia.
 
-## Usando uv
+## Variables de entorno
 
-Crear entorno virtual:
+En la raíz del repositorio existe `.env.example`, que sirve como punto de partida:
 
-    uv venv
+```bash
+cp .env.example .env
+```
 
-Activar entorno virtual:
+En Windows PowerShell se puede usar `Copy-Item .env.example .env`. Después se deben completar las variables necesarias en el archivo `.env`, que permanece fuera de Git.
 
-Windows:
+| Variable | Uso |
+|---|---|
+| `DATABASE_URL` | Conexión del backend a PostgreSQL |
+| `JWT_SECRET` | Clave de firma de tokens de autenticación |
+| `JWT_EXPIRE_MINUTES` | Duración de los tokens, expresada en minutos |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Configuración del servicio PostgreSQL de Docker Compose |
+| `APRENDIZAJE_MIN_ACIERTOS` | Mínimo de aciertos para marcar una letra como aprendida; predeterminado `3` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Variables del método de envío SMTP, cuando se utiliza |
+| `MICROSOFT_CLIENT_ID`, `CORREO_TRANSPORTE`, `RECUPERACION_URL` | Configuración relacionada con el servicio de recuperación y el transporte de correo |
 
-    .venv\Scripts\activate
+No todas las variables de correo son necesarias para consultar el alfabeto o utilizar el reconocimiento. La recuperación de contraseña sí requiere que el método de envío esté configurado. Para no afectar usuarios reales, es recomendable utilizar credenciales de prueba en un entorno local.
 
-Linux:
+## Base de datos
 
-    source .venv/bin/activate
+Antes de trabajar con las rutas que guardan o consultan información, deben existir las tablas y migraciones necesarias. Si se utiliza PostgreSQL directamente, se pueden aplicar los scripts con `psql` en este orden:
 
-------------------------------------------------------------------------
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/schema.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/intentos_reconocimiento.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/migrations/agregar_resultado_a_intentos.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/seed.sql
+```
 
-# Instalación de dependencias
+Estos comandos corresponden a una base preparada para recibir la estructura desde cero. Para una base que ya existe se debe revisar qué scripts fueron aplicados antes de repetirlos. La explicación de las tablas y su creación está en [database.md](database.md).
 
-Las dependencias se encuentran en:
+## Iniciar el backend con Python
 
--   requirements.txt
--   requirements-recuperacion.txt
--   requirements.lock.txt
+Con el entorno virtual activo y desde la raíz del repositorio:
 
-Instalación usando uv:
+```bash
+python -m uvicorn app.main:app --reload
+```
 
-    uv pip install -r requirements.txt
+La API responde en `http://localhost:8000` y su documentación interactiva está disponible en `http://localhost:8000/docs`. Para comprobar que el servidor arrancó:
 
-Instalación usando pip:
+```bash
+curl http://localhost:8000/health
+```
 
-    pip install -r requirements.txt
+Este endpoint confirma que el servidor responde, pero no comprueba por sí solo que todas las operaciones de base de datos o correo estén funcionando.
 
-Para instalar versiones exactas:
+## Ejecutar los servicios con Docker Compose
 
-    pip install -r requirements.lock.txt
+El proyecto contiene un `Dockerfile` para el backend y `src/front/Dockerfile` para el frontend. El archivo `docker-compose.yml` organiza los tres servicios: PostgreSQL, backend y frontend. Una vez preparado el archivo `.env`, desde la raíz se puede ejecutar:
 
-------------------------------------------------------------------------
+```bash
+docker compose up -d --build
+```
 
-# Configuración de variables de entorno
+Los servicios estarán disponibles normalmente en `http://localhost:8000` para el backend y `http://localhost:5173` para el frontend. Para comprobar sus estados:
 
-Crear un archivo `.env` en la raíz del proyecto.
+```bash
+docker compose ps
+```
 
-Ejemplo:
+La variable `DATABASE_URL` utilizada dentro del backend debe apuntar a una base accesible desde su contenedor. Si se quiere utilizar la base PostgreSQL del mismo Compose, el host de la conexión es `postgres`, no `localhost`. Si apunta a Neon, se utiliza la cadena correspondiente a ese servicio externo, cuidando que las credenciales no sean públicas.
 
-    DATABASE_URL=
+La configuración independiente `docker-compose.validacion.yml` se utiliza para ejecutar las imágenes descargadas de Docker Hub durante las pruebas externas. Su archivo `.env.validacion.example` sirve como plantilla y no debe confundirse con el `.env` del entorno principal.
 
-    JWT_SECRET=
+## Pruebas y revisión del código
 
-    JWT_EXPIRE_MINUTES=60
+Las pruebas del backend se encuentran en `src/tests/`. Desde el entorno Python configurado se puede ejecutar:
 
-    SMTP_HOST=
-    SMTP_PORT=587
-    SMTP_SECURITY=starttls
-    SMTP_USER=
-    SMTP_PASSWORD=
-    SMTP_FROM=
+```bash
+python -m ruff check .
+python -m pytest src/tests -q
+```
 
-    RECUPERACION_URL=
+Algunas pruebas necesitan una base PostgreSQL de prueba disponible mediante `DATABASE_URL`. El workflow `.github/workflows/backend-ci.yml` prepara PostgreSQL, instala las dependencias, ejecuta Ruff y realiza las pruebas con cobertura.
 
-    MICROSOFT_CLIENT_ID=
+## Problemas frecuentes
 
-    CORREO_TRANSPORTE=graph
+Si aparece `ModuleNotFoundError`, hay que comprobar que el entorno virtual esté activo y que se instalaron las dependencias de `requirements.txt`. Si ocurre un error con `DATABASE_URL`, conviene revisar la dirección, las credenciales y si PostgreSQL está funcionando. Si falla la parte visual, deben revisarse las dependencias de OpenCV y MediaPipe y los requisitos del sistema operativo. Si la recuperación de contraseña devuelve un error de disponibilidad, es necesario revisar la configuración del transporte de correo.
 
-------------------------------------------------------------------------
-
-# Descripción de variables
-
-  Variable              Descripción
-  --------------------- -------------------------------------
-  DATABASE_URL          Conexión con PostgreSQL
-  JWT_SECRET            Clave para generación de tokens JWT
-  JWT_EXPIRE_MINUTES    Tiempo de expiración del token
-  SMTP_HOST             Servidor de correo
-  SMTP_PORT             Puerto SMTP
-  SMTP_SECURITY         Seguridad del correo
-  SMTP_USER             Usuario del servicio SMTP
-  SMTP_PASSWORD         Contraseña del servicio SMTP
-  SMTP_FROM             Correo remitente
-  RECUPERACION_URL      URL del proceso de recuperación
-  MICROSOFT_CLIENT_ID   Identificador de Microsoft Graph
-  CORREO_TRANSPORTE     Método de envío de correos
-
-------------------------------------------------------------------------
-
-# Configuración de base de datos
-
-El backend utiliza PostgreSQL.
-
-La conexión se realiza mediante:
-
-    DATABASE_URL=
-
-Los archivos iniciales de base de datos se encuentran en:
-
-    database/
-    ├── schema.sql
-    ├── seed.sql
-    └── README.md
-
-Estos archivos contienen la estructura inicial y datos de prueba.
-
-------------------------------------------------------------------------
-
-# Ejecución del backend
-
-Desde la raíz del proyecto ejecutar:
-
-    uvicorn app.main:app --reload
-
-La API estará disponible en:
-
-    http://127.0.0.1:8000
-
-La documentación automática de FastAPI estará disponible en:
-
-    http://127.0.0.1:8000/docs
-
-------------------------------------------------------------------------
-
-# Verificación de funcionamiento
-
-Después de iniciar el backend verificar:
-
-1.  Que el servidor inicie correctamente.
-2.  Que exista conexión con PostgreSQL.
-3.  Que los endpoints funcionen desde Swagger.
-4.  Que las variables de entorno estén configuradas.
-5.  Que los módulos de autenticación, recuperación y visión funcionen
-    correctamente.
-
-------------------------------------------------------------------------
-
-# Solución de problemas comunes
-
-## ModuleNotFoundError
-
-Indica que falta una dependencia.
-
-Ejecutar:
-
-    pip install -r requirements.txt
-
-o:
-
-    uv pip install -r requirements.txt
-
-------------------------------------------------------------------------
-
-## Error de conexión con PostgreSQL
-
-Verificar:
-
--   DATABASE_URL.
--   Estado del servidor PostgreSQL.
--   Credenciales de acceso.
-
-------------------------------------------------------------------------
-
-## Error en recuperación de contraseña
-
-Verificar:
-
--   SMTP_HOST.
--   SMTP_PORT.
--   SMTP_USER.
--   SMTP_PASSWORD.
--   MICROSOFT_CLIENT_ID.
--   CORREO_TRANSPORTE.
-
-------------------------------------------------------------------------
-
-## Error con módulo de visión
-
-Verificar que estén instaladas:
-
--   OpenCV.
--   MediaPipe.
-
-------------------------------------------------------------------------
-
-# Tecnologías principales
-
--   Python 3.12.
--   FastAPI.
--   PostgreSQL.
--   Psycopg.
--   JWT.
--   OpenCV.
--   MediaPipe.
--   Microsoft Graph.
+Si Docker muestra que una imagen local no existe y el comando incluye `--no-build`, hay que construirla o utilizar una imagen previamente publicada mediante la configuración adecuada. La opción `--no-build` impide crear las imágenes que faltan.
